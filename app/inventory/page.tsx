@@ -11,17 +11,8 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 
-// We keep these for fallback if DB is empty, or remove them.
-const initialProducts = [
-  { id: "PRD-001", name: "Herbal Hair Oil (200ml)", sku: "HB-HO-200", category: "Herbal", purchasePrice: 150, price: 299, stock: 145, status: "Active" },
-  { id: "PRD-002", name: "Aloe Vera Face Wash", sku: "CM-AV-100", category: "Cosmetic", purchasePrice: 80, price: 199, stock: 12, status: "Low Stock" },
-  { id: "PRD-003", name: "Organic Honey (500g)", sku: "GR-OH-500", category: "Grocery", purchasePrice: 300, price: 450, stock: 0, status: "Out of Stock" },
-  { id: "PRD-004", name: "Neem Soap Bar", sku: "HB-NS-1", category: "Wellness", purchasePrice: 30, price: 75, stock: 320, status: "Active" },
-  { id: "PRD-005", name: "Rose Water Spray", sku: "BT-RW-50", category: "Beauty", purchasePrice: 50, price: 120, stock: 85, status: "Active" },
-];
-
 export default function InventoryPage() {
-  const [products, setProducts] = useState<any[]>(initialProducts);
+  const [products, setProducts] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
