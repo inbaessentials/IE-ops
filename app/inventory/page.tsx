@@ -10,7 +10,6 @@ import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
-import { v4 as uuidv4 } from "uuid";
 
 // We keep these for fallback if DB is empty, or remove them.
 const initialProducts = [
