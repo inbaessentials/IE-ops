@@ -190,17 +190,6 @@ export default function InventoryPage() {
     }, destructive: true },
   ];
 
-  const handleSeed = async () => {
-    toast("Pushing data to Supabase...", "info");
-    const { error } = await supabase.from('products').insert(initialProducts);
-    if (error) {
-      toast(error.message, "error");
-    } else {
-      toast("Initial products synced to database!", "success");
-      fetchProducts();
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -209,9 +198,6 @@ export default function InventoryPage() {
           <p className="text-sm text-gray-500 mt-1">Manage your products, stock levels, and variants.</p>
         </div>
         <div className="flex gap-2">
-          {products.length === 0 && (
-            <Button variant="outline" onClick={handleSeed}>Seed Data</Button>
-          )}
           <Button className="gap-2" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" />
             Add Product
