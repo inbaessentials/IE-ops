@@ -20,7 +20,6 @@ const navItems = [
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Sales", href: "/sales", icon: ShoppingCart },
   { name: "Purchases", href: "/purchases", icon: Briefcase },
-  { name: "Packing", href: "/packing", icon: Truck },
   { name: "Returns", href: "/returns", icon: ArchiveRestore },
   { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Customers", href: "/customers", icon: Users },

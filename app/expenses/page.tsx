@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -9,6 +9,7 @@ import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
+import { supabase } from "@/lib/supabase";
 
 // Helper to get relative time
 const getRelativeTime = (dateStr: string) => {
@@ -28,7 +29,7 @@ export default function ExpensesPage() {
   const [editingExpense, setEditingExpense] = useState<any>(null);
   const [selectedMonth, setSelectedMonth] = useState("All Time");
   
-  const { toast } = useToast();
+  const toast = useToast();
 
   const fetchExpenses = async () => {
     const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });

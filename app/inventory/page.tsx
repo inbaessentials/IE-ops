@@ -29,7 +29,7 @@ export default function InventoryPage() {
   const toast = useToast();
 
   const fetchProducts = async () => {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('products').select('*').order('display_id', { ascending: true });
     if (data && data.length > 0) {
       setProducts(data);
     } else {
@@ -96,18 +96,18 @@ export default function InventoryPage() {
     if (editingProduct?.id) {
       const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id);
       if (!error) {
-        toast.success("Product Updated!");
+        toast("Product Updated!", "success");
         fetchProducts();
       } else {
-        toast.error("Failed to update product");
+        toast("Failed to update product", "error");
       }
     } else {
       const { error } = await supabase.from('products').insert([productData]);
       if (!error) {
-        toast.success("Product Saved!");
+        toast("Product Saved!", "success");
         fetchProducts();
       } else {
-        toast.error("Failed to save product");
+        toast("Failed to save product", "error");
       }
     }
     setIsDrawerOpen(false);
@@ -116,48 +116,97 @@ export default function InventoryPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      toast("Compressing image...", "info");
 
-      toast.info("Uploading image...");
-      
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+      // Compress image before upload
+      const compressImage = (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              const MAX_WIDTH = 800;
+              const MAX_HEIGHT = 800;
+              let width = img.width;
+              let height = img.height;
 
-      if (uploadError) {
-        toast.error("Image upload failed");
-        console.error(uploadError);
-      } else {
-        const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
-        setUploadedImage(data.publicUrl);
-        toast.success("Image uploaded!");
+              if (width > height) {
+                if (width > MAX_WIDTH) {
+                  height *= MAX_WIDTH / width;
+                  width = MAX_WIDTH;
+                }
+              } else {
+                if (height > MAX_HEIGHT) {
+                  width *= MAX_HEIGHT / height;
+                  height = MAX_HEIGHT;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx?.drawImage(img, 0, 0, width, height);
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  resolve(new File([blob], file.name, { type: "image/jpeg" }));
+                } else {
+                  reject(new Error("Compression failed"));
+                }
+              }, "image/jpeg", 0.7);
+            };
+          };
+        });
+      };
+
+      try {
+        const compressedFile = await compressImage(file);
+        
+        // Upload to Supabase Storage
+        const fileExt = compressedFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        toast("Uploading image...", "info");
+        
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, compressedFile);
+
+        if (uploadError) {
+          toast("Image upload failed", "error");
+          console.error(uploadError);
+        } else {
+          const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+          setUploadedImage(data.publicUrl);
+          toast("Image uploaded!", "success");
+        }
+      } catch (err) {
+        toast("Failed to compress image", "error");
       }
     }
   };
 
   const getDropdownItems = (product: any) => [
     { label: "Edit Product", onClick: () => handleOpenEdit(product) },
-    { label: "Adjust Stock", onClick: () => toast.info(`Adjusting stock for ${product.name}`) },
+    { label: "Adjust Stock", onClick: () => toast(`Adjusting stock for ${product.name}`, "info") },
     { label: "Delete", onClick: async () => {
       const { error } = await supabase.from('products').delete().eq('id', product.id);
       if (!error) {
-        toast.error(`Deleted ${product.name}`);
+        toast(`Deleted ${product.name}`, "error");
         fetchProducts();
       }
     }, destructive: true },
   ];
 
   const handleSeed = async () => {
-    toast.info("Pushing data to Supabase...");
+    toast("Pushing data to Supabase...", "info");
     const { error } = await supabase.from('products').insert(initialProducts);
     if (error) {
-      toast.error(error.message);
+      toast(error.message, "error");
     } else {
-      toast.success("Initial products synced to database!");
+      toast("Initial products synced to database!", "success");
       fetchProducts();
     }
   };

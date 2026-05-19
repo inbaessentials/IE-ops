@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Plus, Search, Filter } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 
+import { useToast } from "@/components/ui/Toast";
+
 export default function ReturnsPage() {
+  const toast = useToast();
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
 
   return (
@@ -43,7 +46,7 @@ export default function ReturnsPage() {
       </Card>
 
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Return Request">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert("Return Request Created!"); setIsAddDrawerOpen(false); }}>
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); toast("Return Request Created!", "success"); setIsAddDrawerOpen(false); }}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>

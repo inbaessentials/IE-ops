@@ -1,23 +1,92 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf } from "lucide-react";
+import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 
+const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
+  New: { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
+  Packed: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-500" },
+  Shipped: { bg: "bg-indigo-50/80", text: "text-indigo-700", border: "border-indigo-200", dot: "bg-indigo-500" },
+  Delivered: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
+  Cancelled: { bg: "bg-rose-50/80", text: "text-rose-700", border: "border-rose-200", dot: "bg-rose-500" },
+};
+
+function StatusDropdown({ value, onChange }: { value: string, onChange: (val: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const config = STATUS_COLORS[value] || { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", dot: "bg-gray-500" };
+
+  return (
+    <div className="relative w-36" ref={dropdownRef}>
+      <button
+        type="button"
+        className={`flex items-center justify-between w-full px-3 py-1.5 border ${config.bg} ${config.text} ${config.border} rounded-full text-xs font-bold shadow-sm transition-all focus:outline-none`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="flex items-center gap-1.5">
+          <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+          {value}
+        </span>
+        <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+          {Object.keys(STATUS_COLORS).map((status) => {
+            const opt = STATUS_COLORS[status];
+            return (
+              <button
+                key={status}
+                type="button"
+                className={`flex items-center gap-2 w-full px-3 py-2 text-left text-xs font-semibold transition-colors hover:bg-gray-50 ${value === status ? 'bg-gray-50 font-bold' : 'text-gray-700'}`}
+                onClick={() => {
+                  onChange(status);
+                  setIsOpen(false);
+                }}
+              >
+                <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
+                <span className={opt.text}>{status}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SalesPage() {
-  const { toast } = useToast();
+  const toast = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<any>(null);
   const [printingOrder, setPrintingOrder] = useState<any>(null);
   
+  // States for Courier & Tracking Info
+  const [shippingOrder, setShippingOrder] = useState<any>(null);
+  const [courierPartner, setCourierPartner] = useState("Delhivery");
+  const [trackingId, setTrackingId] = useState("");
+  const [trackingLink, setTrackingLink] = useState("");
+
   // State for Create Order
   const [newOrderCustomer, setNewOrderCustomer] = useState("");
   const [newOrderPayment, setNewOrderPayment] = useState("UPI / Online");
@@ -34,7 +103,14 @@ export default function SalesPage() {
     if (ordersData) {
       const ordersWithItems = await Promise.all(ordersData.map(async (order) => {
         const { data: itemsData } = await supabase.from('order_items').select('*').eq('order_id', order.id);
-        return { ...order, id: order.display_id, items: itemsData || [] };
+        return { 
+          ...order, 
+          id: order.display_id, 
+          items: itemsData || [],
+          courier_partner: order.courier_partner,
+          tracking_id: order.tracking_id,
+          tracking_link: order.tracking_link
+        };
       }));
       setOrders(ordersWithItems);
     }
@@ -45,6 +121,15 @@ export default function SalesPage() {
   }, []);
 
   const handleStatusChange = async (displayId: string, newStatus: string) => {
+    if (newStatus === "Shipped") {
+      const orderToShip = orders.find(o => o.id === displayId);
+      setShippingOrder(orderToShip);
+      setCourierPartner(orderToShip?.courier_partner || "Delhivery");
+      setTrackingId(orderToShip?.tracking_id || "");
+      setTrackingLink(orderToShip?.tracking_link || "");
+      return;
+    }
+
     const { error } = await supabase.from('orders').update({ status: newStatus }).eq('display_id', displayId);
     if (!error) {
       setOrders(orders.map(o => o.id === displayId ? { ...o, status: newStatus } : o));
@@ -68,7 +153,7 @@ export default function SalesPage() {
     { label: "View Details", onClick: () => setViewingOrder(order) },
     { label: "Print Invoice", onClick: () => handlePrint(order) },
     { label: "Print Packing Slip", onClick: () => handlePrint(order) },
-    { label: "Cancel Order", onClick: () => alert(`Cancelling ${order.id}`), destructive: true },
+    { label: "Cancel Order", onClick: () => toast(`Order ${order.id} cancelled`, "error"), destructive: true },
   ];
 
   const handleAddItem = () => {
@@ -181,13 +266,10 @@ export default function SalesPage() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="w-32">
-                        <Select 
-                          options={["New", "Packed", "Shipped", "Delivered", "Cancelled"]}
-                          value={order.status}
-                          onChange={(val) => handleStatusChange(order.id, val)}
-                        />
-                      </div>
+                      <StatusDropdown 
+                        value={order.status}
+                        onChange={(val) => handleStatusChange(order.id, val)}
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <DropdownMenu items={getDropdownItems(order)} />
@@ -201,7 +283,7 @@ export default function SalesPage() {
 
         {/* Create Order Drawer */}
         <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Sales Order">
-          <form className="space-y-4 pb-20" onSubmit={(e) => { e.preventDefault(); alert("Order Created!"); setIsAddDrawerOpen(false); }}>
+          <form className="space-y-4 pb-20" onSubmit={(e) => { e.preventDefault(); toast("Order Created Successfully!", "success"); setIsAddDrawerOpen(false); }}>
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Customer Details</h3>
               <div>
@@ -312,11 +394,10 @@ export default function SalesPage() {
                   <p className="text-sm text-gray-500 mt-1">{viewingOrder.date}</p>
                 </div>
                 <div className="text-right space-y-2">
-                  <Select 
-                    options={["New", "Packed", "Shipped", "Delivered", "Cancelled"]}
+                  <StatusDropdown 
                     value={viewingOrder.status}
                     onChange={(val) => {
-                      alert(`Updated ${viewingOrder.id} status to ${val}`);
+                      handleStatusChange(viewingOrder.id, val);
                       setViewingOrder({...viewingOrder, status: val});
                     }}
                   />
@@ -338,8 +419,20 @@ export default function SalesPage() {
                   <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                     <Package className="w-4 h-4 text-gray-400" /> Fulfillment
                   </h4>
-                  <p className="text-sm text-gray-700">Courier: <strong>Delhivery</strong></p>
-                  <p className="text-sm text-gray-700">AWB: <span className="text-primary cursor-pointer hover:underline">198273645</span></p>
+                  {viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered" ? (
+                    <>
+                      <p className="text-sm text-gray-700">Courier: <strong>{viewingOrder.courier_partner || "Delhivery"}</strong></p>
+                      <p className="text-sm text-gray-700 truncate">AWB: {viewingOrder.tracking_link ? (
+                        <a href={viewingOrder.tracking_link} target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">
+                          {viewingOrder.tracking_id}
+                        </a>
+                      ) : (
+                        <span className="text-gray-900 font-medium">{viewingOrder.tracking_id}</span>
+                      )}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">Not shipped yet</p>
+                  )}
                   <Button variant="outline" className="w-full mt-2 h-8 text-xs gap-1" onClick={() => handlePrint(viewingOrder)}>
                     <Printer className="w-3 h-3" /> Print Slip
                   </Button>
@@ -359,7 +452,7 @@ export default function SalesPage() {
                         </div>
                       </div>
                       <p className="text-sm font-semibold text-gray-900">
-                        ₹{parseInt(item.price.replace('₹', '')) * item.qty}
+                        {item.price}
                       </p>
                     </div>
                   ))}
@@ -383,51 +476,136 @@ export default function SalesPage() {
 
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <h4 className="text-sm font-semibold text-gray-900 mb-4">Order Timeline</h4>
-                <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+                <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent">
                   
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-green-100 text-green-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                      <CheckCircle2 className="w-5 h-5" />
+                  <div className="relative flex items-start gap-4">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-green-100 text-green-600 shadow shrink-0 z-10">
+                      <CheckCircle2 className="w-4 h-4" />
                     </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
-                      <div className="flex items-center justify-between space-x-2 mb-1">
-                        <div className="font-bold text-gray-900 text-sm">Order Placed</div>
-                        <time className="text-xs font-medium text-green-600">Today, 10:45 AM</time>
+                    <div className="flex-1 pb-4">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-semibold text-gray-900 text-sm">Order Placed</p>
+                        <span className="text-xs text-gray-500">{viewingOrder.date ? viewingOrder.date.split(',')[1] || viewingOrder.date : "Today"}</span>
                       </div>
-                      <div className="text-sm text-gray-500">Customer placed the order via Website.</div>
+                      <p className="text-xs text-gray-500">Customer placed the order.</p>
                     </div>
                   </div>
 
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                      <Package className="w-5 h-5" />
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
-                      <div className="flex items-center justify-between space-x-2 mb-1">
-                        <div className="font-bold text-gray-900 text-sm">Order Packed</div>
-                        <time className="text-xs font-medium text-gray-500">Today, 11:30 AM</time>
+                  {(viewingOrder.status === "Packed" || viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered") && (
+                    <div className="relative flex items-start gap-4">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 z-10">
+                        <Package className="w-4 h-4" />
                       </div>
-                      <div className="text-sm text-gray-500">Packing slip generated and printed.</div>
+                      <div className="flex-1 pb-4">
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="font-semibold text-gray-900 text-sm">Packed</p>
+                          <span className="text-xs text-gray-500">Today</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Packing slip generated.</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-gray-100 text-gray-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                      <Truck className="w-5 h-5" />
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-gray-100 bg-white shadow-sm opacity-50">
-                      <div className="flex items-center justify-between space-x-2 mb-1">
-                        <div className="font-bold text-gray-900 text-sm">Shipped</div>
-                        <time className="text-xs font-medium text-gray-500">Pending</time>
+                  {(viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered") && (
+                    <div className="relative flex items-start gap-4">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-indigo-100 text-indigo-600 shadow shrink-0 z-10">
+                        <Truck className="w-4 h-4" />
                       </div>
-                      <div className="text-sm text-gray-500">Awaiting courier pickup.</div>
+                      <div className="flex-1 pb-4">
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="font-semibold text-gray-900 text-sm">Shipped</p>
+                          <span className="text-xs text-gray-500">Today</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Courier partner: {viewingOrder.courier_partner || "Delhivery"} (AWB: {viewingOrder.tracking_id})</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {viewingOrder.status === "Delivered" && (
+                    <div className="relative flex items-start gap-4">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-green-100 text-green-600 shadow shrink-0 z-10">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 pb-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="font-semibold text-gray-900 text-sm">Delivered</p>
+                          <span className="text-xs text-gray-500">Today</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Order successfully handed over to customer.</p>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </div>
 
             </div>
+          )}
+        </Drawer>
+
+        {/* Courier & Tracking Details Drawer */}
+        <Drawer isOpen={!!shippingOrder} onClose={() => setShippingOrder(null)} title="Courier & Tracking Info">
+          {shippingOrder && (
+            <form className="space-y-4 pb-20" onSubmit={async (e) => {
+              e.preventDefault();
+              const { error } = await supabase.from('orders').update({
+                status: "Shipped",
+                courier_partner: courierPartner,
+                tracking_id: trackingId,
+                tracking_link: trackingLink
+              }).eq('display_id', shippingOrder.id);
+
+              if (!error) {
+                setOrders(orders.map(o => o.id === shippingOrder.id ? { 
+                  ...o, 
+                  status: "Shipped",
+                  courier_partner: courierPartner,
+                  tracking_id: trackingId,
+                  tracking_link: trackingLink
+                } : o));
+                toast("Order marked as Shipped!", "success");
+                setShippingOrder(null);
+              } else {
+                toast("Failed to update shipping info", "error");
+              }
+            }}>
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Courier Partner</label>
+                  <Select 
+                    options={["Delhivery", "Blue Dart", "DTDC", "Professional Couriers", "India Post", "Other"]}
+                    value={courierPartner}
+                    onChange={setCourierPartner}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tracking ID (AWB)</label>
+                  <input 
+                    required 
+                    type="text" 
+                    value={trackingId} 
+                    onChange={(e) => setTrackingId(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-gray-900" 
+                    placeholder="e.g. 198273645" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Link</label>
+                  <input 
+                    type="url" 
+                    value={trackingLink} 
+                    onChange={(e) => setTrackingLink(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-gray-900" 
+                    placeholder="https://track.delhivery.com/..." 
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 mt-6">
+                <Button type="button" variant="ghost" onClick={() => setShippingOrder(null)}>Cancel</Button>
+                <Button type="submit" variant="primary">Confirm Shipment</Button>
+              </div>
+            </form>
           )}
         </Drawer>
       </div>

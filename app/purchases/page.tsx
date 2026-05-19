@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Plus, Search, Filter } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 
+import { useToast } from "@/components/ui/Toast";
+
 export default function PurchasesPage() {
+  const toast = useToast();
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
 
   return (
@@ -43,7 +46,7 @@ export default function PurchasesPage() {
       </Card>
 
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Purchase Order">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert("Purchase Order Created!"); setIsAddDrawerOpen(false); }}>
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); toast("Purchase Order Created!", "success"); setIsAddDrawerOpen(false); }}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
