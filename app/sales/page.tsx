@@ -89,8 +89,12 @@ export default function SalesPage() {
 
   // State for Create Order
   const [newOrderCustomer, setNewOrderCustomer] = useState("");
+  const [newOrderPhone, setNewOrderPhone] = useState("");
+  const [newOrderAddress, setNewOrderAddress] = useState("");
   const [newOrderPayment, setNewOrderPayment] = useState("UPI / Online");
   const [newOrderItems, setNewOrderItems] = useState([{ product: "", qty: 1, price: 0 }]);
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+  const [dbCustomers, setDbCustomers] = useState<any[]>([]);
 
   const fetchOrders = async () => {
     const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
@@ -114,6 +118,49 @@ export default function SalesPage() {
       }));
       setOrders(ordersWithItems);
     }
+
+    // Fetch active products
+    const { data: productsData } = await supabase.from('products').select('name, price');
+    if (productsData) {
+      setDbProducts(productsData);
+    }
+
+    // Fetch dynamic customers list
+    let customerList: any[] = [];
+    const savedCustom = localStorage.getItem("inba_custom_customers");
+    if (savedCustom) {
+      try {
+        customerList = JSON.parse(savedCustom);
+      } catch (e) {}
+    }
+
+    if (ordersData) {
+      ordersData.forEach(o => {
+        if (o.customer && !customerList.some(c => c.name.toLowerCase() === o.customer.toLowerCase())) {
+          customerList.push({
+            name: o.customer,
+            phone: o.phone || "N/A",
+            address: o.address || "No address provided"
+          });
+        }
+      });
+    }
+
+    // Filter out deleted customers
+    let deletedKeys: string[] = [];
+    const savedDeleted = localStorage.getItem("inba_deleted_customers");
+    if (savedDeleted) {
+      try {
+        deletedKeys = JSON.parse(savedDeleted);
+      } catch (e) {}
+    }
+
+    const activeCustomers = customerList.filter(c => {
+      const key = (c.phone && c.phone !== "N/A" ? c.phone : c.name).trim().toLowerCase();
+      return !deletedKeys.includes(key);
+    });
+
+    setDbCustomers(activeCustomers);
   };
 
   useEffect(() => {
@@ -168,9 +215,102 @@ export default function SalesPage() {
     const updated = [...newOrderItems];
     updated[index] = { ...updated[index], [field]: value };
     if (field === 'product') {
-      updated[index].price = value === 'Herbal Hair Oil (200ml)' ? 299 : value === 'Aloe Vera Face Wash' ? 199 : 150;
+      const matchedProd = dbProducts.find(p => p.name === value);
+      if (matchedProd) {
+        updated[index].price = Number(matchedProd.price || 0);
+      } else {
+        updated[index].price = 0;
+      }
     }
     setNewOrderItems(updated);
+  };
+
+  const handleCustomerChange = (val: string) => {
+    setNewOrderCustomer(val);
+    const matched = dbCustomers.find(c => c.name.toLowerCase() === val.toLowerCase());
+    if (matched) {
+      setNewOrderPhone(matched.phone && matched.phone !== "N/A" ? matched.phone : "");
+      setNewOrderAddress(matched.address && matched.address !== "No address provided" ? matched.address : "");
+    }
+  };
+
+  const handleCreateOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newOrderCustomer.trim()) return;
+
+    try {
+      const totalAmount = newOrderItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.qty || 1)), 0);
+      const displayId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const newOrderObj = {
+        display_id: displayId,
+        customer: newOrderCustomer.trim(),
+        address: newOrderAddress.trim(),
+        phone: newOrderPhone.trim(),
+        amount: `₹${totalAmount.toLocaleString("en-IN")}`,
+        payment: newOrderPayment,
+        status: "New",
+        date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert(newOrderObj)
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      const itemsToInsert = newOrderItems.map(item => ({
+        order_id: orderData.id,
+        name: item.product,
+        qty: Number(item.qty || 1),
+        price: `₹${Number(item.price || 0).toLocaleString("en-IN")}`,
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(itemsToInsert);
+
+      if (itemsError) throw itemsError;
+
+      // Subtract stock from product table in Supabase
+      for (const item of newOrderItems) {
+        if (item.product) {
+          const { data: prod } = await supabase
+            .from("products")
+            .select("id, stock")
+            .eq("name", item.product)
+            .single();
+
+          if (prod) {
+            const newStock = Math.max(0, (prod.stock || 0) - Number(item.qty || 1));
+            await supabase
+              .from("products")
+              .update({ stock: newStock })
+              .eq("id", prod.id);
+          }
+        }
+      }
+
+      toast("Order Created Successfully!", "success");
+      setIsAddDrawerOpen(false);
+
+      // Reset
+      setNewOrderCustomer("");
+      setNewOrderPhone("");
+      setNewOrderAddress("");
+      setNewOrderPayment("UPI / Online");
+      setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+
+      fetchOrders();
+    } catch (err) {
+      console.error("Error creating order:", err);
+      toast("Failed to save order in database", "error");
+    }
   };
 
   const calculateTotal = () => {
@@ -283,26 +423,38 @@ export default function SalesPage() {
 
         {/* Create Order Drawer */}
         <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Sales Order">
-          <form className="space-y-4 pb-20" onSubmit={(e) => { e.preventDefault(); toast("Order Created Successfully!", "success"); setIsAddDrawerOpen(false); }}>
+          <form className="space-y-4 pb-20" onSubmit={handleCreateOrder}>
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Customer Details</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
                 <Select 
-                  options={["Rahul Sharma", "Priya Patel", "Anil Kumar"]}
+                  options={dbCustomers.map(c => c.name)}
                   value={newOrderCustomer}
-                  onChange={setNewOrderCustomer}
+                  onChange={handleCustomerChange}
                   allowCustom={true}
                   placeholder="Search or add customer name..."
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input type="tel" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="+91 98765 43210" />
+                <input 
+                  type="tel" 
+                  value={newOrderPhone}
+                  onChange={(e) => setNewOrderPhone(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                  placeholder="+91 98765 43210" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
-                <textarea rows={2} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter complete delivery address..."></textarea>
+                <textarea 
+                  rows={2} 
+                  value={newOrderAddress}
+                  onChange={(e) => setNewOrderAddress(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                  placeholder="Enter complete delivery address..."
+                ></textarea>
               </div>
             </div>
 
@@ -314,7 +466,7 @@ export default function SalesPage() {
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
                       <Select 
-                        options={["Herbal Hair Oil (200ml)", "Aloe Vera Face Wash", "Organic Honey (500g)", "Neem Soap Bar", "Rose Water Spray"]}
+                        options={dbProducts.map(p => p.name)}
                         value={item.product}
                         onChange={(val) => handleItemChange(idx, 'product', val)}
                         placeholder="Select product..."
