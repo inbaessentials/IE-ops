@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown } from "lucide-react";
+import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -274,6 +274,71 @@ export default function SalesPage() {
       console.error("Error editing order:", err);
       toast("Failed to update order in database", "error");
     }
+  const handleDeleteOrder = async (order: any) => {
+    if (!window.confirm(`Are you sure you want to permanently delete order ${order.id}?`)) {
+      return;
+    }
+
+    try {
+      // 1. Delete associated order items
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", order.db_id);
+
+      if (itemsError) throw itemsError;
+
+      // 2. Delete the order
+      const { error: orderError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", order.db_id);
+
+      if (orderError) throw orderError;
+
+      toast("Order deleted successfully!", "error");
+      fetchOrders();
+    } catch (err) {
+      console.error("Error deleting order:", err);
+      toast("Failed to delete order from database", "error");
+    }
+  };
+
+  const handleRenumberOrders = async () => {
+    if (!window.confirm("Would you like to sequentially re-number all existing sales orders in Supabase starting from ORD-0001? (This fixes order history and prints perfectly)")) {
+      return;
+    }
+    try {
+      // Fetch all orders sorted chronologically by created_at ascending
+      const { data: allOrders, error } = await supabase
+        .from("orders")
+        .select("id, display_id, created_at")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      if (!allOrders || allOrders.length === 0) {
+        toast("No orders found to re-number", "error");
+        return;
+      }
+
+      for (let i = 0; i < allOrders.length; i++) {
+        const order = allOrders[i];
+        const newDisplayId = `ORD-${String(i + 1).padStart(4, "0")}`;
+        
+        const { error: updateError } = await supabase
+          .from("orders")
+          .update({ display_id: newDisplayId })
+          .eq("id", order.id);
+
+        if (updateError) throw updateError;
+      }
+
+      toast("All orders sequentially re-numbered successfully!", "success");
+      fetchOrders();
+    } catch (err) {
+      console.error("Error re-numbering orders:", err);
+      toast("Failed to re-number orders in database", "error");
+    }
   };
 
   const getDropdownItems = (order: any) => [
@@ -282,6 +347,7 @@ export default function SalesPage() {
     { label: "Print Invoice", onClick: () => handlePrint(order) },
     { label: "Print Packing Slip", onClick: () => handlePrint(order) },
     { label: "Cancel Order", onClick: () => toast(`Order ${order.id} cancelled`, "error"), destructive: true },
+    { label: "Delete Order", onClick: () => handleDeleteOrder(order), destructive: true },
   ];
 
   const handleAddItem = () => {
@@ -321,7 +387,21 @@ export default function SalesPage() {
 
     try {
       const totalAmount = newOrderItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.qty || 1)), 0);
-      const displayId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+      
+      // Calculate next sequential display ID (e.g. ORD-0001, ORD-0002)
+      const { data: allOrders } = await supabase.from("orders").select("display_id");
+      let maxNum = 0;
+      if (allOrders) {
+        allOrders.forEach(o => {
+          const match = o.display_id?.match(/ORD-(\d+)/);
+          if (match) {
+            const num = parseInt(match[1]);
+            if (num > maxNum) maxNum = num;
+          }
+        });
+      }
+      const nextNum = maxNum + 1;
+      const displayId = `ORD-${String(nextNum).padStart(4, "0")}`;
 
       const newOrderObj = {
         display_id: displayId,
@@ -423,6 +503,10 @@ export default function SalesPage() {
               />
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" className="gap-2 text-[#2E8C13] border-[#2E8C13]/30 hover:bg-[#2E8C13]/5" onClick={handleRenumberOrders}>
+                <RefreshCw className="w-4 h-4" />
+                Fix Sequences
+              </Button>
               <Button variant="outline" className="gap-2">
                 <FileText className="w-4 h-4" />
                 Export
@@ -997,7 +1081,9 @@ export default function SalesPage() {
                       <tbody>
                         <tr>
                           <td className="w-[100px] align-middle text-center pr-4">
-                            <img src="/logo.png" alt="Inba Essentials" className="w-[80px] object-contain block mx-auto" />
+                            <div className="w-[64px] h-[64px] bg-[#2E8C13] rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl tracking-tighter shadow-sm block mx-auto print-exact">
+                              IE
+                            </div>
                           </td>
                           <td className="align-middle pl-5 border-l border-gray-100">
                             <h1 className="m-0 mb-1 text-[22px] font-bold tracking-[-0.4px] leading-[1.2] text-[#1a1a1a]">Inba Essentials</h1>
@@ -1058,25 +1144,32 @@ export default function SalesPage() {
                 </tr>
               </thead>
               <tbody>
-                {printingOrder.items.map((item: any, idx: number) => (
-                  <tr key={idx} className="even:bg-[#fafafa]">
-                    <td className="p-[14px_16px] border-b border-[#eee] text-[13px] align-middle text-center font-semibold text-[#999]">{idx + 1}</td>
-                    <td className="p-[14px_16px] border-b border-[#eee] text-[13px] align-middle text-center">
-                      <div className="w-[48px] h-[48px] mx-auto rounded-md border border-[#e5e5e5] bg-white flex items-center justify-center overflow-hidden shadow-sm">
-                        {item.image ? (
-                           <img src={item.image} alt={item.name} className="w-full h-full object-cover block" />
-                        ) : (
-                           <span className="text-[9px] font-medium text-gray-400">IMG</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-[14px_16px] border-b border-[#eee] text-[13px] align-middle text-left">
-                      <p className="m-0 text-[14px] font-bold text-[#1a1a1a] leading-[1.4]">{item.name}</p>
-                      {item.sku && <p className="m-0 mt-1 text-[11px] text-[#999] font-medium">SKU: {item.sku}</p>}
-                    </td>
-                    <td className="p-[14px_16px] border-b border-[#eee] text-[16px] align-middle text-center font-black text-[#1a1a1a]">{item.qty}</td>
-                  </tr>
-                ))}
+                {printingOrder.items.map((item: any, idx: number) => {
+                  const matchedProd = dbProducts.find(
+                    p => p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+                  );
+                  const imageUrl = matchedProd?.image_url;
+
+                  return (
+                    <tr key={idx} className="even:bg-[#fafafa]">
+                      <td className="p-[14px_16px] border-b border-[#eee] text-[13px] align-middle text-center font-semibold text-[#999]">{idx + 1}</td>
+                      <td className="p-[14px_16px] border-b border-[#eee] text-[13px] align-middle text-center">
+                        <div className="w-[48px] h-[48px] mx-auto rounded-md border border-[#e5e5e5] bg-white flex items-center justify-center overflow-hidden shadow-sm">
+                          {imageUrl ? (
+                             <img src={imageUrl} alt={item.name} className="w-full h-full object-cover block" />
+                          ) : (
+                             <span className="text-[9px] font-medium text-gray-400">IMG</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-[14px_16px] border-b border-[#eee] text-[13px] align-middle text-left">
+                        <p className="m-0 text-[14px] font-bold text-[#1a1a1a] leading-[1.4]">{item.name}</p>
+                        {item.sku && <p className="m-0 mt-1 text-[11px] text-[#999] font-medium">SKU: {item.sku}</p>}
+                      </td>
+                      <td className="p-[14px_16px] border-b border-[#eee] text-[16px] align-middle text-center font-black text-[#1a1a1a]">{item.qty}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr>
