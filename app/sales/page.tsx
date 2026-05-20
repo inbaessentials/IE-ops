@@ -274,6 +274,8 @@ export default function SalesPage() {
       console.error("Error editing order:", err);
       toast("Failed to update order in database", "error");
     }
+  };
+
   const handleDeleteOrder = async (order: any) => {
     if (!window.confirm(`Are you sure you want to permanently delete order ${order.id}?`)) {
       return;
