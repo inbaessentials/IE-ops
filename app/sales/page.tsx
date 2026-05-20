@@ -478,6 +478,22 @@ export default function SalesPage() {
     return newOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
   };
 
+  // Dynamic metrics calculation for widgets
+  const totalOrdersCount = orders.length;
+  
+  const totalRevenue = orders
+    .filter(o => o.status !== "Cancelled")
+    .reduce((sum, o) => {
+      const parsedVal = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
+      return sum + (isNaN(parsedVal) ? 0 : parsedVal);
+    }, 0);
+
+  const pendingOrdersCount = orders.filter(o => o.status === "New" || o.status === "Packed").length;
+  const completedOrdersCount = orders.filter(o => o.status === "Delivered" || o.status === "Shipped").length;
+
+  const upiCount = orders.filter(o => o.payment === "UPI / Online").length;
+  const upiPercentage = totalOrdersCount > 0 ? Math.round((upiCount / totalOrdersCount) * 100) : 0;
+
   return (
     <>
       <div className="space-y-6 print:hidden">
@@ -490,6 +506,55 @@ export default function SalesPage() {
             <Plus className="w-4 h-4" />
             Create Order
           </Button>
+        </div>
+
+        {/* Dynamic Metric Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Orders</p>
+              <h3 className="text-2xl font-extrabold text-gray-900">{totalOrdersCount}</h3>
+            </div>
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <Package className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Revenue</p>
+              <h3 className="text-2xl font-extrabold text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
+            </div>
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Leaf className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Orders</p>
+              <h3 className="text-2xl font-extrabold text-amber-600">{pendingOrdersCount}</h3>
+            </div>
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <Clock className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Shipped/Delivered</p>
+              <h3 className="text-2xl font-extrabold text-indigo-600">{completedOrdersCount}</h3>
+            </div>
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">UPI Payments</p>
+              <h3 className="text-2xl font-extrabold text-gray-900">{upiPercentage}%</h3>
+            </div>
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <CircleDot className="w-5 h-5" />
+            </div>
+          </Card>
         </div>
 
         <Card>
@@ -631,7 +696,7 @@ export default function SalesPage() {
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
                       <Select 
-                        options={dbProducts.map(p => p.name)}
+                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url }))}
                         value={item.product}
                         onChange={(val) => handleItemChange(idx, 'product', val)}
                         placeholder="Select product..."
@@ -746,7 +811,7 @@ export default function SalesPage() {
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
                       <Select 
-                        options={dbProducts.map(p => p.name)}
+                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url }))}
                         value={item.product}
                         onChange={(val) => handleItemChange(idx, 'product', val)}
                         placeholder="Select product..."

@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 
 interface SelectProps {
-  options: string[];
+  options: (string | { label: string, image?: string })[];
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
@@ -26,9 +26,22 @@ export function Select({ options, value, onChange, placeholder = "Select...", al
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(search.toLowerCase()));
+  const getLabel = (opt: string | { label: string, image?: string }) => {
+    return typeof opt === 'string' ? opt : opt.label;
+  };
+
+  const getImage = (opt: string | { label: string, image?: string }) => {
+    return typeof opt === 'string' ? undefined : opt.image;
+  };
+
+  const filteredOptions = options.filter(opt => 
+    getLabel(opt).toLowerCase().includes(search.toLowerCase())
+  );
   
   const displayValue = isOpen ? search : (value || "");
+
+  const selectedOpt = options.find(opt => getLabel(opt) === value);
+  const selectedImage = selectedOpt && typeof selectedOpt !== 'string' ? selectedOpt.image : undefined;
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -36,18 +49,23 @@ export function Select({ options, value, onChange, placeholder = "Select...", al
         className="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-text focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all"
         onClick={() => setIsOpen(true)}
       >
-        <input 
-          type="text"
-          className="w-full outline-none text-sm font-medium bg-transparent cursor-text"
-          placeholder={placeholder}
-          value={displayValue}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            if (allowCustom) onChange(e.target.value);
-            if (!isOpen) setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-        />
+        <div className="flex items-center gap-2 flex-1">
+          {selectedImage && !isOpen && (
+            <img src={selectedImage} alt={value} className="w-6 h-6 rounded object-cover border border-gray-100 flex-shrink-0" />
+          )}
+          <input 
+            type="text"
+            className="w-full outline-none text-sm font-medium bg-transparent cursor-text"
+            placeholder={placeholder}
+            value={displayValue}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (allowCustom) onChange(e.target.value);
+              if (!isOpen) setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+          />
+        </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
@@ -57,15 +75,20 @@ export function Select({ options, value, onChange, placeholder = "Select...", al
             filteredOptions.map((opt, idx) => (
               <div 
                 key={idx}
-                className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-primary/5 font-medium ${value === opt ? 'bg-primary/5 text-primary' : 'text-gray-700'}`}
+                className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-primary/5 font-medium ${value === getLabel(opt) ? 'bg-primary/5 text-primary' : 'text-gray-700'}`}
                 onClick={() => {
-                  onChange(opt);
+                  onChange(getLabel(opt));
                   setSearch("");
                   setIsOpen(false);
                 }}
               >
-                {opt}
-                {value === opt && <Check className="w-4 h-4" />}
+                <div className="flex items-center gap-3">
+                  {getImage(opt) && (
+                    <img src={getImage(opt)} alt={getLabel(opt)} className="w-8 h-8 rounded object-cover border border-gray-100 flex-shrink-0" />
+                  )}
+                  <span>{getLabel(opt)}</span>
+                </div>
+                {value === getLabel(opt) && <Check className="w-4 h-4" />}
               </div>
             ))
           ) : (
