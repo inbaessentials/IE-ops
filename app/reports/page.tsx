@@ -34,7 +34,10 @@ export default function ReportsPage() {
       // 2. Fetch Order Items
       const { data: orderItems } = await supabase.from("order_items").select("name, qty, price");
 
-      // 3. Fetch Expenses
+      // 3. Fetch Products (for purchase prices)
+      const { data: products } = await supabase.from("products").select("name, purchase_price, price");
+
+      // 4. Fetch Expenses
       const { data: expenses } = await supabase.from("expenses").select("amount, category");
 
       // Calculations
@@ -49,8 +52,33 @@ export default function ReportsPage() {
         totalExpensesSum += Number(e.amount || 0);
       });
 
+      // Map product names to purchase prices
+      const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number }> = {};
+      products?.forEach(p => {
+        if (p.name) {
+          productCostMap[p.name.trim().toLowerCase()] = {
+            purchasePrice: Number(p.purchase_price || 0),
+            sellingPrice: Number(p.price || 0)
+          };
+        }
+      });
+
+      // Calculate Gross Profit from Sales
+      let grossProfitSum = 0;
+      orderItems?.forEach(item => {
+        const prodName = (item.name || "").trim().toLowerCase();
+        const matched = productCostMap[prodName];
+        const purchasePrice = matched ? matched.purchasePrice : 0;
+        const itemQty = item.qty || 1;
+        const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+        const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
+
+        const itemProfit = (sellingPrice - purchasePrice) * itemQty;
+        grossProfitSum += itemProfit;
+      });
+
       const totalOrdersCount = orders?.length || 0;
-      const netProfitSum = Math.max(0, totalRevenueSum - totalExpensesSum);
+      const netProfitSum = Math.max(0, grossProfitSum - totalExpensesSum);
       const avgAOV = totalOrdersCount > 0 ? (totalRevenueSum / totalOrdersCount) : 0;
 
       // Group Top Performing Products

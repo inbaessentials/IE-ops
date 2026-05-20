@@ -36,11 +36,11 @@ export default function Dashboard() {
       // 1. Fetch Orders
       const { data: orders } = await supabase.from("orders").select("*");
       
-      // 2. Fetch Order Items
-      const { data: orderItems } = await supabase.from("order_items").select("qty");
+      // 2. Fetch Order Items (for sold products metadata)
+      const { data: orderItems } = await supabase.from("order_items").select("name, qty, price");
 
-      // 3. Fetch Products (for low stock check)
-      const { data: products } = await supabase.from("products").select("stock");
+      // 3. Fetch Products (for purchase prices and stock details)
+      const { data: products } = await supabase.from("products").select("name, purchase_price, price, stock");
 
       // 4. Fetch Expenses
       const { data: expenses } = await supabase.from("expenses").select("amount");
@@ -64,10 +64,33 @@ export default function Dashboard() {
         totalExpensesSum += Number(e.amount || 0);
       });
 
-      // Calculate Net Profit and Margin
-      // Net Profit is Sales minus Expenses.
-      // If expenses/sales are both 0, profit is 0.
-      const netProfitSum = Math.max(0, totalSalesSum - totalExpensesSum);
+      // Map product names to purchase prices
+      const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number }> = {};
+      products?.forEach(p => {
+        if (p.name) {
+          productCostMap[p.name.trim().toLowerCase()] = {
+            purchasePrice: Number(p.purchase_price || 0),
+            sellingPrice: Number(p.price || 0)
+          };
+        }
+      });
+
+      // Calculate Gross Profit from Sales (Selling Price - Purchase Price) * qty
+      let grossProfitSum = 0;
+      orderItems?.forEach(item => {
+        const prodName = (item.name || "").trim().toLowerCase();
+        const matched = productCostMap[prodName];
+        const purchasePrice = matched ? matched.purchasePrice : 0;
+        const itemQty = item.qty || 1;
+        const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+        const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
+
+        const itemProfit = (sellingPrice - purchasePrice) * itemQty;
+        grossProfitSum += itemProfit;
+      });
+
+      // Calculate Net Profit: Sales Gross Profit minus operational expenses
+      const netProfitSum = Math.max(0, grossProfitSum - totalExpensesSum);
       const marginPct = totalSalesSum > 0 ? ((netProfitSum / totalSalesSum) * 100) : 0;
 
       // Pending Packing orders
