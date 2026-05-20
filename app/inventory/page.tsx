@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>(["Herbal", "Cosmetic", "Grocery", "Wellness"]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -24,13 +25,21 @@ export default function InventoryPage() {
     if (data && data.length > 0) {
       setProducts(data);
     } else {
-      // If DB is empty, fallback to empty array or try to seed
       setProducts([]);
     }
   };
 
   useEffect(() => {
     fetchProducts();
+    
+    const saved = localStorage.getItem("inba_categories");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const list = parsed.map((c: any) => c.name);
+        setCategories(list);
+      } catch (e) {}
+    }
   }, []);
 
   // Removed local storage update functions
@@ -330,7 +339,7 @@ export default function InventoryPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <Select 
-                options={["Herbal", "Cosmetic", "Grocery", "Wellness", "Beauty"]} 
+                options={categories} 
                 value={editingProduct?.category || ""} 
                 onChange={(val) => setEditingProduct({...editingProduct, category: val})}
                 allowCustom={true}

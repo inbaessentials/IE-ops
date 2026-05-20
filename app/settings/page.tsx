@@ -31,12 +31,7 @@ export default function SettingsPage() {
   const [printPrices, setPrintPrices] = useState(false);
 
   // Category State
-  const [categories, setCategories] = useState([
-    { id: 1, name: "Herbal", count: 24 },
-    { id: 2, name: "Cosmetic", count: 12 },
-    { id: 3, name: "Grocery", count: 56 },
-    { id: 4, name: "Wellness", count: 8 },
-  ]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [viewingCategory, setViewingCategory] = useState<any>(null);
   
@@ -45,9 +40,65 @@ export default function SettingsPage() {
   const [editCategoryNameValue, setEditCategoryNameValue] = useState("");
   const [activeCategoryProducts, setActiveCategoryProducts] = useState<string[]>([]);
 
+  const loadCategories = async () => {
+    try {
+      let masterList = [];
+      const saved = localStorage.getItem("inba_categories");
+      if (saved) {
+        masterList = JSON.parse(saved);
+      } else {
+        masterList = [
+          { id: 1, name: "Herbal" },
+          { id: 2, name: "Cosmetic" },
+          { id: 3, name: "Grocery" },
+          { id: 4, name: "Wellness" }
+        ];
+        localStorage.setItem("inba_categories", JSON.stringify(masterList));
+      }
+
+      const { data: products } = await supabase.from("products").select("id, name, category");
+
+      const countMap: Record<string, number> = {};
+      const categoryProductsMap: Record<string, string[]> = {};
+      
+      products?.forEach(p => {
+        const cat = p.category || "Uncategorized";
+        countMap[cat] = (countMap[cat] || 0) + 1;
+        if (!categoryProductsMap[cat]) {
+          categoryProductsMap[cat] = [];
+        }
+        categoryProductsMap[cat].push(p.name);
+      });
+
+      const merged = masterList.map((cat: any) => ({
+        ...cat,
+        count: countMap[cat.name] || 0
+      }));
+
+      setCategories(merged);
+
+      if (viewingCategory) {
+        const currentCat = merged.find((c: any) => c.id === viewingCategory.id || c.name === viewingCategory.name);
+        if (currentCat) {
+          setViewingCategory(currentCat);
+          setActiveCategoryProducts(categoryProductsMap[currentCat.name] || []);
+        }
+      }
+    } catch (e) {
+      console.error("Error loading categories:", e);
+    }
+  };
+
   useEffect(() => {
     fetchSettings();
+    loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "categories") {
+      loadCategories();
+    }
+  }, [activeTab]);
 
   const fetchSettings = async () => {
     setLoading(true);
@@ -201,49 +252,91 @@ export default function SettingsPage() {
 
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
-    setCategories([...categories, { id: Date.now(), name: newCategory, count: 0 }]);
+    const name = newCategory.trim();
+    
+    const saved = localStorage.getItem("inba_categories");
+    const masterList = saved ? JSON.parse(saved) : [
+      { id: 1, name: "Herbal" },
+      { id: 2, name: "Cosmetic" },
+      { id: 3, name: "Grocery" },
+      { id: 4, name: "Wellness" }
+    ];
+
+    if (masterList.some((c: any) => c.name.toLowerCase() === name.toLowerCase())) {
+      toast("Category already exists!", "error");
+      return;
+    }
+
+    const updated = [...masterList, { id: Date.now(), name }];
+    localStorage.setItem("inba_categories", JSON.stringify(updated));
     setNewCategory("");
+    loadCategories();
+    toast("Category added successfully!", "success");
   };
 
-  const handleRenameCategory = () => {
+  const handleRenameCategory = async () => {
     if (!editCategoryNameValue.trim() || !viewingCategory) return;
     const newName = editCategoryNameValue.trim();
+    const oldName = viewingCategory.name;
+
+    const saved = localStorage.getItem("inba_categories");
+    const masterList = saved ? JSON.parse(saved) : [];
     
-    setCategories(categories.map(c => 
+    const updated = masterList.map((c: any) => 
       c.id === viewingCategory.id ? { ...c, name: newName } : c
-    ));
+    );
+    localStorage.setItem("inba_categories", JSON.stringify(updated));
+
+    toast(`Renaming category for all linked products...`, "info");
+    const { error } = await supabase
+      .from("products")
+      .update({ category: newName })
+      .eq("category", oldName);
+
+    if (!error) {
+      toast("Category renamed successfully!", "success");
+    } else {
+      toast("Category renamed in settings!", "success");
+    }
     
-    setViewingCategory({ ...viewingCategory, name: newName });
     setIsEditingCategoryName(false);
-    toast("Category renamed successfully!", "success");
+    loadCategories();
   };
 
-  const handleDeleteCategory = (catId: number, catName: string) => {
-    setCategories(categories.filter(c => c.id !== catId));
+  const handleDeleteCategory = async (catId: number, catName: string) => {
+    const saved = localStorage.getItem("inba_categories");
+    const masterList = saved ? JSON.parse(saved) : [];
+    
+    const updated = masterList.filter((c: any) => c.id !== catId);
+    localStorage.setItem("inba_categories", JSON.stringify(updated));
+
+    toast(`Removing category from all linked products...`, "info");
+    const { error } = await supabase
+      .from("products")
+      .update({ category: "" })
+      .eq("category", catName);
+
     setViewingCategory(null);
+    loadCategories();
     toast(`Category "${catName}" deleted`, "error");
   };
 
-  const handleMoveProductCategory = (prodName: string, targetCatName: string) => {
+  const handleMoveProductCategory = async (prodName: string, targetCatName: string) => {
     if (!viewingCategory) return;
     
-    setCategories(categories.map(c => {
-      if (c.id === viewingCategory.id) {
-        return { ...c, count: Math.max(0, c.count - 1) };
-      }
-      if (c.name === targetCatName) {
-        return { ...c, count: c.count + 1 };
-      }
-      return c;
-    }));
-    
-    setViewingCategory({
-      ...viewingCategory,
-      count: Math.max(0, viewingCategory.count - 1)
-    });
-    
-    setActiveCategoryProducts(activeCategoryProducts.filter(p => p !== prodName));
-    toast(`Successfully moved "${prodName}" to category "${targetCatName}"`, "success");
+    toast(`Moving product to ${targetCatName}...`, "info");
+    const { error } = await supabase
+      .from("products")
+      .update({ category: targetCatName })
+      .eq("name", prodName);
+
+    if (!error) {
+      toast(`Successfully moved "${prodName}" to category "${targetCatName}"`, "success");
+    } else {
+      toast("Failed to move product in cloud", "error");
+    }
+
+    loadCategories();
   };
 
   const tabs = [
