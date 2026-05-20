@@ -81,6 +81,13 @@ export default function SalesPage() {
   const [viewingOrder, setViewingOrder] = useState<any>(null);
   const [printingOrder, setPrintingOrder] = useState<any>(null);
   
+  // Searching & Filtering States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [viewingCustomerName, setViewingCustomerName] = useState<string | null>(null);
+  
   // States for Courier & Tracking Info
   const [shippingOrder, setShippingOrder] = useState<any>(null);
   const [courierPartner, setCourierPartner] = useState("Delhivery");
@@ -124,8 +131,8 @@ export default function SalesPage() {
       setOrders(ordersWithItems);
     }
 
-    // Fetch active products with images
-    const { data: productsData } = await supabase.from('products').select('name, price, image_url');
+    // Fetch active products with images and stock level
+    const { data: productsData } = await supabase.from('products').select('name, price, image_url, stock');
     if (productsData) {
       setDbProducts(productsData);
     }
@@ -493,8 +500,34 @@ export default function SalesPage() {
   const pendingOrdersCount = orders.filter(o => o.status === "New" || o.status === "Packed").length;
   const completedOrdersCount = orders.filter(o => o.status === "Delivered" || o.status === "Shipped").length;
 
-  const upiCount = orders.filter(o => o.payment === "UPI / Online").length;
-  const upiPercentage = totalOrdersCount > 0 ? Math.round((upiCount / totalOrdersCount) * 100) : 0;
+  // Sum up quantities of all items in all orders (excluding cancelled orders)
+  const totalItemsSold = orders
+    .filter(o => o.status !== "Cancelled")
+    .reduce((sum, o) => {
+      const itemsQty = o.items ? o.items.reduce((itemSum: number, item: any) => itemSum + (item.qty || 0), 0) : 0;
+      return sum + itemsQty;
+    }, 0);
+
+  // Dynamic filtering of orders list based on search term, status filter, and date range!
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.phone && order.phone.includes(searchTerm));
+
+    const matchesStatus = statusFilter === "All" || order.status === statusFilter;
+
+    let matchesDate = true;
+    const orderDateStr = order.created_at ? order.created_at.split('T')[0] : "";
+    if (startDate && orderDateStr && orderDateStr < startDate) {
+      matchesDate = false;
+    }
+    if (endDate && orderDateStr && orderDateStr > endDate) {
+      matchesDate = false;
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
+  });
 
   return (
     <>
@@ -512,7 +545,15 @@ export default function SalesPage() {
 
         {/* Dynamic Metric Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <Card 
+            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("All");
+              setStartDate("");
+              setEndDate("");
+            }}
+          >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Orders</p>
               <h3 className="text-2xl font-extrabold text-gray-900">{totalOrdersCount}</h3>
@@ -521,7 +562,15 @@ export default function SalesPage() {
               <Package className="w-5 h-5" />
             </div>
           </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <Card 
+            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("All");
+              setStartDate("");
+              setEndDate("");
+            }}
+          >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Revenue</p>
               <h3 className="text-2xl font-extrabold text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
@@ -530,7 +579,15 @@ export default function SalesPage() {
               <Leaf className="w-5 h-5" />
             </div>
           </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <Card 
+            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("New");
+              setStartDate("");
+              setEndDate("");
+            }}
+          >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Orders</p>
               <h3 className="text-2xl font-extrabold text-amber-600">{pendingOrdersCount}</h3>
@@ -539,7 +596,15 @@ export default function SalesPage() {
               <Clock className="w-5 h-5" />
             </div>
           </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <Card 
+            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("Shipped");
+              setStartDate("");
+              setEndDate("");
+            }}
+          >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Shipped/Delivered</p>
               <h3 className="text-2xl font-extrabold text-indigo-600">{completedOrdersCount}</h3>
@@ -548,10 +613,10 @@ export default function SalesPage() {
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/inventory'}>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">UPI Payments</p>
-              <h3 className="text-2xl font-extrabold text-gray-900">{upiPercentage}%</h3>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Items Sold</p>
+              <h3 className="text-2xl font-extrabold text-purple-600">{totalItemsSold}</h3>
             </div>
             <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
               <CircleDot className="w-5 h-5" />
@@ -560,27 +625,68 @@ export default function SalesPage() {
         </div>
 
         <Card>
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search by Order ID or Customer Name..." 
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
+          <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4 flex-1">
+              {/* Search Input */}
+              <div className="relative flex-1 min-w-[240px] max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search by Order ID, Customer, or Phone..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-medium"
+                />
+              </div>
+
+              {/* Status Select Filter */}
+              <div className="w-[160px]">
+                <Select 
+                  options={["All", "New", "Packed", "Shipped", "Delivered", "Cancelled"]}
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  placeholder="All Statuses"
+                />
+              </div>
+
+              {/* Date Range Inputs */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">From</span>
+                <input 
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 font-medium cursor-pointer"
+                />
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">To</span>
+                <input 
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 font-medium cursor-pointer"
+                />
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2 text-[#2E8C13] border-[#2E8C13]/30 hover:bg-[#2E8C13]/5" onClick={handleRenumberOrders}>
-                <RefreshCw className="w-4 h-4" />
-                Fix Sequences
-              </Button>
+
+            {/* Clear & Export Buttons */}
+            <div className="flex items-center gap-2">
+              {(searchTerm || statusFilter !== "All" || startDate || endDate) && (
+                <Button 
+                  variant="ghost" 
+                  className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setStatusFilter("All");
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
               <Button variant="outline" className="gap-2">
                 <FileText className="w-4 h-4" />
                 Export
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filter
               </Button>
             </div>
           </div>
@@ -599,7 +705,7 @@ export default function SalesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
@@ -613,7 +719,12 @@ export default function SalesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {order.customer}
+                      <button 
+                        onClick={() => setViewingCustomerName(order.customer)}
+                        className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left"
+                      >
+                        {order.customer}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col gap-1 max-w-[200px] truncate">
@@ -698,7 +809,7 @@ export default function SalesPage() {
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
                       <Select 
-                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url }))}
+                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
                         value={item.product}
                         onChange={(val) => handleItemChange(idx, 'product', val)}
                         placeholder="Select product..."
@@ -813,7 +924,7 @@ export default function SalesPage() {
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
                       <Select 
-                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url }))}
+                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
                         value={item.product}
                         onChange={(val) => handleItemChange(idx, 'product', val)}
                         placeholder="Select product..."
@@ -1123,6 +1234,130 @@ export default function SalesPage() {
               </div>
             </form>
           )}
+        </Drawer>
+
+        {/* Customer Details & History Drawer */}
+        <Drawer isOpen={!!viewingCustomerName} onClose={() => setViewingCustomerName(null)} title="Customer Profile">
+          {viewingCustomerName && (() => {
+            const customerOrders = orders.filter(o => o.customer.toLowerCase() === viewingCustomerName.toLowerCase());
+            const latestOrder = customerOrders[0];
+            const phone = latestOrder?.phone || "No phone added";
+            const address = latestOrder?.address || "No shipping address added";
+            const totalOrders = customerOrders.length;
+            const paidOrders = customerOrders.filter(o => o.payment === "Paid" || o.payment === "UPI / Online");
+            const totalSpent = customerOrders.reduce((sum, o) => {
+              const parsedVal = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
+              return sum + (isNaN(parsedVal) ? 0 : parsedVal);
+            }, 0);
+
+            return (
+              <div className="space-y-6 pb-20">
+                {/* Profile Card */}
+                <div className="bg-gradient-to-br from-[#2E8C13]/10 via-[#2E8C13]/5 to-transparent p-6 rounded-2xl border border-[#2E8C13]/10 text-center relative overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-150">
+                  <div className="relative z-10">
+                    <div className="w-16 h-16 bg-[#2E8C13] text-white font-black text-2xl flex items-center justify-center rounded-full mx-auto shadow-md border-2 border-white mb-3">
+                      {viewingCustomerName.substring(0, 2).toUpperCase()}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{viewingCustomerName}</h3>
+                    <p className="text-xs text-gray-500 font-semibold mt-1">Customer since {latestOrder?.date ? latestOrder.date.split(',')[0] : "Today"}</p>
+                  </div>
+                </div>
+
+                {/* Quick Stats Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Orders</p>
+                    <p className="text-lg font-black text-primary mt-1">{totalOrders}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Spent</p>
+                    <p className="text-lg font-black text-[#2E8C13] mt-1">₹{totalSpent.toLocaleString()}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Paid Rate</p>
+                    <p className="text-lg font-black text-indigo-600 mt-1">
+                      {totalOrders > 0 ? `${Math.round((paidOrders.length / totalOrders) * 100)}%` : "0%"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Contact & Shipping Details */}
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</h4>
+                  <div className="flex items-start gap-3">
+                    <Phone className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 font-semibold">Phone Number</p>
+                      <p className="text-sm font-semibold text-gray-900 mt-0.5">{phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 pt-3 border-t border-gray-50">
+                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-gray-400 font-semibold">Shipping Address</p>
+                      <p className="text-sm font-semibold text-gray-900 mt-0.5 leading-relaxed">{address}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order History Timeline */}
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Past Orders ({totalOrders})</h4>
+                  <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-100 before:to-transparent">
+                    {customerOrders.map((order, idx) => (
+                      <div key={order.id} className="relative flex items-start gap-4 animate-in slide-in-from-bottom-2 duration-100">
+                        <div className={`flex items-center justify-center w-9 h-9 rounded-full border-4 border-white shadow shrink-0 z-10 text-xs font-bold ${
+                          order.status === "Delivered" ? "bg-green-50 text-green-600 border-green-100" :
+                          order.status === "Shipped" ? "bg-indigo-50 text-indigo-600 border-indigo-100" :
+                          order.status === "Packed" ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-blue-50 text-blue-600 border-blue-100"
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1 pb-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <button 
+                                onClick={() => {
+                                  setViewingOrder(order);
+                                  setViewingCustomerName(null);
+                                }}
+                                className="text-sm font-bold text-primary hover:underline hover:text-[#257310] transition-all text-left"
+                              >
+                                {order.id}
+                              </button>
+                              <p className="text-xs text-gray-400 mt-0.5">{order.date}</p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-black text-gray-900">{order.amount}</span>
+                              <div className="mt-1 flex items-center justify-end gap-1">
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                  order.status === "Delivered" ? "bg-green-100 text-green-700" :
+                                  order.status === "Shipped" ? "bg-indigo-100 text-indigo-700" :
+                                  order.status === "Packed" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                                }`}>
+                                  {order.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-2 bg-gray-50/50 p-2 rounded-lg border border-gray-100">
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Items Ordered:</p>
+                            <div className="mt-1 space-y-1">
+                              {order.items.map((item: any, i: number) => (
+                                <p key={i} className="text-xs text-gray-600 font-medium">
+                                  {item.qty}x {item.name}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </Drawer>
       </div>
 

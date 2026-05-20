@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 
 interface SelectProps {
-  options: (string | { label: string, image?: string })[];
+  options: (string | { label: string, image?: string, sublabel?: string })[];
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
@@ -26,12 +26,16 @@ export function Select({ options, value, onChange, placeholder = "Select...", al
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getLabel = (opt: string | { label: string, image?: string }) => {
+  const getLabel = (opt: string | { label: string, image?: string, sublabel?: string }) => {
     return typeof opt === 'string' ? opt : opt.label;
   };
 
-  const getImage = (opt: string | { label: string, image?: string }) => {
+  const getImage = (opt: string | { label: string, image?: string, sublabel?: string }) => {
     return typeof opt === 'string' ? undefined : opt.image;
+  };
+
+  const getSublabel = (opt: string | { label: string, image?: string, sublabel?: string }) => {
+    return typeof opt === 'string' ? undefined : opt.sublabel;
   };
 
   const filteredOptions = options.filter(opt => 
@@ -55,7 +59,7 @@ export function Select({ options, value, onChange, placeholder = "Select...", al
           )}
           <input 
             type="text"
-            className="w-full outline-none text-sm font-medium bg-transparent cursor-text"
+            className="w-full outline-none text-sm font-medium bg-transparent cursor-text text-gray-900"
             placeholder={placeholder}
             value={displayValue}
             onChange={(e) => {
@@ -86,7 +90,12 @@ export function Select({ options, value, onChange, placeholder = "Select...", al
                   {getImage(opt) && (
                     <img src={getImage(opt)} alt={getLabel(opt)} className="w-8 h-8 rounded object-cover border border-gray-100 flex-shrink-0" />
                   )}
-                  <span>{getLabel(opt)}</span>
+                  <div className="flex flex-col text-left">
+                    <span className="font-semibold text-gray-800 leading-tight">{getLabel(opt)}</span>
+                    {getSublabel(opt) && (
+                      <span className="text-[11px] text-gray-400 font-normal mt-0.5 leading-none">{getSublabel(opt)}</span>
+                    )}
+                  </div>
                 </div>
                 {value === getLabel(opt) && <Check className="w-4 h-4" />}
               </div>
