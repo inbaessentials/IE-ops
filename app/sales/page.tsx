@@ -96,6 +96,10 @@ export default function SalesPage() {
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [dbCustomers, setDbCustomers] = useState<any[]>([]);
 
+  // State for Edit Order
+  const [editingOrder, setEditingOrder] = useState<any>(null);
+  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+
   const fetchOrders = async () => {
     const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
     if (ordersError) {
@@ -110,6 +114,7 @@ export default function SalesPage() {
         return { 
           ...order, 
           id: order.display_id, 
+          db_id: order.id,
           items: itemsData || [],
           courier_partner: order.courier_partner,
           tracking_id: order.tracking_id,
@@ -119,8 +124,8 @@ export default function SalesPage() {
       setOrders(ordersWithItems);
     }
 
-    // Fetch active products
-    const { data: productsData } = await supabase.from('products').select('name, price');
+    // Fetch active products with images
+    const { data: productsData } = await supabase.from('products').select('name, price, image_url');
     if (productsData) {
       setDbProducts(productsData);
     }
@@ -196,8 +201,84 @@ export default function SalesPage() {
     }, 100);
   };
 
+  const handleOpenEditOrder = (order: any) => {
+    setEditingOrder(order);
+    setNewOrderCustomer(order.customer || "");
+    setNewOrderPhone(order.phone || "");
+    setNewOrderAddress(order.address || "");
+    setNewOrderPayment(order.payment || "UPI / Online");
+    
+    if (order.items && order.items.length > 0) {
+      setNewOrderItems(order.items.map((it: any) => {
+        const parsedPrice = parseFloat((it.price || "").replace(/[^0-9.]/g, ""));
+        return {
+          product: it.name,
+          qty: it.qty || 1,
+          price: isNaN(parsedPrice) ? 0 : parsedPrice
+        };
+      }));
+    } else {
+      setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+    }
+    setIsEditDrawerOpen(true);
+  };
+
+  const handleUpdateOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOrder) return;
+    try {
+      const totalAmount = newOrderItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.qty || 1)), 0);
+
+      // 1. Update orders table in Supabase
+      const { error: orderError } = await supabase
+        .from("orders")
+        .update({
+          customer: newOrderCustomer.trim(),
+          phone: newOrderPhone.trim(),
+          address: newOrderAddress.trim(),
+          payment: newOrderPayment,
+          amount: `₹${totalAmount.toLocaleString("en-IN")}`
+        })
+        .eq("id", editingOrder.db_id);
+
+      if (orderError) throw orderError;
+
+      // 2. Delete existing items
+      const { error: deleteError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", editingOrder.db_id);
+
+      if (deleteError) throw deleteError;
+
+      // 3. Re-insert items
+      const itemsToInsert = newOrderItems.map(item => ({
+        order_id: editingOrder.db_id,
+        name: item.product,
+        qty: Number(item.qty || 1),
+        price: `₹${Number(item.price || 0).toLocaleString("en-IN")}`,
+        created_at: new Date().toISOString()
+      }));
+
+      const { error: insertError } = await supabase
+        .from("order_items")
+        .insert(itemsToInsert);
+
+      if (insertError) throw insertError;
+
+      toast("Order Updated Successfully!", "success");
+      setIsEditDrawerOpen(false);
+      setEditingOrder(null);
+      fetchOrders();
+    } catch (err) {
+      console.error("Error editing order:", err);
+      toast("Failed to update order in database", "error");
+    }
+  };
+
   const getDropdownItems = (order: any) => [
     { label: "View Details", onClick: () => setViewingOrder(order) },
+    { label: "Edit Order", onClick: () => handleOpenEditOrder(order) },
     { label: "Print Invoice", onClick: () => handlePrint(order) },
     { label: "Print Packing Slip", onClick: () => handlePrint(order) },
     { label: "Cancel Order", onClick: () => toast(`Order ${order.id} cancelled`, "error"), destructive: true },
@@ -536,6 +617,121 @@ export default function SalesPage() {
           </form>
         </Drawer>
 
+        {/* Edit Order Drawer */}
+        <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingOrder(null); }} title={editingOrder ? `Edit Order ${editingOrder.id}` : "Edit Sales Order"}>
+          <form className="space-y-4 pb-20" onSubmit={handleUpdateOrder}>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Customer Details</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                <Select 
+                  options={dbCustomers.map(c => c.name)}
+                  value={newOrderCustomer}
+                  onChange={handleCustomerChange}
+                  allowCustom={true}
+                  placeholder="Search or add customer name..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input 
+                  type="tel" 
+                  value={newOrderPhone}
+                  onChange={(e) => setNewOrderPhone(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                  placeholder="+91 98765 43210" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
+                <textarea 
+                  rows={2} 
+                  value={newOrderAddress}
+                  onChange={(e) => setNewOrderAddress(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                  placeholder="Enter complete delivery address..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Order Items</h3>
+              {newOrderItems.map((item, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+                      <Select 
+                        options={dbProducts.map(p => p.name)}
+                        value={item.product}
+                        onChange={(val) => handleItemChange(idx, 'product', val)}
+                        placeholder="Select product..."
+                      />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
+                        <input 
+                          type="number" 
+                          min={1} 
+                          value={item.qty} 
+                          onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
+                        <input 
+                          type="number" 
+                          value={item.price} 
+                          onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-100" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {newOrderItems.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveItem(idx)} className="mt-6 p-2 text-gray-400 hover:text-red-600 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              
+              <Button type="button" variant="outline" className="w-full text-xs" onClick={handleAddItem}>
+                + Add Another Item
+              </Button>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                <Select 
+                  options={["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
+                  value={newOrderPayment}
+                  onChange={setNewOrderPayment}
+                />
+              </div>
+              
+              <div className="pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center text-sm mb-1">
+                  <span className="text-gray-500">Subtotal ({newOrderItems.length} items)</span>
+                  <span className="font-medium">₹{calculateTotal()}</span>
+                </div>
+                <div className="flex justify-between items-center text-lg font-bold text-gray-900 mt-2">
+                  <span>Total Amount</span>
+                  <span className="text-primary">₹{calculateTotal()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 flex justify-end gap-3 mt-6">
+              <Button type="button" variant="ghost" onClick={() => { setIsEditDrawerOpen(false); setEditingOrder(null); }}>Cancel</Button>
+              <Button type="submit" variant="primary">Update Order</Button>
+            </div>
+          </form>
+        </Drawer>
+
         {/* View Order Drawer */}
         <Drawer isOpen={!!viewingOrder} onClose={() => setViewingOrder(null)} title="Order Details">
           {viewingOrder && (
@@ -594,20 +790,37 @@ export default function SalesPage() {
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <h4 className="text-sm font-semibold text-gray-900 mb-4">Order Items</h4>
                 <div className="space-y-3">
-                  {viewingOrder.items.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">Img</div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                          <p className="text-xs text-gray-500">Qty: {item.qty} x {item.price}</p>
+                  {viewingOrder.items.map((item: any, idx: number) => {
+                    const matchedProd = dbProducts.find(
+                      (p) => p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+                    );
+                    const imageUrl = matchedProd?.image_url;
+
+                    return (
+                      <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                        <div className="flex items-center gap-3">
+                          {imageUrl ? (
+                            <img 
+                              src={imageUrl} 
+                              alt={item.name} 
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" 
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400 font-semibold">
+                              Img
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                            <p className="text-xs text-gray-500">Qty: {item.qty} x {item.price}</p>
+                          </div>
                         </div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {item.price}
+                        </p>
                       </div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {item.price}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 
                 <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">

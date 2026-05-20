@@ -20,6 +20,12 @@ export default function InventoryPage() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const toast = useToast();
 
+  // Inventory Timeline states
+  const [activeTab, setActiveTab] = useState<"info" | "timeline">("info");
+  const [timelineEvents, setTimelineEvents] = useState<any[]>([]);
+  const [adjustQty, setAdjustQty] = useState("");
+  const [adjustReason, setAdjustReason] = useState("Restock");
+
   const fetchProducts = async () => {
     const { data, error } = await supabase.from('products').select('*').order('display_id', { ascending: true });
     if (data && data.length > 0) {
@@ -45,15 +51,77 @@ export default function InventoryPage() {
   // Removed local storage update functions
   
 
+  const fetchTimelineEvents = async (product: any) => {
+    if (!product || !product.id) return;
+    try {
+      const events: any[] = [];
+
+      // 1. Initial Creation
+      events.push({
+        date: product.created_at || new Date().toISOString(),
+        type: "Creation",
+        qty: Number(product.stock || 0),
+        title: "Product Created",
+        desc: `Product registered with initial stock of ${product.stock || 0} units.`
+      });
+
+      // 2. Query dynamic database Sales
+      const { data: salesData } = await supabase
+        .from("order_items")
+        .select("qty, created_at, orders:order_id(display_id, customer)")
+        .eq("name", product.name);
+
+      if (salesData) {
+        salesData.forEach((item: any) => {
+          const ord = item.orders;
+          events.push({
+            date: item.created_at || new Date().toISOString(),
+            type: "Sale",
+            qty: item.qty || 1,
+            title: "Stock Sold",
+            desc: `Sold ${item.qty} units to ${ord?.customer || "Customer"} via order ${ord?.display_id || "ORD"}.`
+          });
+        });
+      }
+
+      // 3. Load manual adjustments from LocalStorage
+      const savedAdjustments = localStorage.getItem(`inba_stock_adjustments_${product.id}`);
+      if (savedAdjustments) {
+        try {
+          const parsed = JSON.parse(savedAdjustments);
+          parsed.forEach((adj: any) => {
+            events.push({
+              date: adj.date,
+              type: adj.qty > 0 ? "Restock" : "Adjustment",
+              qty: Math.abs(adj.qty),
+              title: adj.qty > 0 ? "Manual Restock" : "Stock Adjustment",
+              desc: `${adj.qty > 0 ? "Added" : "Removed"} ${Math.abs(adj.qty)} units. Reason: ${adj.reason || "None"}.`
+            });
+          });
+        } catch (e) {}
+      }
+
+      // Sort chronological descending
+      events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setTimelineEvents(events);
+    } catch (err) {
+      console.error("Error loading timeline events:", err);
+    }
+  };
+
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setUploadedImage(null);
+    setActiveTab("info");
+    setTimelineEvents([]);
     setIsDrawerOpen(true);
   };
 
   const handleOpenEdit = (product: any) => {
     setEditingProduct(product);
     setUploadedImage(product.image_url || null);
+    setActiveTab("info");
+    fetchTimelineEvents(product);
     setIsDrawerOpen(true);
   };
 
@@ -188,10 +256,58 @@ export default function InventoryPage() {
     }
   };
 
+  const handleAdjustStock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct || !adjustQty) return;
+
+    const qtyVal = parseInt(adjustQty);
+    if (isNaN(qtyVal) || qtyVal === 0) return;
+
+    try {
+      const newStock = Math.max(0, (editingProduct.stock || 0) + qtyVal);
+
+      // Update Supabase stock level
+      const { error } = await supabase
+        .from("products")
+        .update({ stock: newStock })
+        .eq("id", editingProduct.id);
+
+      if (error) throw error;
+
+      // Save adjustment log to LocalStorage
+      const adjustmentKey = `inba_stock_adjustments_${editingProduct.id}`;
+      const existing = localStorage.getItem(adjustmentKey);
+      const list = existing ? JSON.parse(existing) : [];
+      list.push({
+        date: new Date().toISOString(),
+        qty: qtyVal,
+        reason: adjustReason
+      });
+      localStorage.setItem(adjustmentKey, JSON.stringify(list));
+
+      toast("Stock level adjusted successfully!", "success");
+      setAdjustQty("");
+      
+      const updatedProduct = { ...editingProduct, stock: newStock };
+      setEditingProduct(updatedProduct);
+      fetchTimelineEvents(updatedProduct);
+      fetchProducts();
+    } catch (err) {
+      console.error("Adjustment failed:", err);
+      toast("Failed to adjust stock", "error");
+    }
+  };
+
   const getDropdownItems = (product: any) => [
-    { label: "Edit Product", onClick: () => handleOpenEdit(product) },
-    { label: "Adjust Stock", onClick: () => toast(`Adjusting stock for ${product.name}`, "info") },
-    { label: "Delete", onClick: async () => {
+    { label: "Edit Details", onClick: () => handleOpenEdit(product) },
+    { label: "Stock Log & Timeline", onClick: () => {
+      setEditingProduct(product);
+      setUploadedImage(product.image_url || null);
+      setActiveTab("timeline");
+      fetchTimelineEvents(product);
+      setIsDrawerOpen(true);
+    }},
+    { label: "Delete Product", onClick: async () => {
       const { error } = await supabase.from('products').delete().eq('id', product.id);
       if (!error) {
         toast(`Deleted ${product.name}`, "error");
@@ -297,90 +413,183 @@ export default function InventoryPage() {
       <Drawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
-        title={editingProduct?.id ? "Edit Product" : "Add New Product"}
+        title={editingProduct?.id ? `${editingProduct.name}` : "Add New Product"}
       >
-        <form className="space-y-4 pb-10" onSubmit={handleSaveProduct}>
-          
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Product Image</h3>
+        {editingProduct?.id && (
+          <div className="flex gap-2 border-b border-gray-100 pb-3 mb-4">
+            <button
+              type="button"
+              onClick={() => setActiveTab("info")}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                activeTab === "info"
+                  ? "bg-[#2E8C13]/10 text-[#2E8C13]"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              Product Info
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("timeline")}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                activeTab === "timeline"
+                  ? "bg-[#2E8C13]/10 text-[#2E8C13]"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              Stock Log & Timeline
+            </button>
+          </div>
+        )}
+
+        {activeTab === "info" ? (
+          <form className="space-y-4 pb-10" onSubmit={handleSaveProduct}>
             
-            <div className="flex items-center gap-4">
-              <div className="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden group">
-                {uploadedImage ? (
-                  <>
-                    <img src={uploadedImage} alt="Product preview" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => setUploadedImage(null)} className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
-                      <X className="w-5 h-5 text-white" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="text-center text-gray-400">
-                    <ImagePlus className="w-6 h-6 mx-auto mb-1" />
-                    <span className="text-[10px] font-medium">Upload</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-500 mb-2">Upload a square image (1:1 ratio). Recommended size is 500x500px.</p>
-                <input type="file" id="productImage" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                <label htmlFor="productImage" className="inline-flex px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
-                  Choose File
-                </label>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">Product Image</h3>
+              
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden group">
+                  {uploadedImage ? (
+                    <>
+                      <img src={uploadedImage} alt="Product preview" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setUploadedImage(null)} className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
+                        <X className="w-5 h-5 text-white" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-center text-gray-400">
+                      <ImagePlus className="w-6 h-6 mx-auto mb-1" />
+                      <span className="text-[10px] font-medium">Upload</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500 mb-2">Upload a square image (1:1 ratio). Recommended size is 500x500px.</p>
+                  <input type="file" id="productImage" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                  <label htmlFor="productImage" className="inline-flex px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                    Choose File
+                  </label>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900">Basic Info</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-              <input required type="text" value={editingProduct?.name || ""} onChange={handleNameChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="e.g. Herbal Face Wash" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <Select 
-                options={categories} 
-                value={editingProduct?.category || ""} 
-                onChange={(val) => setEditingProduct({...editingProduct, category: val})}
-                allowCustom={true}
-                placeholder="Type or select..."
-              />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900">Pricing & Inventory</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Basic Info</h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price (₹)</label>
-                <input required type="number" value={editingProduct?.purchase_price || ""} onChange={(e) => setEditingProduct({...editingProduct, purchase_price: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0.00" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input required type="text" value={editingProduct?.name || ""} onChange={handleNameChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="e.g. Herbal Face Wash" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (₹)</label>
-                <input required type="number" value={editingProduct?.price || ""} onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0.00" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stock Level</label>
-                <input required type="number" value={editingProduct?.stock || ""} onChange={(e) => setEditingProduct({...editingProduct, stock: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <Select 
-                  options={["Active", "Inactive", "Low Stock", "Out of Stock"]} 
-                  value={editingProduct?.status || "Active"} 
-                  onChange={(val) => setEditingProduct({...editingProduct, status: val})}
+                  options={categories} 
+                  value={editingProduct?.category || ""} 
+                  onChange={(val) => setEditingProduct({...editingProduct, category: val})}
+                  allowCustom={true}
+                  placeholder="Type or select..."
                 />
               </div>
             </div>
-          </div>
 
-          <div className="pt-4 flex justify-end gap-3 mt-6">
-            <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">{editingProduct?.id ? "Update Product" : "Save Product"}</Button>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Pricing & Inventory</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price (₹)</label>
+                  <input required type="number" value={editingProduct?.purchase_price || ""} onChange={(e) => setEditingProduct({...editingProduct, purchase_price: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0.00" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (₹)</label>
+                  <input required type="number" value={editingProduct?.price || ""} onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0.00" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Level</label>
+                  <input required type="number" value={editingProduct?.stock || ""} onChange={(e) => setEditingProduct({...editingProduct, stock: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <Select 
+                    options={["Active", "Inactive", "Low Stock", "Out of Stock"]} 
+                    value={editingProduct?.status || "Active"} 
+                    onChange={(val) => setEditingProduct({...editingProduct, status: val})}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 flex justify-end gap-3 mt-6">
+              <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="primary">{editingProduct?.id ? "Update Product" : "Save Product"}</Button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-6 pb-10">
+            {/* Quick adjust Form */}
+            <form onSubmit={handleAdjustStock} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h4 className="text-sm font-bold text-gray-900">Adjust Stock Level</h4>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Quantity</label>
+                  <input 
+                    required 
+                    type="number" 
+                    value={adjustQty}
+                    onChange={(e) => setAdjustQty(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                    placeholder="e.g. +10 or -5" 
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Reason</label>
+                  <Select 
+                    options={["Restock", "Damaged", "Missing", "Correction"]}
+                    value={adjustReason}
+                    onChange={setAdjustReason}
+                  />
+                </div>
+              </div>
+              <Button type="submit" variant="primary" className="w-full text-xs font-semibold py-2">
+                Apply Stock Adjustment
+              </Button>
+            </form>
+
+            {/* Vertical Timeline */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+              <h4 className="text-sm font-bold text-gray-900 mb-4">Stock Ledger Timeline</h4>
+              {timelineEvents.length > 0 ? (
+                <div className="relative border-l border-gray-200 pl-4 ml-2 space-y-6 py-2">
+                  {timelineEvents.map((evt, idx) => (
+                    <div key={idx} className="relative">
+                      <div className={`absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                        evt.type === 'Sale' ? 'bg-orange-500' :
+                        evt.type === 'Restock' ? 'bg-[#2E8C13]' : 'bg-blue-500'
+                      }`} />
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-bold text-gray-900">{evt.title}</span>
+                        <span className="text-gray-400 font-semibold">
+                          {new Date(evt.date).toLocaleDateString('en-IN', { 
+                            day: 'numeric', 
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 font-medium leading-relaxed">{evt.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 font-medium italic text-center py-6">
+                  No stock history recorded yet.
+                </p>
+              )}
+            </div>
           </div>
-        </form>
+        )}
       </Drawer>
     </div>
   );
