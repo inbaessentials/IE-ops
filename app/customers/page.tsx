@@ -467,7 +467,7 @@ export default function CustomersPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium text-gray-900 mb-1">{order.amount}</p>
-                          <Badge variant={order.status === "Delivered" ? "success" : order.status === "Shipped" ? "primary" : "warning"}>
+                          <Badge variant={order.status === "Delivered" ? "success" : order.status === "Shipped" ? "default" : "warning"}>
                             {order.status}
                           </Badge>
                         </div>
