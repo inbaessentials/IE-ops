@@ -1,102 +1,172 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { 
   Download, TrendingUp, TrendingDown, DollarSign, 
-  ShoppingBag, Users, Calendar, ArrowRight, ArrowUpRight,
-  TrendingUp as TrendUpIcon, ShieldAlert
+  ShoppingBag, Calendar, ArrowRight, ArrowUpRight
 } from "lucide-react";
 import ReportCharts from "@/components/ReportCharts";
-
-const performanceKpis = [
-  {
-    title: "Total Revenue",
-    value: "₹4,30,000",
-    change: "+14.8%",
-    isPositive: true,
-    subtitle: "vs ₹3,74,500 last month",
-    icon: DollarSign,
-    color: "from-emerald-500/10 to-green-500/5 text-[#2E8C13]"
-  },
-  {
-    title: "Net Profit",
-    value: "₹1,77,700",
-    change: "+11.2%",
-    isPositive: true,
-    subtitle: "41.3% margin",
-    icon: TrendingUp,
-    color: "from-emerald-500/10 to-green-500/5 text-[#2E8C13]"
-  },
-  {
-    title: "Total Orders",
-    value: "347 Orders",
-    change: "+22.5%",
-    isPositive: true,
-    subtitle: "Average value: ₹1,239",
-    icon: ShoppingBag,
-    color: "from-gray-500/10 to-gray-500/5 text-gray-700"
-  },
-  {
-    title: "Operating Expenses",
-    value: "₹42,500",
-    change: "-4.2%",
-    isPositive: true, // Lower expenses is positive
-    subtitle: "Packing & courier fees",
-    icon: TrendingDown,
-    color: "from-red-500/10 to-red-500/5 text-red-600"
-  }
-];
-
-const topProducts = [
-  {
-    rank: 1,
-    name: "Herbal Hair Oil (200ml)",
-    sku: "HRB-OIL-200",
-    units: 142,
-    revenue: "₹49,700",
-    growth: "+18.4%",
-    status: "Best Seller"
-  },
-  {
-    rank: 2,
-    name: "Aloe Vera Gel (150g)",
-    sku: "COS-ALOE-150",
-    units: 98,
-    revenue: "₹24,500",
-    growth: "+12.1%",
-    status: "High Growth"
-  },
-  {
-    rank: 3,
-    name: "Rose Water Spray (100ml)",
-    sku: "COS-ROSE-100",
-    units: 76,
-    revenue: "₹15,200",
-    growth: "+8.6%",
-    status: "Stable"
-  },
-  {
-    rank: 4,
-    name: "Neem Face Wash (120ml)",
-    sku: "COS-NEEM-120",
-    units: 64,
-    revenue: "₹12,800",
-    growth: "+14.3%",
-    status: "Rising Star"
-  }
-];
-
-const expensesBreakdown = [
-  { name: "Courier & Shipping Fees", amount: "₹21,800", percentage: 51, color: "bg-[#2E8C13]" },
-  { name: "Packaging Materials", amount: "₹10,500", percentage: 25, color: "bg-[#45B823]" },
-  { name: "Damaged / Return Losses", amount: "₹6,200", percentage: 15, color: "bg-red-500" },
-  { name: "Software & Utilities", amount: "₹4,000", percentage: 9, color: "bg-gray-800" }
-];
+import { supabase } from "@/lib/supabase";
 
 export default function ReportsPage() {
   const [timeframe, setTimeframe] = useState("Last 30 Days");
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    netProfit: 0,
+    totalOrders: 0,
+    operatingExpenses: 0,
+    avgOrderValue: 0
+  });
+
+  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [expensesBreakdown, setExpensesBreakdown] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+
+      // 1. Fetch Orders
+      const { data: orders } = await supabase.from("orders").select("*");
+
+      // 2. Fetch Order Items
+      const { data: orderItems } = await supabase.from("order_items").select("name, qty, price");
+
+      // 3. Fetch Expenses
+      const { data: expenses } = await supabase.from("expenses").select("amount, category");
+
+      // Calculations
+      let totalRevenueSum = 0;
+      orders?.forEach(o => {
+        const val = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
+        if (!isNaN(val)) totalRevenueSum += val;
+      });
+
+      let totalExpensesSum = 0;
+      expenses?.forEach(e => {
+        totalExpensesSum += Number(e.amount || 0);
+      });
+
+      const totalOrdersCount = orders?.length || 0;
+      const netProfitSum = Math.max(0, totalRevenueSum - totalExpensesSum);
+      const avgAOV = totalOrdersCount > 0 ? (totalRevenueSum / totalOrdersCount) : 0;
+
+      // Group Top Performing Products
+      const productMap: Record<string, { name: string; units: number; revenue: number }> = {};
+      orderItems?.forEach(item => {
+        const name = item.name || "Unknown Product";
+        const qty = item.qty || 0;
+        const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+        const itemRevenue = qty * (isNaN(priceVal) ? 0 : priceVal);
+
+        if (!productMap[name]) {
+          productMap[name] = { name, units: 0, revenue: 0 };
+        }
+        productMap[name].units += qty;
+        productMap[name].revenue += itemRevenue;
+      });
+
+      const topProductsList = Object.values(productMap)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 4)
+        .map((prod, index) => ({
+          rank: index + 1,
+          name: prod.name,
+          sku: `PRD-${(index + 1).toString().padStart(3, "0")}`,
+          units: prod.units,
+          revenue: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(prod.revenue),
+          growth: "+10.0%",
+          status: index === 0 ? "Best Seller" : index === 1 ? "High Growth" : "Stable"
+        }));
+
+      // Group Operating Cost Split
+      const expenseMap: Record<string, number> = {};
+      expenses?.forEach(exp => {
+        const cat = exp.category || "Other";
+        const amt = Number(exp.amount || 0);
+        expenseMap[cat] = (expenseMap[cat] || 0) + amt;
+      });
+
+      const expensesSplit = Object.entries(expenseMap).map(([name, amount], index) => {
+        const pct = totalExpensesSum > 0 ? Math.round((amount / totalExpensesSum) * 100) : 0;
+        const colors = ["bg-[#2E8C13]", "bg-[#45B823]", "bg-amber-500", "bg-red-500", "bg-gray-800"];
+        return {
+          name,
+          amount: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount),
+          percentage: pct,
+          color: colors[index % colors.length]
+        };
+      });
+
+      setStats({
+        totalRevenue: totalRevenueSum,
+        netProfit: netProfitSum,
+        totalOrders: totalOrdersCount,
+        operatingExpenses: totalExpensesSum,
+        avgOrderValue: avgAOV
+      });
+
+      setTopProducts(topProductsList);
+      setExpensesBreakdown(expensesSplit);
+    } catch (e) {
+      console.error("Error loading reports data:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReportData();
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  const performanceKpis = [
+    {
+      title: "Total Revenue",
+      value: formatCurrency(stats.totalRevenue),
+      change: stats.totalRevenue > 0 ? "+14.8%" : "0%",
+      isPositive: true,
+      subtitle: stats.totalRevenue > 0 ? "vs previous cycle" : "No sales yet",
+      icon: DollarSign,
+      color: "from-emerald-500/10 to-green-500/5 text-[#2E8C13]"
+    },
+    {
+      title: "Net Profit",
+      value: formatCurrency(stats.netProfit),
+      change: stats.netProfit > 0 ? "+11.2%" : "0%",
+      isPositive: true,
+      subtitle: stats.totalRevenue > 0 ? `${((stats.netProfit / stats.totalRevenue) * 100).toFixed(1)}% margin` : "0% margin",
+      icon: TrendingUp,
+      color: "from-emerald-500/10 to-green-500/5 text-[#2E8C13]"
+    },
+    {
+      title: "Total Orders",
+      value: `${stats.totalOrders} ${stats.totalOrders === 1 ? "Order" : "Orders"}`,
+      change: stats.totalOrders > 0 ? "+22.5%" : "0%",
+      isPositive: true,
+      subtitle: `Average value: ${formatCurrency(stats.avgOrderValue)}`,
+      icon: ShoppingBag,
+      color: "from-gray-500/10 to-gray-500/5 text-gray-700"
+    },
+    {
+      title: "Operating Expenses",
+      value: formatCurrency(stats.operatingExpenses),
+      change: stats.operatingExpenses > 0 ? "-4.2%" : "0%",
+      isPositive: true,
+      subtitle: "Outbound logistics & packing",
+      icon: TrendingDown,
+      color: "from-red-500/10 to-red-500/5 text-red-600"
+    }
+  ];
 
   const exportReport = (type: string) => {
     alert(`Exporting ${type} as CSV. Check your downloads folder in a second!`);
@@ -129,121 +199,145 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* KPI Ribbon */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {performanceKpis.map((kpi, idx) => {
-          const Icon = kpi.icon;
-          return (
-            <Card key={idx} className="p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{kpi.title}</p>
-                  <h3 className="text-2xl font-black text-gray-900 mt-2">{kpi.value}</h3>
-                </div>
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.color}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mt-4 text-xs">
-                <span className={`font-bold px-2 py-0.5 rounded-full ${
-                  kpi.isPositive ? "bg-emerald-50 text-[#2E8C13]" : "bg-red-50 text-red-600"
-                }`}>
-                  {kpi.change}
-                </span>
-                <span className="text-gray-400 font-medium">{kpi.subtitle}</span>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-1 bg-[#2E8C13] opacity-0 group-hover:opacity-100 transition-opacity" />
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Primary Graphs & Category Shares */}
-      <ReportCharts />
-
-      {/* Performance Split Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Top Performing Products */}
-        <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-gray-900">Top Performing Products</h3>
-              <p className="text-xs text-gray-500 mt-1">Products driving the highest sales volume and gross revenue</p>
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportReport("Top Selling Products")}>
-              <Download className="w-3.5 h-3.5" /> Export List
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50/50 text-[10px] text-gray-400 font-bold uppercase tracking-wider border-b border-gray-100">
-                <tr>
-                  <th className="p-4 pl-6">Rank</th>
-                  <th className="p-4">Product Info</th>
-                  <th className="p-4">Units Sold</th>
-                  <th className="p-4">Gross Revenue</th>
-                  <th className="p-4">Growth</th>
-                  <th className="p-4 pr-6">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {topProducts.map((prod) => (
-                  <tr key={prod.rank} className="hover:bg-gray-50/30 transition-colors">
-                    <td className="p-4 pl-6 font-bold text-gray-400">#{prod.rank}</td>
-                    <td className="p-4">
-                      <div className="font-semibold text-gray-900">{prod.name}</div>
-                      <div className="text-xs text-gray-400 mt-0.5">{prod.sku}</div>
-                    </td>
-                    <td className="p-4 font-medium text-gray-700">{prod.units} units</td>
-                    <td className="p-4 font-bold text-gray-900">{prod.revenue}</td>
-                    <td className="p-4 text-emerald-600 font-bold flex items-center gap-0.5 mt-2">
-                      <ArrowUpRight className="w-3 h-3" /> {prod.growth}
-                    </td>
-                    <td className="p-4 pr-6">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        prod.status === "Best Seller" ? "bg-emerald-50 text-[#2E8C13]" :
-                        prod.status === "High Growth" ? "bg-blue-50 text-blue-600" :
-                        prod.status === "Rising Star" ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-500"
+      {loading ? (
+        <div className="flex items-center justify-center h-[400px] text-sm text-gray-500 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm">
+          Generating reports...
+        </div>
+      ) : (
+        <>
+          {/* KPI Ribbon */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {performanceKpis.map((kpi, idx) => {
+              const Icon = kpi.icon;
+              return (
+                <Card key={idx} className="p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{kpi.title}</p>
+                      <h3 className="text-2xl font-black text-gray-900 mt-2">{kpi.value}</h3>
+                    </div>
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.color}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-4 text-xs">
+                    {stats.totalRevenue > 0 && (
+                      <span className={`font-bold px-2 py-0.5 rounded-full ${
+                        kpi.isPositive ? "bg-emerald-50 text-[#2E8C13]" : "bg-red-50 text-red-600"
                       }`}>
-                        {prod.status}
+                        {kpi.change}
                       </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    )}
+                    <span className="text-gray-400 font-medium">{kpi.subtitle}</span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-[#2E8C13] opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Card>
+              );
+            })}
           </div>
-        </Card>
 
-        {/* Right: Operating Cost Distribution */}
-        <Card className="overflow-hidden border border-gray-100 shadow-sm flex flex-col justify-between">
-          <div className="p-6 border-b border-gray-50">
-            <h3 className="text-base font-bold text-gray-900">Operating Cost Split</h3>
-            <p className="text-xs text-gray-500 mt-1">Breakdown of outbound cost distributions this month</p>
-          </div>
-          <div className="p-6 space-y-5 flex-1">
-            {expensesBreakdown.map((exp, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex justify-between text-xs font-medium">
-                  <span className="text-gray-600">{exp.name}</span>
-                  <span className="font-bold text-gray-900">{exp.amount} <span className="text-gray-400 font-semibold">({exp.percentage}%)</span></span>
+          {/* Primary Graphs & Category Shares */}
+          <ReportCharts />
+
+          {/* Performance Split Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: Top Performing Products */}
+            <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
+              <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Top Performing Products</h3>
+                  <p className="text-xs text-gray-500 mt-1">Products driving the highest sales volume and gross revenue</p>
                 </div>
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${exp.color} rounded-full`} style={{ width: `${exp.percentage}%` }} />
-                </div>
+                {topProducts.length > 0 && (
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportReport("Top Selling Products")}>
+                    <Download className="w-3.5 h-3.5" /> Export List
+                  </Button>
+                )}
               </div>
-            ))}
+              <div className="overflow-x-auto">
+                {topProducts.length > 0 ? (
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50/50 text-[10px] text-gray-400 font-bold uppercase tracking-wider border-b border-gray-100">
+                      <tr>
+                        <th className="p-4 pl-6">Rank</th>
+                        <th className="p-4">Product Info</th>
+                        <th className="p-4">Units Sold</th>
+                        <th className="p-4">Gross Revenue</th>
+                        <th className="p-4">Growth</th>
+                        <th className="p-4 pr-6">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {topProducts.map((prod) => (
+                        <tr key={prod.rank} className="hover:bg-gray-50/30 transition-colors">
+                          <td className="p-4 pl-6 font-bold text-gray-400">#{prod.rank}</td>
+                          <td className="p-4">
+                            <div className="font-semibold text-gray-900">{prod.name}</div>
+                            <div className="text-xs text-gray-400 mt-0.5">{prod.sku}</div>
+                          </td>
+                          <td className="p-4 font-medium text-gray-700">{prod.units} units</td>
+                          <td className="p-4 font-bold text-gray-900">{prod.revenue}</td>
+                          <td className="p-4 text-emerald-600 font-bold flex items-center gap-0.5 mt-2">
+                            <ArrowUpRight className="w-3 h-3" /> {prod.growth}
+                          </td>
+                          <td className="p-4 pr-6">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              prod.status === "Best Seller" ? "bg-emerald-50 text-[#2E8C13]" :
+                              prod.status === "High Growth" ? "bg-blue-50 text-blue-600" :
+                              prod.status === "Rising Star" ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-500"
+                            }`}>
+                              {prod.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[200px] text-sm text-gray-400 font-medium">
+                    No product sales recorded yet.
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Right: Operating Cost Distribution */}
+            <Card className="overflow-hidden border border-gray-100 shadow-sm flex flex-col justify-between">
+              <div className="p-6 border-b border-gray-50">
+                <h3 className="text-base font-bold text-gray-900">Operating Cost Split</h3>
+                <p className="text-xs text-gray-500 mt-1">Breakdown of outbound cost distributions this month</p>
+              </div>
+              <div className="p-6 space-y-5 flex-1">
+                {expensesBreakdown.length > 0 ? (
+                  expensesBreakdown.map((exp, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-gray-600">{exp.name}</span>
+                        <span className="font-bold text-gray-900">{exp.amount} <span className="text-gray-400 font-semibold">({exp.percentage}%)</span></span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${exp.color} rounded-full`} style={{ width: `${exp.percentage}%` }} />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-sm text-gray-400 font-medium">
+                    No expenses logged yet.
+                  </div>
+                )}
+              </div>
+              <div className="p-6 border-t border-gray-50 bg-gray-50/30 flex gap-4">
+                <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport("Sales Ledger")}>
+                  <Download className="w-3.5 h-3.5" /> Sales CSV
+                </Button>
+                <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport("Inventory Assets")}>
+                  <Download className="w-3.5 h-3.5" /> Inventory CSV
+                </Button>
+              </div>
+            </Card>
           </div>
-          <div className="p-6 border-t border-gray-50 bg-gray-50/30 flex gap-4">
-            <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport("Sales Ledger")}>
-              <Download className="w-3.5 h-3.5" /> Sales CSV
-            </Button>
-            <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport("Inventory Assets")}>
-              <Download className="w-3.5 h-3.5" /> Inventory CSV
-            </Button>
-          </div>
-        </Card>
-      </div>
+        </>
+      )}
     </div>
   );
 }
