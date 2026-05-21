@@ -759,16 +759,27 @@ export default function SettingsPage() {
       <Drawer isOpen={!!viewingCategory} onClose={() => setViewingCategory(null)} title="Category Details">
         {viewingCategory && (
           <div className="space-y-6 pb-20">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              {/* Top Badge & Action Bar */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">Master Category</span>
+                <button 
+                  onClick={() => handleDeleteCategory(viewingCategory.id, viewingCategory.name)}
+                  className="text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Category
+                </button>
+              </div>
+
+              {/* Title & Edit Row */}
               <div>
-                <p className="text-xs font-bold text-gray-400 tracking-wider uppercase mb-1">Master Category</p>
                 {isEditingCategoryName ? (
                   <div className="flex items-center gap-2 mt-1">
                     <input 
                       type="text" 
                       value={editCategoryNameValue} 
                       onChange={(e) => setEditCategoryNameValue(e.target.value)} 
-                      className="px-3 py-1 border border-gray-200 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900"
+                      className="px-3 py-1 border border-gray-200 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900 w-full max-w-xs"
                       autoFocus
                       onKeyDown={(e) => e.key === "Enter" && handleRenameCategory()}
                     />
@@ -776,28 +787,26 @@ export default function SettingsPage() {
                     <Button size="sm" variant="ghost" className="text-gray-400 hover:text-gray-600" onClick={() => setIsEditingCategoryName(false)}>Cancel</Button>
                   </div>
                 ) : (
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    {viewingCategory.name}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
+                        {viewingCategory.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">{viewingCategory.count} active products</p>
+                    </div>
                     <button 
                       onClick={() => {
                         setIsEditingCategoryName(true);
                         setEditCategoryNameValue(viewingCategory.name);
                       }}
-                      className="text-gray-400 hover:text-primary transition-colors"
+                      className="text-gray-400 hover:text-primary transition-colors p-2 hover:bg-gray-50 rounded-lg shrink-0"
+                      title="Edit Category Name"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                  </h3>
+                  </div>
                 )}
-                <p className="text-sm text-gray-500 mt-1">{viewingCategory.count} active products</p>
               </div>
-              <Button 
-                variant="outline" 
-                className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
-                onClick={() => handleDeleteCategory(viewingCategory.id, viewingCategory.name)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" /> Delete Category
-              </Button>
             </div>
 
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -846,16 +855,27 @@ export default function SettingsPage() {
       <Drawer isOpen={!!viewingSupplier} onClose={() => setViewingSupplier(null)} title="Supplier Details">
         {viewingSupplier && (
           <div className="space-y-6 pb-20">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              {/* Top Badge & Action Bar */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">Master Supplier</span>
+                <button 
+                  onClick={() => handleDeleteSupplier(viewingSupplier.id, viewingSupplier.name)}
+                  className="text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Supplier
+                </button>
+              </div>
+
+              {/* Title & Edit Row */}
               <div>
-                <p className="text-xs font-bold text-gray-400 tracking-wider uppercase mb-1">Master Supplier</p>
                 {isEditingSupplierName ? (
                   <div className="flex items-center gap-2 mt-1">
                     <input 
                       type="text" 
                       value={editSupplierNameValue} 
                       onChange={(e) => setEditSupplierNameValue(e.target.value)} 
-                      className="px-3 py-1 border border-gray-200 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900"
+                      className="px-3 py-1 border border-gray-200 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900 w-full max-w-xs"
                       autoFocus
                       onKeyDown={(e) => e.key === "Enter" && handleRenameSupplier()}
                     />
@@ -863,27 +883,23 @@ export default function SettingsPage() {
                     <Button size="sm" variant="ghost" className="text-gray-400 hover:text-gray-600" onClick={() => setIsEditingSupplierName(false)}>Cancel</Button>
                   </div>
                 ) : (
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    {viewingSupplier.name}
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
+                      {viewingSupplier.name}
+                    </h3>
                     <button 
                       onClick={() => {
                         setIsEditingSupplierName(true);
                         setEditSupplierNameValue(viewingSupplier.name);
                       }}
-                      className="text-gray-400 hover:text-primary transition-colors"
+                      className="text-gray-400 hover:text-primary transition-colors p-2 hover:bg-gray-50 rounded-lg shrink-0"
+                      title="Edit Supplier Name"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                  </h3>
+                  </div>
                 )}
               </div>
-              <Button 
-                variant="outline" 
-                className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
-                onClick={() => handleDeleteSupplier(viewingSupplier.id, viewingSupplier.name)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" /> Delete Supplier
-              </Button>
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
