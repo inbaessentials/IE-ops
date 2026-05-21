@@ -273,7 +273,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{kpi.title}</p>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <h3 className="text-2xl font-black text-gray-900">{kpi.value}</h3>
+                      <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{kpi.value}</h3>
                       {totalSalesSum > 0 && (
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                           kpi.trend.startsWith('+') ? 'bg-green-50 text-green-700' : 

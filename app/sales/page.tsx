@@ -556,7 +556,7 @@ export default function SalesPage() {
           >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Orders</p>
-              <h3 className="text-2xl font-extrabold text-gray-900">{totalOrdersCount}</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalOrdersCount}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
               <Package className="w-5 h-5" />
@@ -573,7 +573,7 @@ export default function SalesPage() {
           >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Revenue</p>
-              <h3 className="text-2xl font-extrabold text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
               <Leaf className="w-5 h-5" />
@@ -590,7 +590,7 @@ export default function SalesPage() {
           >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Orders</p>
-              <h3 className="text-2xl font-extrabold text-amber-600">{pendingOrdersCount}</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{pendingOrdersCount}</h3>
             </div>
             <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
               <Clock className="w-5 h-5" />
@@ -607,7 +607,7 @@ export default function SalesPage() {
           >
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Shipped/Delivered</p>
-              <h3 className="text-2xl font-extrabold text-indigo-600">{completedOrdersCount}</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">{completedOrdersCount}</h3>
             </div>
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
               <CheckCircle2 className="w-5 h-5" />
@@ -616,7 +616,7 @@ export default function SalesPage() {
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/inventory'}>
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Items Sold</p>
-              <h3 className="text-2xl font-extrabold text-purple-600">{totalItemsSold}</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-purple-600">{totalItemsSold}</h3>
             </div>
             <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
               <CircleDot className="w-5 h-5" />

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Save, Building2, Printer, UploadCloud, Tags, Users, Plus, Trash2, Edit2, MoveRight } from "lucide-react";
+import { Save, Building2, Printer, UploadCloud, Tags, Users, Plus, Trash2, Edit2, MoveRight, Truck } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { Select } from "@/components/ui/Select";
 
@@ -39,6 +39,13 @@ export default function SettingsPage() {
   const [isEditingCategoryName, setIsEditingCategoryName] = useState(false);
   const [editCategoryNameValue, setEditCategoryNameValue] = useState("");
   const [activeCategoryProducts, setActiveCategoryProducts] = useState<string[]>([]);
+
+  // Supplier States
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [newSupplier, setNewSupplier] = useState("");
+  const [viewingSupplier, setViewingSupplier] = useState<any>(null);
+  const [isEditingSupplierName, setIsEditingSupplierName] = useState(false);
+  const [editSupplierNameValue, setEditSupplierNameValue] = useState("");
 
   const loadCategories = async () => {
     try {
@@ -89,14 +96,37 @@ export default function SettingsPage() {
     }
   };
 
+  const loadSuppliers = async () => {
+    try {
+      let masterList = [];
+      const saved = localStorage.getItem("inba_suppliers");
+      if (saved) {
+        masterList = JSON.parse(saved);
+      } else {
+        masterList = [
+          { id: 1, name: "Inba Organic Farms", mobile: "9876543210", gst_number: "33ABCDE1234F1Z5" },
+          { id: 2, name: "Vedic Botanicals", mobile: "9444332211", gst_number: "33FGHIJ5678K2Z6" },
+          { id: 3, name: "Ganga Textiles & Oils", mobile: "9988776655", gst_number: "33LMNOP9012Q3Z7" }
+        ];
+        localStorage.setItem("inba_suppliers", JSON.stringify(masterList));
+      }
+      setSuppliers(masterList);
+    } catch (e) {
+      console.error("Error loading suppliers:", e);
+    }
+  };
+
   useEffect(() => {
     fetchSettings();
     loadCategories();
+    loadSuppliers();
   }, []);
 
   useEffect(() => {
     if (activeTab === "categories") {
       loadCategories();
+    } else if (activeTab === "suppliers") {
+      loadSuppliers();
     }
   }, [activeTab]);
 
@@ -274,6 +304,55 @@ export default function SettingsPage() {
     toast("Category added successfully!", "success");
   };
 
+  const handleAddSupplier = () => {
+    if (!newSupplier.trim()) return;
+    const name = newSupplier.trim();
+
+    const saved = localStorage.getItem("inba_suppliers");
+    const masterList = saved ? JSON.parse(saved) : [];
+
+    if (masterList.some((s: any) => s.name.toLowerCase() === name.toLowerCase())) {
+      toast("Supplier already exists!", "error");
+      return;
+    }
+
+    const updated = [...masterList, { id: Date.now(), name, mobile: "", gst_number: "" }];
+    localStorage.setItem("inba_suppliers", JSON.stringify(updated));
+    setNewSupplier("");
+    loadSuppliers();
+    toast("Supplier added successfully!", "success");
+  };
+
+  const handleRenameSupplier = () => {
+    if (!editSupplierNameValue.trim() || !viewingSupplier) return;
+    const newName = editSupplierNameValue.trim();
+
+    const saved = localStorage.getItem("inba_suppliers");
+    const masterList = saved ? JSON.parse(saved) : [];
+
+    const updated = masterList.map((s: any) =>
+      s.id === viewingSupplier.id ? { ...s, name: newName } : s
+    );
+    localStorage.setItem("inba_suppliers", JSON.stringify(updated));
+
+    setIsEditingSupplierName(false);
+    setViewingSupplier({ ...viewingSupplier, name: newName });
+    loadSuppliers();
+    toast("Supplier renamed successfully!", "success");
+  };
+
+  const handleDeleteSupplier = (supId: number, supName: string) => {
+    const saved = localStorage.getItem("inba_suppliers");
+    const masterList = saved ? JSON.parse(saved) : [];
+
+    const updated = masterList.filter((s: any) => s.id !== supId);
+    localStorage.setItem("inba_suppliers", JSON.stringify(updated));
+
+    setViewingSupplier(null);
+    loadSuppliers();
+    toast(`Supplier "${supName}" deleted`, "error");
+  };
+
   const handleRenameCategory = async () => {
     if (!editCategoryNameValue.trim() || !viewingCategory) return;
     const newName = editCategoryNameValue.trim();
@@ -343,6 +422,7 @@ export default function SettingsPage() {
     { id: "company", label: "Company Info", icon: Building2 },
     { id: "print", label: "Print Templates", icon: Printer },
     { id: "categories", label: "Categories", icon: Tags },
+    { id: "suppliers", label: "Suppliers", icon: Truck },
     { id: "users", label: "Users & Roles", icon: Users },
   ];
 
@@ -594,6 +674,68 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {activeTab === "suppliers" && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <Card>
+                <div className="p-6 border-b border-gray-100">
+                  <h2 className="text-lg font-semibold text-gray-900">Supplier Management</h2>
+                  <p className="text-sm text-gray-500 mt-1">Manage wholesale suppliers for Purchase Orders.</p>
+                </div>
+                
+                <div className="p-6 bg-gray-50/50 border-b border-gray-100 flex gap-3">
+                  <input 
+                    type="text" 
+                    value={newSupplier}
+                    onChange={(e) => setNewSupplier(e.target.value)}
+                    placeholder="Enter new supplier name..."
+                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddSupplier()}
+                  />
+                  <Button onClick={handleAddSupplier} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Add Supplier
+                  </Button>
+                </div>
+
+                <div className="divide-y divide-gray-100">
+                  {suppliers.map((sup) => (
+                    <div 
+                      key={sup.id} 
+                      onClick={() => {
+                        setViewingSupplier(sup);
+                        setIsEditingSupplierName(false);
+                        setEditSupplierNameValue(sup.name);
+                      }}
+                      className="p-4 px-6 flex items-center justify-between hover:bg-gray-50 transition-colors group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Truck className="w-5 h-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">{sup.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {sup.mobile ? `Mobile: ${sup.mobile}` : "No contact details"} {sup.gst_number ? `| GST: ${sup.gst_number}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default" className="opacity-0 group-hover:opacity-100 transition-opacity">Edit Details</Badge>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSupplier(sup.id, sup.name);
+                          }}
+                          className="text-gray-400 hover:text-red-600 p-2 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
           {activeTab === "users" && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <Card>
@@ -696,6 +838,93 @@ export default function SettingsPage() {
             {activeCategoryProducts.length > 3 && (
               <Button variant="outline" className="w-full">View all in Inventory</Button>
             )}
+          </div>
+        )}
+      </Drawer>
+
+      {/* Supplier Details Drawer */}
+      <Drawer isOpen={!!viewingSupplier} onClose={() => setViewingSupplier(null)} title="Supplier Details">
+        {viewingSupplier && (
+          <div className="space-y-6 pb-20">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+              <div>
+                <p className="text-xs font-bold text-gray-400 tracking-wider uppercase mb-1">Master Supplier</p>
+                {isEditingSupplierName ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <input 
+                      type="text" 
+                      value={editSupplierNameValue} 
+                      onChange={(e) => setEditSupplierNameValue(e.target.value)} 
+                      className="px-3 py-1 border border-gray-200 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary bg-white text-gray-900"
+                      autoFocus
+                      onKeyDown={(e) => e.key === "Enter" && handleRenameSupplier()}
+                    />
+                    <Button size="sm" onClick={handleRenameSupplier}>Save</Button>
+                    <Button size="sm" variant="ghost" className="text-gray-400 hover:text-gray-600" onClick={() => setIsEditingSupplierName(false)}>Cancel</Button>
+                  </div>
+                ) : (
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    {viewingSupplier.name}
+                    <button 
+                      onClick={() => {
+                        setIsEditingSupplierName(true);
+                        setEditSupplierNameValue(viewingSupplier.name);
+                      }}
+                      className="text-gray-400 hover:text-primary transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </h3>
+                )}
+              </div>
+              <Button 
+                variant="outline" 
+                className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+                onClick={() => handleDeleteSupplier(viewingSupplier.id, viewingSupplier.name)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> Delete Supplier
+              </Button>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2">Supplier Contact & GST details</h4>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile / Phone Number</label>
+                <input 
+                  type="text" 
+                  value={viewingSupplier.mobile || ""} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const saved = localStorage.getItem("inba_suppliers");
+                    const list = saved ? JSON.parse(saved) : [];
+                    const updated = list.map((s: any) => s.id === viewingSupplier.id ? { ...s, mobile: val } : s);
+                    localStorage.setItem("inba_suppliers", JSON.stringify(updated));
+                    setViewingSupplier({ ...viewingSupplier, mobile: val });
+                    loadSuppliers();
+                  }}
+                  placeholder="e.g. 9876543210"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-950 bg-white font-medium" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">GSTIN (Optional)</label>
+                <input 
+                  type="text" 
+                  value={viewingSupplier.gst_number || ""} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const saved = localStorage.getItem("inba_suppliers");
+                    const list = saved ? JSON.parse(saved) : [];
+                    const updated = list.map((s: any) => s.id === viewingSupplier.id ? { ...s, gst_number: val } : s);
+                    localStorage.setItem("inba_suppliers", JSON.stringify(updated));
+                    setViewingSupplier({ ...viewingSupplier, gst_number: val });
+                    loadSuppliers();
+                  }}
+                  placeholder="e.g. 33ABCDE1234F1Z5"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-950 bg-white font-medium" 
+                />
+              </div>
+            </div>
           </div>
         )}
       </Drawer>

@@ -131,15 +131,13 @@ export default function InventoryPage() {
 
   const generateSKU = (name: string) => {
     if (!name) return "";
-    const clean = name.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const firstLetter = clean.charAt(0) || 'P';
-    // Predictable hash of name characters so it is 100% stable while typing!
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const num = Math.abs(hash % 900) + 100;
-    return `INBA-${firstLetter}-${num}`;
+    // Parse sequential numbers from existing product SKUs
+    const nums = products.map(p => {
+      const match = p.sku?.match(/INBA-(\d+)/i);
+      return match ? parseInt(match[1]) : 0;
+    });
+    const maxNum = Math.max(...nums, 0);
+    return `INBA-${String(maxNum + 1).padStart(4, "0")}`;
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,7 +366,7 @@ export default function InventoryPage() {
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Products</p>
-            <h3 className="text-2xl font-extrabold text-gray-900">{totalProductsCount}</h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalProductsCount}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
             <Package className="w-5 h-5" />
@@ -377,7 +375,7 @@ export default function InventoryPage() {
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Stock</p>
-            <h3 className="text-2xl font-extrabold text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">units</span></h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">units</span></h3>
           </div>
           <div className="p-3 bg-green-50 text-green-600 rounded-xl">
             <Layers className="w-5 h-5" />
@@ -386,7 +384,7 @@ export default function InventoryPage() {
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Out of Stock</p>
-            <h3 className="text-2xl font-extrabold text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
             <AlertCircle className="w-5 h-5" />
@@ -395,7 +393,7 @@ export default function InventoryPage() {
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Low Stock</p>
-            <h3 className="text-2xl font-extrabold text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
             <AlertTriangle className="w-5 h-5" />
@@ -404,7 +402,7 @@ export default function InventoryPage() {
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Inventory Value</p>
-            <h3 className="text-2xl font-extrabold text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
             <Coins className="w-5 h-5" />
