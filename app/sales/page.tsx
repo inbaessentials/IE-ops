@@ -84,6 +84,8 @@ export default function SalesPage() {
   // Searching & Filtering States
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [categories, setCategories] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [viewingCustomerName, setViewingCustomerName] = useState<string | null>(null);
@@ -131,10 +133,12 @@ export default function SalesPage() {
       setOrders(ordersWithItems);
     }
 
-    // Fetch active products with images and stock level
-    const { data: productsData } = await supabase.from('products').select('name, price, image_url, stock');
+    // Fetch active products with images, stock level, and category
+    const { data: productsData } = await supabase.from('products').select('name, price, image_url, stock, category');
     if (productsData) {
       setDbProducts(productsData);
+      const uniqueCats: string[] = Array.from(new Set(productsData.map((p: any) => p.category).filter(Boolean))) as string[];
+      setCategories(uniqueCats);
     }
 
     // Fetch dynamic customers list
@@ -508,7 +512,15 @@ export default function SalesPage() {
       return sum + itemsQty;
     }, 0);
 
-  // Dynamic filtering of orders list based on search term, status filter, and date range!
+  // Create quick category lookup map
+  const productCategories = new Map<string, string>();
+  dbProducts.forEach(p => {
+    if (p.name && p.category) {
+      productCategories.set(p.name.toLowerCase(), p.category);
+    }
+  });
+
+  // Dynamic filtering of orders list based on search term, status filter, category filter, and date range!
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -516,6 +528,11 @@ export default function SalesPage() {
       (order.phone && order.phone.includes(searchTerm));
 
     const matchesStatus = statusFilter === "All" || order.status === statusFilter;
+
+    const matchesCategory = categoryFilter === "All" || (order.items && order.items.some((item: any) => {
+      const prodCat = productCategories.get(item.name?.toLowerCase());
+      return prodCat === categoryFilter;
+    }));
 
     let matchesDate = true;
     const orderDateStr = order.created_at ? order.created_at.split('T')[0] : "";
@@ -526,7 +543,7 @@ export default function SalesPage() {
       matchesDate = false;
     }
 
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch && matchesStatus && matchesCategory && matchesDate;
   });
 
   return (
@@ -550,6 +567,7 @@ export default function SalesPage() {
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("All");
+              setCategoryFilter("All");
               setStartDate("");
               setEndDate("");
             }}
@@ -567,6 +585,7 @@ export default function SalesPage() {
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("All");
+              setCategoryFilter("All");
               setStartDate("");
               setEndDate("");
             }}
@@ -584,6 +603,7 @@ export default function SalesPage() {
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("New");
+              setCategoryFilter("All");
               setStartDate("");
               setEndDate("");
             }}
@@ -601,6 +621,7 @@ export default function SalesPage() {
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("Shipped");
+              setCategoryFilter("All");
               setStartDate("");
               setEndDate("");
             }}
@@ -649,6 +670,16 @@ export default function SalesPage() {
                 />
               </div>
 
+              {/* Category Select Filter */}
+              <div className="w-[160px]">
+                <Select 
+                  options={["All", ...categories]}
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  placeholder="All Categories"
+                />
+              </div>
+
               {/* Date Range Inputs */}
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">From</span>
@@ -670,13 +701,14 @@ export default function SalesPage() {
 
             {/* Clear & Export Buttons */}
             <div className="flex items-center gap-2">
-              {(searchTerm || statusFilter !== "All" || startDate || endDate) && (
+              {(searchTerm || statusFilter !== "All" || categoryFilter !== "All" || startDate || endDate) && (
                 <Button 
                   variant="ghost" 
                   className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
                   onClick={() => {
                     setSearchTerm("");
                     setStatusFilter("All");
+                    setCategoryFilter("All");
                     setStartDate("");
                     setEndDate("");
                   }}
