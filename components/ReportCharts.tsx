@@ -225,10 +225,10 @@ export default function ReportCharts() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-xl font-black text-gray-900">
+                  <span className="text-xl font-semibold tracking-tight text-gray-800">
                     {totalSalesSum >= 1000 ? `₹${(totalSalesSum / 1000).toFixed(1)}k` : `₹${totalSalesSum}`}
                   </span>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Sales</span>
+                  <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Total Sales</span>
                 </div>
               </div>
               
@@ -238,7 +238,7 @@ export default function ReportCharts() {
                     <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-800 truncate">{cat.name}</p>
-                      <p className="text-[10px] text-gray-400 font-bold">{formatCurrency(cat.value)}</p>
+                      <p className="text-[10px] text-gray-500 font-semibold">{formatCurrency(cat.value)}</p>
                     </div>
                   </div>
                 ))}
