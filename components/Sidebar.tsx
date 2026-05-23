@@ -32,12 +32,14 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed top-0 left-0">
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        {/* Placeholder for Logo */}
-        <div className="flex items-center gap-2 text-primary font-bold text-xl">
-          <span className="bg-primary text-white p-1 rounded-md">inba</span>
-          <span>Essentials</span>
-        </div>
+      <div className="h-16 flex items-center px-5 border-b border-gray-200 justify-start">
+        <Link href="/" className="flex items-center">
+          <img 
+            src="/logo.png" 
+            alt="Inba Essentials" 
+            className="h-11 w-auto object-contain hover:opacity-90 transition-opacity" 
+          />
+        </Link>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { 
   IndianRupee, 
   Truck, 
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = useState("All time");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
 
   const [rawOrders, setRawOrders] = useState<any[]>([]);
   const [rawOrderItems, setRawOrderItems] = useState<any[]>([]);
@@ -40,7 +41,7 @@ export default function Dashboard() {
       if (orderItems) setRawOrderItems(orderItems);
 
       // 3. Fetch Products (for purchase prices and stock details)
-      const { data: products } = await supabase.from("products").select("name, purchase_price, price, stock");
+      const { data: products } = await supabase.from("products").select("name, purchase_price, price, stock, category");
       if (products) setRawProducts(products);
 
       // 4. Fetch Expenses
@@ -121,16 +122,41 @@ export default function Dashboard() {
     }
   }
 
+  // Generate categories from rawProducts dynamically
+  const categories = Array.from(new Set(rawProducts.map(p => p.category).filter(Boolean))) as string[];
+
+  // Map product names to categories
+  const productCategoryMap = new Map<string, string>();
+  rawProducts.forEach(p => {
+    if (p.name) {
+      productCategoryMap.set(p.name.trim().toLowerCase(), p.category || "");
+    }
+  });
+
   // Filter Order Items based on filtered Order IDs
   const orderIds = new Set(filteredOrders.map(o => o.id));
-  const filteredOrderItems = rawOrderItems.filter(item => orderIds.has(item.order_id));
+  let filteredOrderItems = rawOrderItems.filter(item => orderIds.has(item.order_id));
+  
+  if (categoryFilter !== "All") {
+    filteredOrderItems = filteredOrderItems.filter(item => {
+      const prodCat = productCategoryMap.get((item.name || "").trim().toLowerCase());
+      return prodCat === categoryFilter;
+    });
+  }
 
   // Compute stats metrics dynamically
   let totalSalesSum = 0;
-  filteredOrders.forEach(o => {
-    const val = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
-    if (!isNaN(val)) totalSalesSum += val;
-  });
+  if (categoryFilter === "All") {
+    filteredOrders.forEach(o => {
+      const val = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
+      if (!isNaN(val)) totalSalesSum += val;
+    });
+  } else {
+    filteredOrderItems.forEach(item => {
+      const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+      if (!isNaN(priceVal)) totalSalesSum += priceVal * (item.qty || 1);
+    });
+  }
 
   let totalItemsSoldSum = 0;
   filteredOrderItems.forEach(item => {
@@ -165,11 +191,26 @@ export default function Dashboard() {
     grossProfitSum += itemProfit;
   });
 
-  const netProfitSum = Math.max(0, grossProfitSum - totalExpensesSum);
-  const marginPct = totalSalesSum > 0 ? ((netProfitSum / totalSalesSum) * 100) : 0;
+  const netProfitSum = Math.max(0, grossProfitSum - (categoryFilter === "All" ? totalExpensesSum : 0));
+  const marginPct = totalSalesSum > 0 ? (((categoryFilter === "All" ? netProfitSum : grossProfitSum) / totalSalesSum) * 100) : 0;
 
-  const pendingPackingSum = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
-  const lowStockSum = rawProducts.filter(p => (p.stock || 0) <= 15).length;
+  // Count orders pending packing that contain items matching the category filter
+  const pendingPackingSum = filteredOrders.filter(o => {
+    if (o.status !== "New" && o.status !== "Packed") return false;
+    if (categoryFilter === "All") return true;
+    
+    // Find all items of this order in rawOrderItems
+    const oItems = rawOrderItems.filter(item => item.order_id === o.id);
+    return oItems.some(item => {
+      const prodCat = productCategoryMap.get((item.name || "").trim().toLowerCase());
+      return prodCat === categoryFilter;
+    });
+  }).length;
+
+  const lowStockSum = rawProducts.filter(p => {
+    if (categoryFilter !== "All" && p.category !== categoryFilter) return false;
+    return (p.stock || 0) <= 15;
+  }).length;
 
   let returnsSum = 0;
   if (typeof window !== "undefined") {
@@ -177,14 +218,14 @@ export default function Dashboard() {
     if (savedReturns) {
       try {
         const parsed = JSON.parse(savedReturns);
+        let temp = parsed;
         if (dateRange === "Today") {
-          returnsSum = parsed.filter((r: any) => isToday(r.created_at) || isToday(r.date)).length;
+          temp = parsed.filter((r: any) => isToday(r.created_at) || isToday(r.date));
         } else if (dateRange === "Last 7 days") {
-          returnsSum = parsed.filter((r: any) => isWithinDays(r.created_at, 7) || isWithinDays(r.date, 7)).length;
+          temp = parsed.filter((r: any) => isWithinDays(r.created_at, 7) || isWithinDays(r.date, 7));
         } else if (dateRange === "Last 30 days") {
-          returnsSum = parsed.filter((r: any) => isWithinDays(r.created_at, 30) || isWithinDays(r.date, 30)).length;
+          temp = parsed.filter((r: any) => isWithinDays(r.created_at, 30) || isWithinDays(r.date, 30));
         } else if (dateRange === "Custom Date Range") {
-          let temp = parsed;
           if (startDate) {
             temp = temp.filter((r: any) => {
               const dStr = r.created_at ? r.created_at.split('T')[0] : (r.date ? r.date.split('T')[0] : "");
@@ -197,22 +238,91 @@ export default function Dashboard() {
               return dStr <= endDate;
             });
           }
-          returnsSum = temp.length;
-        } else {
-          returnsSum = parsed.length || 0;
         }
+        
+        if (categoryFilter !== "All") {
+          temp = temp.filter((r: any) => {
+            const prodCat = productCategoryMap.get((r.product_name || "").trim().toLowerCase());
+            return prodCat === categoryFilter;
+          });
+        }
+        returnsSum = temp.length;
       } catch (e) {}
     }
   }
+
+  // Calculate Average Order Value (AOV)
+  const nonCancelledOrders = filteredOrders.filter(o => o.status !== "Cancelled");
+  let uniqueOrdersCount = 0;
+  if (categoryFilter === "All") {
+    uniqueOrdersCount = nonCancelledOrders.length;
+  } else {
+    // Count orders that contain at least one item matching the category
+    uniqueOrdersCount = nonCancelledOrders.filter(o => {
+      const oItems = rawOrderItems.filter(item => item.order_id === o.id);
+      return oItems.some(item => {
+        const prodCat = productCategoryMap.get((item.name || "").trim().toLowerCase());
+        return prodCat === categoryFilter;
+      });
+    }).length;
+  }
+  const aovValue = uniqueOrdersCount > 0 ? (totalSalesSum / uniqueOrdersCount) : 0;
+
+  // 1. Calculate Top Selling Products
+  const topProducts = useMemo(() => {
+    const productSalesMap: Record<string, { name: string; category: string; qty: number; revenue: number; margin: number }> = {};
+    
+    filteredOrderItems.forEach(item => {
+      const prodName = item.name || "Unknown";
+      const normName = prodName.trim().toLowerCase();
+      
+      const qty = item.qty || 0;
+      const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+      const revenue = qty * (isNaN(priceVal) ? 0 : priceVal);
+      
+      const matchedCost = productCostMap[normName];
+      const purchasePrice = matchedCost ? matchedCost.purchasePrice : 0;
+      const profit = revenue - (purchasePrice * qty);
+
+      if (!productSalesMap[normName]) {
+        productSalesMap[normName] = {
+          name: prodName,
+          category: productCategoryMap.get(normName) || "Uncategorized",
+          qty: 0,
+          revenue: 0,
+          margin: 0
+        };
+      }
+      
+      productSalesMap[normName].qty += qty;
+      productSalesMap[normName].revenue += revenue;
+      productSalesMap[normName].margin += profit;
+    });
+
+    return Object.values(productSalesMap)
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 5); // top 5
+  }, [filteredOrderItems, productCostMap, productCategoryMap]);
+
+  // 2. Filter Low Stock Items for display
+  const lowStockItems = useMemo(() => {
+    return rawProducts
+      .filter(p => {
+        if (categoryFilter !== "All" && p.category !== categoryFilter) return false;
+        return (p.stock || 0) <= 15;
+      })
+      .sort((a, b) => (a.stock || 0) - (b.stock || 0))
+      .slice(0, 5); // top 5 critical low stock items
+  }, [rawProducts, categoryFilter]);
 
   const kpis = [
     { title: "Total Sales", value: formatCurrency(totalSalesSum), icon: IndianRupee, trend: totalSalesSum > 0 ? "+12.5%" : "0%", color: "text-green-600", bg: "bg-green-100", href: "/sales" },
     { title: "Total Items Sold", value: totalItemsSoldSum.toString(), icon: PackageCheck, trend: totalItemsSoldSum > 0 ? "+5.2%" : "0%", color: "text-blue-600", bg: "bg-blue-100", href: "/sales" },
     { title: "Net Profit", value: formatCurrency(netProfitSum), icon: TrendingUp, trend: netProfitSum > 0 ? "+8.4%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/sales" },
     { title: "Margin (% Gained)", value: `${marginPct.toFixed(1)}%`, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
+    { title: "Avg Order Value (AOV)", value: formatCurrency(aovValue), icon: IndianRupee, trend: aovValue > 0 ? "Healthy" : "0%", color: "text-indigo-600", bg: "bg-indigo-100", href: "/sales" },
     { title: "Pending Packing", value: pendingPackingSum.toString(), icon: Truck, trend: pendingPackingSum > 0 ? "-2.4%" : "0%", color: "text-orange-600", bg: "bg-orange-100", href: "/sales" },
     { title: "Low Stock Items", value: lowStockSum.toString(), icon: AlertTriangle, trend: lowStockSum > 0 ? "+2" : "0%", color: "text-red-600", bg: "bg-red-100", href: "/inventory" },
-    { title: "Returns Today", value: returnsSum.toString(), icon: RotateCcw, trend: returnsSum > 0 ? "-1" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/returns" },
     { title: "Total Expenses", value: formatCurrency(totalExpensesSum), icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
   ];
 
@@ -224,8 +334,24 @@ export default function Dashboard() {
           <p className="text-sm text-gray-500 mt-1">Real-time health monitoring of Inba Essentials operations.</p>
         </div>
         
-        {/* Properly Positioned & Styled Date Filter Bar */}
+        {/* Properly Positioned & Styled Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 bg-white p-2 border border-gray-200 rounded-xl shadow-xs">
+          {/* Category Dropdown */}
+          <select 
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
+          >
+            <option value="All">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          {/* Divider */}
+          <div className="w-[1px] h-5 bg-gray-200 hidden sm:block"></div>
+
+          {/* Date Selector */}
           <select 
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
@@ -292,7 +418,101 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Section */}
-      <DashboardCharts />
+      <DashboardCharts categoryFilter={categoryFilter} />
+
+      {/* Bottom Operational Widgets Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Selling Products Widget */}
+        <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="border-b border-gray-50/50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#2E8C13]" />
+              Top Selling Products
+            </CardTitle>
+            <p className="text-xs text-gray-500 mt-1">High demand products based on units sold</p>
+          </CardHeader>
+          <CardContent className="p-0">
+            {topProducts.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/80 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="py-3 px-6">Product</th>
+                      <th className="py-3 px-6">Category</th>
+                      <th className="py-3 px-6 text-center">Units Sold</th>
+                      <th className="py-3 px-6 text-right">Revenue</th>
+                      <th className="py-3 px-6 text-right">Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-sm">
+                    {topProducts.map((prod, i) => (
+                      <tr key={i} className="hover:bg-gray-50/30 transition-colors">
+                        <td className="py-3.5 px-6 font-semibold text-gray-800">{prod.name}</td>
+                        <td className="py-3.5 px-6">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                            {prod.category}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-6 text-center font-bold text-gray-600">{prod.qty}</td>
+                        <td className="py-3.5 px-6 text-right font-semibold text-gray-900">₹{prod.revenue.toLocaleString("en-IN")}</td>
+                        <td className="py-3.5 px-6 text-right font-semibold text-[#2E8C13]">₹{prod.margin.toLocaleString("en-IN")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-sm text-gray-400 font-medium">
+                No selling products found in this range.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Low Stock Action Center */}
+        <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="border-b border-gray-50/50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              Restock Action Center
+            </CardTitle>
+            <p className="text-xs text-gray-500 mt-1">Critical low stock items needing immediate restock</p>
+          </CardHeader>
+          <CardContent className="p-0">
+            {lowStockItems.length > 0 ? (
+              <div className="divide-y divide-gray-50">
+                {lowStockItems.map((prod, i) => {
+                  const isCritical = (prod.stock || 0) <= 5;
+                  return (
+                    <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-800">{prod.name}</h4>
+                        <p className="text-xs text-gray-500 mt-0.5">{prod.category || "Uncategorized"}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                          isCritical ? "bg-red-50 text-red-600 border border-red-100" : "bg-amber-50 text-amber-600 border border-amber-100"
+                        }`}>
+                          {prod.stock || 0} left
+                        </span>
+                        <Link href="/inventory">
+                          <span className="text-xs font-bold text-[#2E8C13] hover:text-[#2E8C13]/80 hover:underline transition-colors cursor-pointer">
+                            Restock
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-sm text-gray-400 font-medium">
+                All items in this category are healthy! 🎉
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
