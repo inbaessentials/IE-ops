@@ -22,6 +22,7 @@ export default function ReportsPage() {
 
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [expensesBreakdown, setExpensesBreakdown] = useState<any[]>([]);
+  const [categoryPerformance, setCategoryPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchReportData = async () => {
@@ -34,8 +35,8 @@ export default function ReportsPage() {
       // 2. Fetch Order Items
       const { data: orderItems } = await supabase.from("order_items").select("name, qty, price");
 
-      // 3. Fetch Products (for purchase prices)
-      const { data: products } = await supabase.from("products").select("name, purchase_price, price");
+      // 3. Fetch Products (for purchase prices and categories)
+      const { data: products } = await supabase.from("products").select("name, purchase_price, price, category");
 
       // 4. Fetch Expenses
       const { data: expenses } = await supabase.from("expenses").select("amount, category");
@@ -52,13 +53,14 @@ export default function ReportsPage() {
         totalExpensesSum += Number(e.amount || 0);
       });
 
-      // Map product names to purchase prices
-      const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number }> = {};
+      // Map product names to purchase prices, selling prices, and categories
+      const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number; category: string }> = {};
       products?.forEach(p => {
         if (p.name) {
           productCostMap[p.name.trim().toLowerCase()] = {
             purchasePrice: Number(p.purchase_price || 0),
-            sellingPrice: Number(p.price || 0)
+            sellingPrice: Number(p.price || 0),
+            category: p.category || "Uncategorized"
           };
         }
       });
@@ -128,6 +130,40 @@ export default function ReportsPage() {
         };
       });
 
+      // Calculate Category-wise detailed performance
+      const categoryPerfMap: Record<string, { name: string; units: number; revenue: number; cost: number; profit: number }> = {};
+      orderItems?.forEach(item => {
+        const prodName = (item.name || "").trim().toLowerCase();
+        const matched = productCostMap[prodName];
+        const cat = matched ? matched.category : "Uncategorized";
+        const qty = item.qty || 1;
+        const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+        const revenue = qty * (isNaN(priceVal) ? 0 : priceVal);
+        
+        const costVal = matched ? (matched.purchasePrice * qty) : 0;
+        const profitVal = revenue - costVal;
+        
+        if (!categoryPerfMap[cat]) {
+          categoryPerfMap[cat] = { name: cat, units: 0, revenue: 0, cost: 0, profit: 0 };
+        }
+        categoryPerfMap[cat].units += qty;
+        categoryPerfMap[cat].revenue += revenue;
+        categoryPerfMap[cat].cost += costVal;
+        categoryPerfMap[cat].profit += profitVal;
+      });
+      
+      const totalRevenueCalculated = Object.values(categoryPerfMap).reduce((sum, c) => sum + c.revenue, 0) || 1;
+      
+      const categoryPerfList = Object.values(categoryPerfMap)
+        .sort((a, b) => b.revenue - a.revenue)
+        .map(cat => ({
+          ...cat,
+          revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(cat.revenue),
+          profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(cat.profit),
+          margin: cat.revenue > 0 ? `${Math.round((cat.profit / cat.revenue) * 100)}%` : "0%",
+          share: Math.round((cat.revenue / totalRevenueCalculated) * 100)
+        }));
+
       setStats({
         totalRevenue: totalRevenueSum,
         netProfit: netProfitSum,
@@ -138,6 +174,7 @@ export default function ReportsPage() {
 
       setTopProducts(topProductsList);
       setExpensesBreakdown(expensesSplit);
+      setCategoryPerformance(categoryPerfList);
     } catch (e) {
       console.error("Error loading reports data:", e);
     } finally {
@@ -266,6 +303,73 @@ export default function ReportsPage() {
 
           {/* Primary Graphs & Category Shares */}
           <ReportCharts />
+
+          {/* Category Performance Analysis Table */}
+          <Card className="overflow-hidden border border-gray-100 shadow-sm">
+            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Category-Wise Performance Analysis</h3>
+                <p className="text-xs text-gray-500 mt-1">In-depth calculation of sales, quantities, exact profits, and margins by product category.</p>
+              </div>
+              {categoryPerformance.length > 0 && (
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportReport("Category Performance")}>
+                  <Download className="w-3.5 h-3.5" /> Export Data
+                </Button>
+              )}
+            </div>
+            <div className="overflow-x-auto">
+              {categoryPerformance.length > 0 ? (
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-gray-50/50 text-[10px] text-gray-400 font-bold uppercase tracking-wider border-b border-gray-100">
+                    <tr>
+                      <th className="p-4 pl-6">Category</th>
+                      <th className="p-4">Units Sold</th>
+                      <th className="p-4">Gross Revenue</th>
+                      <th className="p-4">Exact Net Profit</th>
+                      <th className="p-4">Profit Margin</th>
+                      <th className="p-4 pr-6">Sales Share (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {categoryPerformance.map((cat, index) => (
+                      <tr key={index} className="hover:bg-gray-50/30 transition-colors">
+                        <td className="p-4 pl-6">
+                          <span className="font-bold text-gray-900">{cat.name}</span>
+                        </td>
+                        <td className="p-4 font-semibold text-gray-600">
+                          {cat.units} units
+                        </td>
+                        <td className="p-4 font-bold text-gray-900">
+                          {cat.revenueFormatted}
+                        </td>
+                        <td className="p-4 font-bold text-[#2E8C13]">
+                          {cat.profitFormatted}
+                        </td>
+                        <td className="p-4 font-bold text-emerald-600">
+                          {cat.margin}
+                        </td>
+                        <td className="p-4 pr-6 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-gray-900 w-8 text-right">{cat.share}%</span>
+                            <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden shrink-0">
+                              <div 
+                                className="h-full bg-[#2E8C13] rounded-full" 
+                                style={{ width: `${cat.share}%` }} 
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[200px] text-sm text-gray-400 font-medium">
+                  No sales category data logged yet.
+                </div>
+              )}
+            </div>
+          </Card>
 
           {/* Performance Split Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

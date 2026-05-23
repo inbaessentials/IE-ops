@@ -13,6 +13,8 @@ const COLORS = ["#2E8C13", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"
 export default function DashboardCharts() {
   const [salesTrend, setSalesTrend] = useState<any[]>([]);
   const [expensesBreakdown, setExpensesBreakdown] = useState<any[]>([]);
+  const [categorySales, setCategorySales] = useState<any[]>([]);
+  const [totalSalesAmount, setTotalSalesAmount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchChartData = async () => {
@@ -24,6 +26,38 @@ export default function DashboardCharts() {
       
       // 2. Fetch Expenses
       const { data: expenses } = await supabase.from("expenses").select("amount, category");
+
+      // 3. Fetch Order Items & Products for Category sales breakdown
+      const { data: orderItems } = await supabase.from("order_items").select("name, qty, price");
+      const { data: products } = await supabase.from("products").select("name, category");
+
+      // Map product names to categories
+      const productCatMap: Record<string, string> = {};
+      products?.forEach(p => {
+        if (p.name && p.category) {
+          productCatMap[p.name.trim().toLowerCase()] = p.category;
+        }
+      });
+
+      // Calculate category sales distribution
+      const categorySalesMap: Record<string, number> = {};
+      let totalSalesSum = 0;
+
+      orderItems?.forEach(item => {
+        const prodName = (item.name || "").trim().toLowerCase();
+        const cat = productCatMap[prodName] || "Uncategorized";
+        const qty = item.qty || 1;
+        const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+        const revenue = qty * (isNaN(priceVal) ? 0 : priceVal);
+
+        categorySalesMap[cat] = (categorySalesMap[cat] || 0) + revenue;
+        totalSalesSum += revenue;
+      });
+
+      const categorySalesList = Object.entries(categorySalesMap).map(([name, value]) => ({
+        name,
+        value
+      })).sort((a, b) => b.value - a.value);
 
       // Calculate last 7 days sales trend
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -67,6 +101,8 @@ export default function DashboardCharts() {
 
       setSalesTrend(last7Days);
       setExpensesBreakdown(expenseList);
+      setCategorySales(categorySalesList);
+      setTotalSalesAmount(totalSalesSum);
     } catch (err) {
       console.error("Error fetching chart data:", err);
     } finally {
@@ -82,7 +118,7 @@ export default function DashboardCharts() {
   const totalExpensesVal = expensesBreakdown.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Sales Trend Chart */}
       <Card className="col-span-1 lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="border-b border-gray-50/50 pb-4">
@@ -115,6 +151,48 @@ export default function DashboardCharts() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
               No sales recorded in the last 7 days.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Category share of sales pie chart */}
+      <Card className="col-span-1 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="border-b border-gray-50/50 pb-4">
+          <CardTitle className="text-base font-bold text-gray-900">Category Share (Sales)</CardTitle>
+          <p className="text-xs text-gray-500 mt-1">Revenue by product category</p>
+        </CardHeader>
+        <CardContent className="h-[300px] flex items-center justify-center p-6">
+          {totalSalesAmount > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categorySales}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {categorySales.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 1) % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, "Sales"]}
+                />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-sm text-gray-400 font-medium">
+              <svg className="w-12 h-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+              </svg>
+              No category sales recorded yet.
             </div>
           )}
         </CardContent>
