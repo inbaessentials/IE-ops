@@ -646,22 +646,22 @@ export default function SalesPage() {
         </div>
 
         <Card>
-          <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4 flex-1">
+          <div className="p-4 border-b border-gray-100 flex flex-wrap xl:flex-nowrap items-center justify-between gap-3">
+            <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1 min-w-0">
               {/* Search Input */}
-              <div className="relative flex-1 min-w-[240px] max-w-md">
+              <div className="relative flex-1 min-w-[200px] max-w-[260px] shrink-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
                   type="text" 
-                  placeholder="Search by Order ID, Customer, or Phone..." 
+                  placeholder="Search by ID, Customer..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-medium"
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-semibold"
                 />
               </div>
 
               {/* Status Select Filter */}
-              <div className="w-[160px]">
+              <div className="w-[125px] shrink-0">
                 <Select 
                   options={["All", "New", "Packed", "Shipped", "Delivered", "Cancelled"]}
                   value={statusFilter}
@@ -671,7 +671,7 @@ export default function SalesPage() {
               </div>
 
               {/* Category Select Filter */}
-              <div className="w-[160px]">
+              <div className="w-[135px] shrink-0">
                 <Select 
                   options={["All", ...categories]}
                   value={categoryFilter}
@@ -681,30 +681,30 @@ export default function SalesPage() {
               </div>
 
               {/* Date Range Inputs */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">From</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">From</span>
                 <input 
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 font-medium cursor-pointer"
+                  className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
                 />
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">To</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">To</span>
                 <input 
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 font-medium cursor-pointer"
+                  className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
                 />
               </div>
             </div>
 
             {/* Clear & Export Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0 self-end lg:self-auto ml-auto">
               {(searchTerm || statusFilter !== "All" || categoryFilter !== "All" || startDate || endDate) && (
                 <Button 
                   variant="ghost" 
-                  className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
+                  className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg shrink-0"
                   onClick={() => {
                     setSearchTerm("");
                     setStatusFilter("All");
@@ -716,7 +716,7 @@ export default function SalesPage() {
                   Clear Filters
                 </Button>
               )}
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 shrink-0">
                 <FileText className="w-4 h-4" />
                 Export
               </Button>
