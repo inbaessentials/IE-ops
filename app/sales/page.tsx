@@ -491,27 +491,6 @@ export default function SalesPage() {
     return newOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
   };
 
-  // Dynamic metrics calculation for widgets
-  const totalOrdersCount = orders.length;
-  
-  const totalRevenue = orders
-    .filter(o => o.status !== "Cancelled")
-    .reduce((sum, o) => {
-      const parsedVal = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
-      return sum + (isNaN(parsedVal) ? 0 : parsedVal);
-    }, 0);
-
-  const pendingOrdersCount = orders.filter(o => o.status === "New" || o.status === "Packed").length;
-  const completedOrdersCount = orders.filter(o => o.status === "Delivered" || o.status === "Shipped").length;
-
-  // Sum up quantities of all items in all orders (excluding cancelled orders)
-  const totalItemsSold = orders
-    .filter(o => o.status !== "Cancelled")
-    .reduce((sum, o) => {
-      const itemsQty = o.items ? o.items.reduce((itemSum: number, item: any) => itemSum + (item.qty || 0), 0) : 0;
-      return sum + itemsQty;
-    }, 0);
-
   // Create quick category lookup map
   const productCategories = new Map<string, string>();
   dbProducts.forEach(p => {
@@ -545,6 +524,46 @@ export default function SalesPage() {
 
     return matchesSearch && matchesStatus && matchesCategory && matchesDate;
   });
+
+  // Dynamic metrics calculation for widgets based on currently filtered orders subset
+  const totalOrdersCount = filteredOrders.length;
+  
+  const totalRevenue = filteredOrders
+    .filter(o => o.status !== "Cancelled")
+    .reduce((sum, o) => {
+      if (categoryFilter === "All") {
+        const parsedVal = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
+        return sum + (isNaN(parsedVal) ? 0 : parsedVal);
+      } else {
+        const categoryItemsSum = o.items ? o.items
+          .filter((item: any) => {
+            const prodCat = productCategories.get(item.name?.toLowerCase());
+            return prodCat === categoryFilter;
+          })
+          .reduce((itemSum: number, item: any) => {
+            const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
+            return itemSum + ((item.qty || 1) * (isNaN(priceVal) ? 0 : priceVal));
+          }, 0) : 0;
+        return sum + categoryItemsSum;
+      }
+    }, 0);
+
+  const pendingOrdersCount = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
+  const completedOrdersCount = filteredOrders.filter(o => o.status === "Delivered" || o.status === "Shipped").length;
+
+  // Sum up quantities of all items in filtered orders (excluding cancelled orders)
+  const totalItemsSold = filteredOrders
+    .filter(o => o.status !== "Cancelled")
+    .reduce((sum, o) => {
+      const itemsQty = o.items ? o.items
+        .filter((item: any) => {
+          if (categoryFilter === "All") return true;
+          const prodCat = productCategories.get(item.name?.toLowerCase());
+          return prodCat === categoryFilter;
+        })
+        .reduce((itemSum: number, item: any) => itemSum + (item.qty || 0), 0) : 0;
+      return sum + itemsQty;
+    }, 0);
 
   return (
     <>
