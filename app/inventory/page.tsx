@@ -577,16 +577,6 @@ export default function InventoryPage() {
     }, destructive: true },
   ];
 
-  // Dynamic metrics calculation for Inventory widgets
-  const totalProductsCount = products.length;
-  const totalStockCount = products.reduce((sum, p) => sum + (p.stock || 0), 0);
-  const outOfStockCount = products.filter(p => (p.stock || 0) === 0).length;
-  const lowStockCount = products.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= 10).length;
-  
-  const totalInventoryValue = products.reduce((sum, p) => {
-    return sum + ((p.stock || 0) * (p.price || 0));
-  }, 0);
-
   // Dynamic filtering of products list based on search term and category filter!
   const filteredProducts = products.filter(product => {
     const matchesSearch = 
@@ -597,6 +587,16 @@ export default function InventoryPage() {
 
     return matchesSearch && matchesCategory;
   });
+
+  // Dynamic metrics calculation for Inventory widgets based on currently filtered products subset
+  const totalProductsCount = filteredProducts.length;
+  const totalStockCount = filteredProducts.reduce((sum, p) => sum + (p.stock || 0), 0);
+  const outOfStockCount = filteredProducts.filter(p => (p.stock || 0) === 0).length;
+  const lowStockCount = filteredProducts.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= 10).length;
+  
+  const totalInventoryValue = filteredProducts.reduce((sum, p) => {
+    return sum + ((p.stock || 0) * (p.price || 0));
+  }, 0);
 
   return (
     <div className="space-y-6">
