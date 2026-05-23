@@ -52,8 +52,15 @@ export function DropdownMenu({ items }: DropdownProps) {
   const handleOpen = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // 36px per button + 8px padding
+      const estimatedHeight = items.length * 36 + 8;
+      const openUpward = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+
       setPosition({
-        top: rect.bottom + window.scrollY + 5,
+        top: openUpward 
+          ? rect.top + window.scrollY - estimatedHeight - 5 
+          : rect.bottom + window.scrollY + 5,
         right: window.innerWidth - rect.right - window.scrollX,
       });
     }

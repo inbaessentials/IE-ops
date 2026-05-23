@@ -29,6 +29,15 @@ export default function CustomersPage() {
   const [address, setAddress] = useState("");
   const [source, setSource] = useState("Direct Walk-in");
 
+  // Form States for Edit Customer
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editSource, setEditSource] = useState("Direct Walk-in");
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const toast = useToast();
 
   const loadCustomers = async () => {
@@ -101,20 +110,29 @@ export default function CustomersPage() {
 
       // Add database customers
       Object.values(customerMap).forEach((dbCust: any) => {
-        // If a customer exists in both, merge them (db info takes priority)
+        // If a customer exists in both, merge them
         const matchIndex = allCustomers.findIndex(
           (c: any) => 
-            (c.phone !== "N/A" && c.phone === dbCust.phone) || 
+            (c.phone !== "N/A" && dbCust.phone !== "N/A" && c.phone === dbCust.phone) || 
             c.name.toLowerCase() === dbCust.name.toLowerCase()
         );
 
         if (matchIndex >= 0) {
+          const customCust = allCustomers[matchIndex];
           allCustomers[matchIndex] = {
-            ...allCustomers[matchIndex],
             ...dbCust,
-            // Keep manually entered email/address if missing in database
-            email: dbCust.email || allCustomers[matchIndex].email,
-            address: dbCust.address || allCustomers[matchIndex].address
+            ...customCust,
+            // Prioritize custom edited fields over defaults
+            email: customCust.email && !customCust.email.includes("@example.com")
+              ? customCust.email
+              : (dbCust.email || customCust.email),
+            phone: customCust.phone && customCust.phone !== "N/A" ? customCust.phone : dbCust.phone,
+            address: customCust.address && customCust.address !== "No address provided" ? customCust.address : dbCust.address,
+            ordersCount: dbCust.ordersCount,
+            totalSpent: dbCust.totalSpent,
+            ordersList: dbCust.ordersList,
+            lastOrderDate: dbCust.lastOrderDate,
+            isRepeat: dbCust.isRepeat
           };
         } else {
           allCustomers.push(dbCust);
@@ -229,9 +247,98 @@ export default function CustomersPage() {
     loadCustomers();
   };
 
+  const startEditing = (customer: any) => {
+    setEditingCustomer(customer);
+    setEditName(customer.name || "");
+    setEditEmail(customer.email && !customer.email.includes("@example.com") ? customer.email : "");
+    setEditPhone(customer.phone !== "N/A" ? customer.phone : "");
+    setEditAddress(customer.address !== "No address provided" ? customer.address : "");
+    setEditSource(customer.source || "Direct Walk-in");
+  };
+
+  const handleEditCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+
+    setSavingEdit(true);
+    try {
+      const updatedCust = {
+        ...editingCustomer,
+        name: editName.trim(),
+        email: editEmail.trim() || `${editName.toLowerCase().replace(/[^a-z0-9]/g, "")}@example.com`,
+        phone: editPhone.trim() || "N/A",
+        address: editAddress.trim() || "No address provided",
+        source: editSource
+      };
+
+      // 1. Update in LocalStorage custom customers list
+      const savedCustom = localStorage.getItem("inba_custom_customers");
+      const customList = savedCustom ? JSON.parse(savedCustom) : [];
+
+      const currentKey = (editingCustomer.phone && editingCustomer.phone !== "N/A" 
+        ? editingCustomer.phone 
+        : editingCustomer.name).trim().toLowerCase();
+
+      const existingIndex = customList.findIndex((c: any) => {
+        const cKey = (c.phone && c.phone !== "N/A" ? c.phone : c.name).trim().toLowerCase();
+        return cKey === currentKey || c.id === editingCustomer.id;
+      });
+
+      if (existingIndex >= 0) {
+        customList[existingIndex] = {
+          ...customList[existingIndex],
+          ...updatedCust
+        };
+      } else {
+        customList.push(updatedCust);
+      }
+
+      localStorage.setItem("inba_custom_customers", JSON.stringify(customList));
+
+      // 2. Sync to Supabase orders table (match by phone or name)
+      const oldPhone = editingCustomer.phone !== "N/A" ? editingCustomer.phone : null;
+      const oldName = editingCustomer.name;
+
+      let syncQuery = supabase.from("orders").update({
+        customer: editName.trim(),
+        phone: editPhone.trim() || null,
+        address: editAddress.trim() || null
+      });
+
+      if (oldPhone) {
+        syncQuery = syncQuery.eq("phone", oldPhone);
+      } else {
+        syncQuery = syncQuery.eq("customer", oldName);
+      }
+
+      const { error: syncError } = await syncQuery;
+      if (syncError) {
+        console.error("Supabase sync warning:", syncError);
+      }
+
+      setEditingCustomer(null);
+      toast("Customer Updated Successfully!", "success");
+      await loadCustomers();
+
+      // If we are currently viewing this customer, update the viewing panel too
+      if (viewingCustomer && viewingCustomer.id === editingCustomer.id) {
+        setViewingCustomer((prev: any) => ({
+          ...prev,
+          ...updatedCust,
+          totalSpentFormatted: prev.totalSpentFormatted
+        }));
+      }
+    } catch (err) {
+      console.error("Error editing customer:", err);
+      toast("Failed to update customer details", "error");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const getDropdownItems = (customer: any) => [
     { label: "View Profile", onClick: () => setViewingCustomer(customer) },
-    { label: "Edit Details", onClick: () => toast(`Editing ${customer.name}`, "info") },
+    { label: "Edit Details", onClick: () => startEditing(customer) },
     { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer), destructive: true },
   ];
 
@@ -381,26 +488,110 @@ export default function CustomersPage() {
         </form>
       </Drawer>
 
+      {/* Edit Customer Drawer */}
+      <Drawer isOpen={!!editingCustomer} onClose={() => setEditingCustomer(null)} title="Edit Customer Details">
+        <form className="space-y-4" onSubmit={handleEditCustomer}>
+          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input 
+                required 
+                type="text" 
+                value={editName} 
+                onChange={(e) => setEditName(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                placeholder="e.g. John Doe" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input 
+                  type="email" 
+                  value={editEmail} 
+                  onChange={(e) => setEditEmail(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                  placeholder="john@example.com" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input 
+                  type="tel" 
+                  value={editPhone} 
+                  onChange={(e) => setEditPhone(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                  placeholder="+91 9876543210" 
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Customer Source</label>
+              <select 
+                value={editSource} 
+                onChange={(e) => setEditSource(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+              >
+                <option value="Direct Walk-in">Direct Walk-in</option>
+                <option value="Instagram">Instagram</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Ad Campaign">Ad Campaign</option>
+                <option value="Existing Customer">Existing Customer</option>
+                <option value="Referral">Referral</option>
+                <option value="Google Search">Google Search</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
+              <textarea 
+                rows={3} 
+                value={editAddress} 
+                onChange={(e) => setEditAddress(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                placeholder="Enter full address..."
+              ></textarea>
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setEditingCustomer(null)}>Cancel</Button>
+            <Button type="submit" variant="primary" disabled={savingEdit}>
+              {savingEdit ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </Drawer>
+
       {/* View Customer Profile Drawer */}
       <Drawer isOpen={!!viewingCustomer} onClose={() => setViewingCustomer(null)} title="Customer Profile">
         {viewingCustomer && (
           <div className="space-y-6 pb-12">
-            <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl">
-                {viewingCustomer.name.charAt(0)}
+            <div className="flex items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl">
+                  {viewingCustomer.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    {viewingCustomer.name}
+                    {viewingCustomer.isRepeat && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                        Loyal
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-sm text-gray-500">{viewingCustomer.id}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  {viewingCustomer.name}
-                  {viewingCustomer.isRepeat && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                      <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                      Loyal
-                    </span>
-                  )}
-                </h3>
-                <p className="text-sm text-gray-500">{viewingCustomer.id}</p>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-xs"
+                onClick={() => startEditing(viewingCustomer)}
+              >
+                Edit Details
+              </Button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
