@@ -32,12 +32,12 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed top-0 left-0">
-      <div className="h-16 flex items-center px-5 border-b border-gray-200 justify-start">
+      <div className="py-6 px-6 border-b border-gray-200 justify-start flex items-center">
         <Link href="/" className="flex items-center">
           <img 
             src="/logo.png" 
             alt="Inba Essentials" 
-            className="h-11 w-auto object-contain hover:opacity-90 transition-opacity" 
+            className="h-12 w-auto object-contain hover:opacity-90 transition-opacity" 
           />
         </Link>
       </div>
