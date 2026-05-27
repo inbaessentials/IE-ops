@@ -1005,81 +1005,95 @@ export default function SalesPage() {
 
               {newOrderItems.length > 0 ? (
                 newOrderItems.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg animate-in slide-in-from-top-1 transition-all relative">
-                    <div className="flex-1 space-y-3">
+                  <div key={idx} className="relative bg-white border border-gray-200 hover:border-[#2E8C13]/30 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full overflow-hidden">
+                    {/* Header Info Row */}
+                    <div className="flex items-start justify-between gap-2.5 min-w-0">
                       {item.product ? (
                         /* Selected product display card style */
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
                           {dbProducts.find(p => p.name === item.product)?.image_url ? (
                             <img 
                               src={dbProducts.find(p => p.name === item.product)?.image_url} 
                               alt={item.product} 
-                              className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm flex-shrink-0"
+                              className="w-9 h-9 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0 animate-in fade-in"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-bold flex-shrink-0">No Img</div>
+                            <div className="w-9 h-9 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-extrabold shrink-0">No Img</div>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate leading-snug">{item.product}</p>
-                            <p className="text-[10px] text-gray-400 font-semibold">
-                              Available Stock: {dbProducts.find(p => p.name === item.product)?.stock ?? 0} units
+                          <div className="flex-1 min-w-0 text-left">
+                            <p className="text-sm font-bold text-gray-800 break-words line-clamp-2 leading-tight pr-6">{item.product}</p>
+                            <p className="text-[10px] text-gray-400 font-semibold mt-0.5 leading-none">
+                              Stock: <span className="text-gray-500 font-bold">{dbProducts.find(p => p.name === item.product)?.stock ?? 0} units</span>
                             </p>
                           </div>
                         </div>
                       ) : (
                         /* Fallback single select dropdown */
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Select Custom Product</label>
                           <Select 
-                            options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
+                            options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Stock: ${p.stock ?? 0} units` }))}
                             value={item.product}
                             onChange={(val) => handleItemChange(idx, 'product', val)}
-                            placeholder="Select product..."
+                            placeholder="Choose product..."
                           />
                         </div>
                       )}
-                      
-                      <div className="flex gap-4">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
-                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
-                            >
-                              -
-                            </button>
-                            <input 
-                              type="number" 
-                              min={1} 
-                              value={item.qty} 
-                              onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                              className="w-full px-3 py-1 border border-gray-200 rounded text-sm text-center font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
-                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
-                            >
-                              +
-                            </button>
-                          </div>
+
+                      {/* Trash bin aligned inside the card at top-right */}
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveItem(idx)} 
+                        className="absolute top-3.5 right-3.5 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-lg transition-all border border-transparent hover:border-rose-100 shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Lower Controls Row */}
+                    <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 gap-4 mt-0.5">
+                      {/* Quantity Stepper Capsule */}
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Qty</span>
+                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg p-0.5 min-w-[95px] max-w-[110px] justify-between shadow-inner">
+                          <button
+                            type="button"
+                            onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
+                            className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors font-extrabold text-xs select-none"
+                          >
+                            -
+                          </button>
+                          <input 
+                            type="number" 
+                            min={1} 
+                            value={item.qty} 
+                            onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
+                            className="w-8 text-center text-xs font-extrabold bg-transparent border-0 outline-none text-gray-800 focus:ring-0 p-0" 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
+                            className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors font-extrabold text-xs select-none"
+                          >
+                            +
+                          </button>
                         </div>
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
+                      </div>
+
+                      {/* Selling Price Capsule */}
+                      <div className="flex flex-col gap-1 items-end">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Price (₹)</span>
+                        <div className="flex items-center bg-[#2E8C13]/5 border border-gray-200 rounded-lg px-2 py-0.5 max-w-[110px] focus-within:ring-2 focus-within:ring-[#2E8C13]/20 focus-within:border-[#2E8C13] transition-all shadow-inner">
+                          <span className="text-[#2E8C13] text-xs font-black mr-0.5 select-none">₹</span>
                           <input 
                             type="number" 
                             value={item.price} 
                             onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-50 text-primary" 
+                            className="w-14 text-right text-xs font-black text-[#2E8C13] bg-transparent outline-none border-0 p-0 focus:ring-0" 
                           />
                         </div>
                       </div>
                     </div>
-                    <button type="button" onClick={() => handleRemoveItem(idx)} className="p-2 text-gray-400 hover:text-red-600 transition-colors self-start mt-2">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 ))
               ) : (
@@ -1174,81 +1188,95 @@ export default function SalesPage() {
 
               {newOrderItems.length > 0 ? (
                 newOrderItems.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg animate-in slide-in-from-top-1 transition-all relative">
-                    <div className="flex-1 space-y-3">
+                  <div key={idx} className="relative bg-white border border-gray-200 hover:border-[#2E8C13]/30 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full overflow-hidden">
+                    {/* Header Info Row */}
+                    <div className="flex items-start justify-between gap-2.5 min-w-0">
                       {item.product ? (
                         /* Selected product display card style */
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
                           {dbProducts.find(p => p.name === item.product)?.image_url ? (
                             <img 
                               src={dbProducts.find(p => p.name === item.product)?.image_url} 
                               alt={item.product} 
-                              className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm flex-shrink-0"
+                              className="w-9 h-9 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0 animate-in fade-in"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-bold flex-shrink-0">No Img</div>
+                            <div className="w-9 h-9 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-extrabold shrink-0">No Img</div>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate leading-snug">{item.product}</p>
-                            <p className="text-[10px] text-gray-400 font-semibold">
-                              Available Stock: {dbProducts.find(p => p.name === item.product)?.stock ?? 0} units
+                          <div className="flex-1 min-w-0 text-left">
+                            <p className="text-sm font-bold text-gray-800 break-words line-clamp-2 leading-tight pr-6">{item.product}</p>
+                            <p className="text-[10px] text-gray-400 font-semibold mt-0.5 leading-none">
+                              Stock: <span className="text-gray-500 font-bold">{dbProducts.find(p => p.name === item.product)?.stock ?? 0} units</span>
                             </p>
                           </div>
                         </div>
                       ) : (
                         /* Fallback single select dropdown */
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+                        <div className="flex-1 min-w-0">
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Select Custom Product</label>
                           <Select 
-                            options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
+                            options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Stock: ${p.stock ?? 0} units` }))}
                             value={item.product}
                             onChange={(val) => handleItemChange(idx, 'product', val)}
-                            placeholder="Select product..."
+                            placeholder="Choose product..."
                           />
                         </div>
                       )}
-                      
-                      <div className="flex gap-4">
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
-                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
-                            >
-                              -
-                            </button>
-                            <input 
-                              type="number" 
-                              min={1} 
-                              value={item.qty} 
-                              onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                              className="w-full px-3 py-1 border border-gray-200 rounded text-sm text-center font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
-                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
-                            >
-                              +
-                            </button>
-                          </div>
+
+                      {/* Trash bin aligned inside the card at top-right */}
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveItem(idx)} 
+                        className="absolute top-3.5 right-3.5 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-lg transition-all border border-transparent hover:border-rose-100 shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Lower Controls Row */}
+                    <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 gap-4 mt-0.5">
+                      {/* Quantity Stepper Capsule */}
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Qty</span>
+                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg p-0.5 min-w-[95px] max-w-[110px] justify-between shadow-inner">
+                          <button
+                            type="button"
+                            onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
+                            className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors font-extrabold text-xs select-none"
+                          >
+                            -
+                          </button>
+                          <input 
+                            type="number" 
+                            min={1} 
+                            value={item.qty} 
+                            onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
+                            className="w-8 text-center text-xs font-extrabold bg-transparent border-0 outline-none text-gray-800 focus:ring-0 p-0" 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
+                            className="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-md transition-colors font-extrabold text-xs select-none"
+                          >
+                            +
+                          </button>
                         </div>
-                        <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
+                      </div>
+
+                      {/* Selling Price Capsule */}
+                      <div className="flex flex-col gap-1 items-end">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Price (₹)</span>
+                        <div className="flex items-center bg-[#2E8C13]/5 border border-gray-200 rounded-lg px-2 py-0.5 max-w-[110px] focus-within:ring-2 focus-within:ring-[#2E8C13]/20 focus-within:border-[#2E8C13] transition-all shadow-inner">
+                          <span className="text-[#2E8C13] text-xs font-black mr-0.5 select-none">₹</span>
                           <input 
                             type="number" 
                             value={item.price} 
                             onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-50 text-primary" 
+                            className="w-14 text-right text-xs font-black text-[#2E8C13] bg-transparent outline-none border-0 p-0 focus:ring-0" 
                           />
                         </div>
                       </div>
                     </div>
-                    <button type="button" onClick={() => handleRemoveItem(idx)} className="p-2 text-gray-400 hover:text-red-600 transition-colors self-start mt-2">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 ))
               ) : (
