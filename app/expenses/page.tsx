@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, Calendar } from "lucide-react";
+import { Plus, Search, Filter, Calendar, Coins, TrendingUp, Award, Trophy, Wallet } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -23,11 +23,48 @@ const getRelativeTime = (dateStr: string) => {
   return `${Math.floor(diffInHours / 24)} days ago`;
 };
 
+// Color mapping helper for different expense categories
+const getCategoryBadgeStyles = (category: string) => {
+  const cat = (category || "").toLowerCase();
+  switch (cat) {
+    case "courier":
+      return "bg-indigo-50 text-indigo-700 border border-indigo-100/50";
+    case "packaging":
+      return "bg-amber-50 text-amber-700 border border-amber-100/50";
+    case "ads":
+      return "bg-emerald-50 text-emerald-700 border border-emerald-100/50";
+    case "salaries":
+      return "bg-purple-50 text-purple-700 border border-purple-100/50";
+    default:
+      return "bg-slate-50 text-slate-700 border border-slate-100/50";
+  }
+};
+
+// Generates next display_id by parsing loaded ones
+const generateNextDisplayId = (existingExpenses: any[]) => {
+  let maxNum = 0;
+  existingExpenses.forEach(exp => {
+    if (exp.display_id && typeof exp.display_id === 'string') {
+      const match = exp.display_id.match(/EXP-(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+  });
+  const nextNum = maxNum > 0 ? maxNum + 1 : 901;
+  return `EXP-${nextNum}`;
+};
+
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
   const [selectedMonth, setSelectedMonth] = useState("All Time");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [category, setCategory] = useState("Courier");
   
   const toast = useToast();
 
@@ -44,11 +81,13 @@ export default function ExpensesPage() {
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
+    setCategory("Courier");
     setIsDrawerOpen(true);
   };
 
   const handleOpenEdit = (expense: any) => {
     setEditingExpense(expense);
+    setCategory(expense.category || "Courier");
     setIsDrawerOpen(true);
   };
 
@@ -56,7 +95,9 @@ export default function ExpensesPage() {
     const { error } = await supabase.from('expenses').delete().eq('id', id);
     if (!error) {
       setExpenses(expenses.filter(e => e.id !== id));
-      toast("Expense Deleted", "error");
+      toast("Expense Deleted Successfully", "error");
+    } else {
+      toast("Failed to delete expense", "error");
     }
   };
 
@@ -64,28 +105,40 @@ export default function ExpensesPage() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    const payload = {
-        category: formData.get("category") as string,
+    const payload: any = {
+        category: category,
         amount: parseFloat(formData.get("amount") as string),
         notes: formData.get("notes") as string,
         date: new Date().toISOString()
     };
 
-    if (editingExpense) {
-      const { data, error } = await supabase.from('expenses').update(payload).eq('id', editingExpense.id).select();
-      if (!error && data) {
-        setExpenses(expenses.map(exp => exp.id === editingExpense.id ? data[0] : exp));
-        toast("Expense Updated", "success");
+    try {
+      if (editingExpense) {
+        payload.display_id = editingExpense.display_id || generateNextDisplayId(expenses);
+        const { data, error } = await supabase.from('expenses').update(payload).eq('id', editingExpense.id).select();
+        if (error) throw error;
+        if (data) {
+          setExpenses(expenses.map(exp => exp.id === editingExpense.id ? data[0] : exp));
+          toast("Expense Updated Successfully", "success");
+        }
+      } else {
+        // Fetch fresh list from Supabase for ID computation, falling back to local state
+        const { data: allIds } = await supabase.from('expenses').select('display_id');
+        const nextId = generateNextDisplayId(allIds || expenses);
+        payload.display_id = nextId;
+
+        const { data, error } = await supabase.from('expenses').insert([payload]).select();
+        if (error) throw error;
+        if (data) {
+          setExpenses([data[0], ...expenses]);
+          toast("Expense Added Successfully", "success");
+        }
       }
-    } else {
-      const { data, error } = await supabase.from('expenses').insert([payload]).select();
-      if (!error && data) {
-        setExpenses([data[0], ...expenses]);
-        toast("Expense Added Successfully", "success");
-      }
+      setIsDrawerOpen(false);
+    } catch (err: any) {
+      console.error("Save expense error:", err);
+      toast(err.message || "Failed to save expense", "error");
     }
-    
-    setIsDrawerOpen(false);
   };
 
   const getDropdownItems = (expense: any) => [
@@ -93,19 +146,79 @@ export default function ExpensesPage() {
     { label: "Delete", onClick: () => handleDelete(expense.id), destructive: true },
   ];
 
-  // Logic for filtering
+  // Logic for filtering by both Selected Month and Search Query
   const filteredExpenses = expenses.filter(exp => {
-    if (selectedMonth === "All Time") return true;
-    
-    const expDate = new Date(exp.date);
-    const monthName = expDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-    return monthName === selectedMonth;
+    // 1. Month filter
+    if (selectedMonth !== "All Time") {
+      const expDate = new Date(exp.date);
+      const monthName = expDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+      if (monthName !== selectedMonth) return false;
+    }
+
+    // 2. Search query filter
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      const catMatch = (exp.category || "").toLowerCase().includes(query);
+      const notesMatch = (exp.notes || "").toLowerCase().includes(query);
+      const displayIdMatch = (exp.display_id || "").toLowerCase().includes(query);
+      return catMatch || notesMatch || displayIdMatch;
+    }
+
+    return true;
   });
 
-  // Generate dynamic month options based on current date
+  // Calculate metrics based on the dynamically filtered ledger
+  const totalExpensesCount = filteredExpenses.length;
+  const totalExpensesSum = filteredExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+  const averageExpense = totalExpensesCount > 0 ? totalExpensesSum / totalExpensesCount : 0;
+
+  // Monthly spent sum (current calendar month, independent of filter for absolute reference)
   const now = new Date();
+  const currentMonthYear = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const thisMonthSum = expenses.reduce((sum, exp) => {
+    const expDate = new Date(exp.date);
+    const m = expDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    if (m === currentMonthYear) {
+      return sum + (exp.amount || 0);
+    }
+    return sum;
+  }, 0);
+
+  // Top category calculation
+  const categorySums: Record<string, number> = {};
+  filteredExpenses.forEach(exp => {
+    const cat = exp.category || "Other";
+    categorySums[cat] = (categorySums[cat] || 0) + (exp.amount || 0);
+  });
+  let topCategoryName = "None";
+  let topCategorySum = 0;
+  Object.entries(categorySums).forEach(([cat, sum]) => {
+    if (sum > topCategorySum) {
+      topCategorySum = sum;
+      topCategoryName = cat;
+    }
+  });
+
+  // Highest single expense recorded in filtered view
+  let highestExpenseAmount = 0;
+  let highestExpenseNotes = "";
+  filteredExpenses.forEach(exp => {
+    if ((exp.amount || 0) > highestExpenseAmount) {
+      highestExpenseAmount = exp.amount;
+      highestExpenseNotes = exp.notes || exp.category;
+    }
+  });
+
+  // Dynamic category options aggregate static defaults with actual recorded categories
+  const defaultCategories = ["Courier", "Packaging", "Ads", "Salaries", "Other"];
+  const dynamicCategories = Array.from(new Set([
+    ...defaultCategories,
+    ...expenses.map(e => e.category).filter(Boolean)
+  ]));
+
+  // Generate dynamic month options based on current date
   const monthOptions = ["All Time", 
-    now.toLocaleString('default', { month: 'long', year: 'numeric' }),
+    currentMonthYear,
     new Date(now.setMonth(now.getMonth() - 1)).toLocaleString('default', { month: 'long', year: 'numeric' }),
     new Date(now.setMonth(now.getMonth() - 1)).toLocaleString('default', { month: 'long', year: 'numeric' })
   ];
@@ -123,6 +236,93 @@ export default function ExpensesPage() {
         </Button>
       </div>
 
+      {/* Meaningful, Harmonious Widgets Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* Total Expenses Card */}
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Filtered</p>
+            <h3 className="text-2xl font-bold tracking-tight text-rose-600">
+              ₹{totalExpensesSum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </h3>
+          </div>
+          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl animate-in zoom-in duration-200">
+            <Coins className="w-5 h-5" />
+          </div>
+        </Card>
+
+        {/* Monthly spent Card */}
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">This Month Spent</p>
+            <h3 className="text-2xl font-bold tracking-tight text-blue-600">
+              ₹{thisMonthSum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </h3>
+          </div>
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
+            <Calendar className="w-5 h-5" />
+          </div>
+        </Card>
+
+        {/* Avg cost Card */}
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Average Expense</p>
+            <h3 className="text-2xl font-bold tracking-tight text-amber-600">
+              ₹{averageExpense.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </h3>
+          </div>
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl animate-in zoom-in duration-200">
+            <Award className="w-5 h-5" />
+          </div>
+        </Card>
+
+        {/* Top Category sum Card */}
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Category</p>
+            {topCategorySum > 0 ? (
+              <div>
+                <h3 className="text-base font-bold text-purple-700 truncate leading-tight">
+                  {topCategoryName}
+                </h3>
+                <p className="text-xs text-gray-400 font-semibold mt-0.5">
+                  ₹{topCategorySum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                </p>
+              </div>
+            ) : (
+              <h3 className="text-2xl font-bold tracking-tight text-gray-400">N/A</h3>
+            )}
+          </div>
+          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200 shrink-0">
+            <Trophy className="w-5 h-5" />
+          </div>
+        </Card>
+
+        {/* Single Highest Item Card */}
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Highest Single</p>
+            {highestExpenseAmount > 0 ? (
+              <div>
+                <h3 className="text-base font-bold text-emerald-700 truncate leading-tight">
+                  ₹{highestExpenseAmount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                </h3>
+                <p className="text-xs text-gray-400 font-semibold mt-0.5 truncate max-w-[130px]">
+                  {highestExpenseNotes}
+                </p>
+              </div>
+            ) : (
+              <h3 className="text-2xl font-bold tracking-tight text-gray-400">N/A</h3>
+            )}
+          </div>
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200 shrink-0">
+            <Wallet className="w-5 h-5" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Main Ledger card */}
       <Card>
         <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
@@ -130,6 +330,8 @@ export default function ExpensesPage() {
             <input 
               type="text" 
               placeholder="Search expenses..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
@@ -145,18 +347,26 @@ export default function ExpensesPage() {
         {filteredExpenses.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <Calendar className="w-8 h-8 text-gray-300" />
+              <Search className="w-8 h-8 text-gray-300" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900">No expenses found</h3>
-            <p className="text-sm text-gray-500 mt-1">There are no expenses recorded for this period.</p>
+            <h3 className="text-lg font-medium text-gray-900">
+              {searchQuery.trim() !== "" ? "No matching expenses" : "No expenses found"}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              {searchQuery.trim() !== "" 
+                ? `We couldn't find any expenses matching "${searchQuery}"`
+                : "There are no expenses recorded for this period."}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto min-h-[300px]">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Expense Details</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes / Details</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -167,20 +377,26 @@ export default function ExpensesPage() {
                   return (
                     <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm font-medium text-gray-900">
-                          {d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-0.5">{getRelativeTime(exp.date)}</p>
+                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-gray-50 border border-gray-250 text-gray-600 shadow-sm">
+                          {exp.display_id || `EXP-${exp.id.substring(0, 4).toUpperCase()}`}
+                        </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <Badge variant="default" className="shrink-0">{exp.category}</Badge>
-                          <p className="text-sm text-gray-700 truncate max-w-sm">{exp.notes || "No notes provided"}</p>
-                        </div>
-                        <p className="text-[10px] text-gray-400 mt-1.5 uppercase tracking-wide">{exp.id}</p>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <p className="text-sm font-medium text-gray-900">
+                          {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5 font-semibold">{getRelativeTime(exp.date)}</p>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant="default" className={`${getCategoryBadgeStyles(exp.category)} shrink-0 px-2.5 py-0.5 font-semibold`}>
+                          {exp.category || "Unassigned"}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 max-w-sm">
+                        <p className="text-sm text-gray-700 truncate font-medium">{exp.notes || "—"}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <span className="text-base font-bold text-gray-900">₹{exp.amount}</span>
+                        <span className="text-base font-bold text-gray-900">₹{exp.amount?.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <DropdownMenu items={getDropdownItems(exp)} />
@@ -202,22 +418,22 @@ export default function ExpensesPage() {
         <form className="space-y-4" onSubmit={handleSaveExpense}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <select name="category" defaultValue={editingExpense?.category} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
-                <option value="Courier">Courier</option>
-                <option value="Packaging">Packaging</option>
-                <option value="Ads">Ads</option>
-                <option value="Salaries">Salaries</option>
-                <option value="Other">Other</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+              <Select 
+                options={dynamicCategories}
+                value={category}
+                onChange={setCategory}
+                allowCustom={true}
+                placeholder="Select or type to create..."
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
-              <input name="amount" required type="number" defaultValue={editingExpense?.amount} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="0.00" />
+              <input name="amount" required type="number" step="0.01" defaultValue={editingExpense?.amount} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-medium text-gray-800" placeholder="0.00" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-              <textarea name="notes" rows={3} defaultValue={editingExpense?.notes} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Details about this expense..."></textarea>
+              <textarea name="notes" rows={3} defaultValue={editingExpense?.notes} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm text-gray-800" placeholder="Details about this expense..."></textarea>
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-3 mt-6">
