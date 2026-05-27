@@ -35,11 +35,12 @@ export default function InventoryPage() {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [bulkQueue, setBulkQueue] = useState<any[]>([]);
 
-  // Bulk Stock Edit states
-  const [isBulkStockOpen, setIsBulkStockOpen] = useState(false);
-  const [bulkStockCategory, setBulkStockCategory] = useState("");
-  const [bulkStockAction, setBulkStockAction] = useState<"set" | "increase" | "decrease">("set");
-  const [bulkStockValue, setBulkStockValue] = useState("");
+  // Tabular Bulk Product Editor states
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [bulkEditProducts, setBulkEditProducts] = useState<any[]>([]);
+  const [bulkEditSearch, setBulkEditSearch] = useState("");
+  const [bulkEditCategory, setBulkEditCategory] = useState("All");
+  const [bulkEditLoading, setBulkEditLoading] = useState(false);
 
   const fetchProducts = async () => {
     const { data, error } = await supabase.from('products').select('*').order('display_id', { ascending: true });
@@ -438,82 +439,182 @@ export default function InventoryPage() {
     }
   };
 
-  // Bulk stock editor by category
-  const handleApplyBulkStock = async () => {
-    if (!bulkStockCategory) {
-      toast("Please select a category.", "error");
-      return;
-    }
-    
-    const value = parseInt(bulkStockValue);
-    if (isNaN(value) || value < 0 && bulkStockAction === "set") {
-      toast("Please enter a valid stock level.", "error");
-      return;
-    }
-    if (isNaN(value) || value <= 0 && (bulkStockAction === "increase" || bulkStockAction === "decrease")) {
-      toast("Please enter a valid change quantity (greater than 0).", "error");
-      return;
-    }
-    
-    // Fetch products in selected category
-    const { data: catProducts, error: fetchError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('category', bulkStockCategory);
-      
-    if (fetchError || !catProducts) {
-      toast("Failed to fetch products for selected category.", "error");
-      return;
-    }
-    
-    if (catProducts.length === 0) {
-      toast(`No products found in category "${bulkStockCategory}".`, "info");
-      return;
-    }
-    
+  // Tabular Bulk Product Editor Open Handler
+  const handleOpenBulkEdit = () => {
+    // Clone products deep so modifications stay in draft state
+    const cloned = products.map(p => ({
+      ...p,
+      purchase_price: p.purchase_price !== null && p.purchase_price !== undefined ? p.purchase_price.toString() : "0",
+      price: p.price !== null && p.price !== undefined ? p.price.toString() : "0",
+      stock: p.stock !== null && p.stock !== undefined ? p.stock.toString() : "0",
+      uploadStatus: "idle" // Idle state for uploads
+    }));
+    setBulkEditProducts(cloned);
+    setBulkEditSearch("");
+    setBulkEditCategory("All");
+    setIsBulkEditOpen(true);
+  };
+
+  const handleBulkEditChange = (id: string, field: string, value: any) => {
+    setBulkEditProducts(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+  };
+
+  // Compression & upload single bulk product image inside the editor
+  const processBulkEditImageUpload = async (productId: string, file: File) => {
     try {
-      toast("Updating stock levels...", "info");
+      setBulkEditProducts(prev => prev.map(item => item.id === productId ? { ...item, uploadStatus: "compressing" } : item));
       
-      const updatePromises = catProducts.map(async (p: any) => {
-        let newStock = p.stock || 0;
-        if (bulkStockAction === "set") {
-          newStock = value;
-        } else if (bulkStockAction === "increase") {
-          newStock += value;
-        } else if (bulkStockAction === "decrease") {
-          newStock = Math.max(0, newStock - value);
-        }
-        
-        const newStatus = newStock === 0 ? "Out of Stock" : (newStock <= 15 ? "Low Stock" : "Active");
-        
-        const { error: updateError } = await supabase
-          .from('products')
-          .update({ stock: newStock, status: newStatus })
-          .eq('id', p.id);
-          
-        if (updateError) throw updateError;
-        
-        // Log to LocalStorage stock ledger for each product
-        const adjustmentKey = `inba_stock_adjustments_${p.id}`;
-        const existing = localStorage.getItem(adjustmentKey);
-        const list = existing ? JSON.parse(existing) : [];
-        const changeQty = bulkStockAction === "set" ? (newStock - (p.stock || 0)) : (bulkStockAction === "increase" ? value : -value);
-        list.push({
-          date: new Date().toISOString(),
-          qty: changeQty,
-          reason: `Bulk Edit Category (${bulkStockCategory})`
-        });
-        localStorage.setItem(adjustmentKey, JSON.stringify(list));
-      });
+      const compressedFile = await compressImage(file);
       
-      await Promise.all(updatePromises);
-      toast(`Updated stock for ${catProducts.length} products!`, "success");
-      setIsBulkStockOpen(false);
-      setBulkStockValue("");
-      fetchProducts();
+      setBulkEditProducts(prev => prev.map(item => item.id === productId ? { ...item, uploadStatus: "uploading" } : item));
+      
+      const fileExt = compressedFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, compressedFile);
+
+      if (uploadError) {
+        console.error(uploadError);
+        setBulkEditProducts(prev => prev.map(item => item.id === productId ? { ...item, uploadStatus: "error" } : item));
+        toast("Image upload failed", "error");
+      } else {
+        const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+        setBulkEditProducts(prev => prev.map(item => item.id === productId ? { ...item, image_url: data.publicUrl, uploadStatus: "ready" } : item));
+        toast("Image uploaded!", "success");
+      }
+    } catch (err) {
+      console.error(err);
+      setBulkEditProducts(prev => prev.map(item => item.id === productId ? { ...item, uploadStatus: "error" } : item));
+      toast("Failed to compress image", "error");
+    }
+  };
+
+  // Direct Product Deletion inside Bulk Editor
+  const handleBulkEditDelete = async (product: any) => {
+    const confirmDelete = window.confirm(`Are you sure you want to permanently delete "${product.name}"? This action cannot be undone.`);
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', product.id);
+      if (!error) {
+        toast(`Successfully deleted ${product.name}`, "error");
+        setBulkEditProducts(prev => prev.filter(p => p.id !== product.id));
+        fetchProducts();
+      } else {
+        throw error;
+      }
     } catch (err: any) {
       console.error(err);
-      toast("Failed to update bulk stock levels.", "error");
+      toast("Failed to delete product.", "error");
+    }
+  };
+
+  // Helper check to determine if a product row is modified
+  const isProductModified = (draft: any) => {
+    const original = products.find(p => p.id === draft.id);
+    if (!original) return false;
+    
+    return (
+      draft.name !== original.name ||
+      draft.sku !== original.sku ||
+      draft.category !== original.category ||
+      Number(draft.purchase_price) !== Number(original.purchase_price || 0) ||
+      Number(draft.price) !== Number(original.price || 0) ||
+      Number(draft.stock) !== Number(original.stock || 0) ||
+      draft.status !== original.status ||
+      draft.image_url !== original.image_url
+    );
+  };
+
+  // Save changes of modified products
+  const handleSaveBulkEdit = async () => {
+    const modifiedProducts = bulkEditProducts.filter(isProductModified);
+
+    if (modifiedProducts.length === 0) {
+      toast("No changes detected.", "info");
+      return;
+    }
+
+    const hasEmptyName = modifiedProducts.some(p => !p.name.trim());
+    if (hasEmptyName) {
+      toast("All product names must be filled out.", "error");
+      return;
+    }
+
+    const hasNegativePrice = modifiedProducts.some(p => Number(p.purchase_price) < 0 || Number(p.price) < 0);
+    if (hasNegativePrice) {
+      toast("Prices cannot be negative.", "error");
+      return;
+    }
+
+    const hasNegativeStock = modifiedProducts.some(p => Number(p.stock) < 0);
+    if (hasNegativeStock) {
+      toast("Stock level cannot be negative.", "error");
+      return;
+    }
+
+    setBulkEditLoading(true);
+    toast("Saving your modifications...", "info");
+
+    try {
+      const updatePromises = modifiedProducts.map(async (draft) => {
+        const original = products.find(p => p.id === draft.id);
+        const originalStock = original ? (original.stock || 0) : 0;
+        const newStock = Number(draft.stock || 0);
+        const diff = newStock - originalStock;
+
+        // Auto-recalculate status transitions based on new stock level
+        let newStatus = draft.status;
+        if (newStock === 0 && (newStatus === "Active" || newStatus === "Low Stock")) {
+          newStatus = "Out of Stock";
+        } else if (newStock > 0 && newStock <= 15 && newStatus === "Active") {
+          newStatus = "Low Stock";
+        } else if (newStock > 15 && (newStatus === "Out of Stock" || newStatus === "Low Stock")) {
+          newStatus = "Active";
+        }
+
+        const { error } = await supabase
+          .from("products")
+          .update({
+            name: draft.name.trim(),
+            sku: draft.sku.trim(),
+            category: draft.category,
+            purchase_price: Number(draft.purchase_price || 0),
+            price: Number(draft.price || 0),
+            stock: newStock,
+            status: newStatus,
+            image_url: draft.image_url
+          })
+          .eq("id", draft.id);
+
+        if (error) throw error;
+
+        // Save log to stock ledger timeline
+        if (diff !== 0) {
+          const adjustmentKey = `inba_stock_adjustments_${draft.id}`;
+          const existing = localStorage.getItem(adjustmentKey);
+          const list = existing ? JSON.parse(existing) : [];
+          list.push({
+            date: new Date().toISOString(),
+            qty: diff,
+            reason: `Bulk Product Editor Adjustment (${diff > 0 ? "Added" : "Removed"} ${Math.abs(diff)} units)`
+          });
+          localStorage.setItem(adjustmentKey, JSON.stringify(list));
+        }
+      });
+
+      await Promise.all(updatePromises);
+      toast(`Successfully saved changes for ${modifiedProducts.length} products!`, "success");
+      setIsBulkEditOpen(false);
+      fetchProducts();
+    } catch (err: any) {
+      console.error("Failed to save bulk edit products:", err);
+      toast(err.message || "Failed to save product modifications.", "error");
+    } finally {
+      setBulkEditLoading(false);
     }
   };
 
@@ -610,12 +711,9 @@ export default function InventoryPage() {
             <UploadCloud className="w-4 h-4" />
             Bulk Upload
           </Button>
-          <Button variant="ghost" className="gap-2 border border-gray-200 text-amber-600 hover:text-amber-750 hover:bg-amber-50 font-semibold" onClick={() => {
-            setIsBulkStockOpen(true);
-            if (categories.length > 0) setBulkStockCategory(categories[0]);
-          }}>
+          <Button variant="ghost" className="gap-2 border border-gray-200 text-[#2E8C13] hover:text-[#257310] hover:bg-green-50 font-semibold" onClick={handleOpenBulkEdit}>
             <Sliders className="w-4 h-4" />
-            Bulk Stock Edit
+            Bulk Edit Products
           </Button>
           <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" />
@@ -1250,97 +1348,343 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* Bulk Stock Edit Modal */}
-      {isBulkStockOpen && (
-        <Modal 
-          isOpen={isBulkStockOpen} 
-          onClose={() => {
-            setIsBulkStockOpen(false);
-            setBulkStockValue("");
-          }} 
-          title="Bulk Edit Stock by Category"
-        >
-          <div className="space-y-4">
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Adjust stock levels for all products matching a selected category simultaneously. This change is permanent and will log manual ledger timeline events for all modified products.
-            </p>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Select Product Category</label>
-              <Select 
-                options={categories}
-                value={bulkStockCategory}
-                onChange={setBulkStockCategory}
-                placeholder="Select Category..."
-              />
+      {/* Tabular Bulk Product Edit Modal */}
+      {isBulkEditOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[92vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Sliders className="w-5 h-5 text-[#2E8C13]" />
+                  Bulk Product Editor
+                  {bulkEditProducts.length > 0 && (
+                    <span className="text-xs bg-[#2E8C13]/10 text-[#2E8C13] px-2.5 py-1 rounded-full font-bold">
+                      {bulkEditProducts.length} Products
+                    </span>
+                  )}
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Modify details, adjust stock using steppers, upload photos, or delete products directly in the list. Changes are saved as drafts and logged to manual timelines.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  setIsBulkEditOpen(false);
+                  setBulkEditProducts([]);
+                }}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Adjustment Action</label>
-                <select
-                  value={bulkStockAction}
-                  onChange={(e: any) => setBulkStockAction(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-gray-800"
-                >
-                  <option value="set">Set stock to...</option>
-                  <option value="increase">Increase stock by...</option>
-                  <option value="decrease">Decrease stock by...</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Quantity / Stock Level</label>
-                <input 
-                  type="number" 
-                  required
-                  value={bulkStockValue}
-                  onChange={(e) => setBulkStockValue(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-bold text-gray-900"
-                  placeholder="e.g. 50"
-                  min="0"
-                />
-              </div>
-            </div>
+            {/* Inner Filters Toolbar inside modal */}
+            <div className="px-6 py-4 bg-gray-50/70 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 flex-1">
+                {/* Modal Search Bar */}
+                <div className="relative flex-1 min-w-[240px] max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search inside editor by name or SKU..." 
+                    value={bulkEditSearch}
+                    onChange={(e) => setBulkEditSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] transition-all text-gray-900 font-semibold"
+                  />
+                </div>
 
-            {/* Affected Products Preview Widget */}
-            {bulkStockCategory && (
-              <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider mb-0.5">Bulk Action Preview</h4>
-                  <p className="text-xs text-amber-700 font-medium">
-                    This action will update stock level values for{" "}
-                    <span className="font-bold underline text-amber-950">
-                      {products.filter(p => p.category === bulkStockCategory).length} products
-                    </span>{" "}
-                    in the <span className="font-bold">"{bulkStockCategory}"</span> category.
-                  </p>
+                {/* Modal Category Selector */}
+                <div className="w-[180px]">
+                  <Select 
+                    options={["All", ...categories]}
+                    value={bulkEditCategory}
+                    onChange={setBulkEditCategory}
+                    placeholder="All Categories"
+                  />
                 </div>
               </div>
-            )}
 
-            <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => {
-                  setIsBulkStockOpen(false);
-                  setBulkStockValue("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="button" 
-                variant="primary" 
-                onClick={handleApplyBulkStock}
-                className="font-bold"
-              >
-                Apply Updates
-              </Button>
+              {/* Dynamic Modified Indicators */}
+              <div className="text-xs font-bold text-gray-500 flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-100">
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shrink-0" />
+                <span>
+                  Modified: <span className="text-green-700">{bulkEditProducts.filter(isProductModified).length}</span>
+                </span>
+              </div>
             </div>
+
+            {/* Content Table Body */}
+            <div className="flex-1 overflow-hidden p-6 bg-gray-50/30 flex flex-col justify-start">
+              {bulkEditProducts.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
+                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-sm font-bold text-gray-900">No Products Available</h3>
+                  <p className="text-xs text-gray-400 mt-1">There are no products in the inventory to edit.</p>
+                </div>
+              ) : (
+                <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col max-h-[52vh]">
+                  <div className="overflow-y-auto flex-1">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 bg-gray-50/95 backdrop-blur-sm z-10 border-b border-gray-200 shadow-sm">
+                        <tr>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Photo</th>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Product Info (Name & SKU)</th>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-40">Category</th>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-48 text-center">Cost / Sell (₹)</th>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-48 text-center">Stock & Quick Stepper</th>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Status</th>
+                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right w-16">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {bulkEditProducts
+                          .filter(product => {
+                            const matchesSearch = 
+                              product.name.toLowerCase().includes(bulkEditSearch.toLowerCase()) ||
+                              (product.sku && product.sku.toLowerCase().includes(bulkEditSearch.toLowerCase()));
+                            const matchesCategory = bulkEditCategory === "All" || product.category === bulkEditCategory;
+                            return matchesSearch && matchesCategory;
+                          })
+                          .map((item) => {
+                            const modified = isProductModified(item);
+                            return (
+                              <tr 
+                                key={item.id} 
+                                className={`transition-all ${
+                                  modified ? "bg-green-50/20 hover:bg-green-50/40" : "hover:bg-gray-50/50"
+                                }`}
+                              >
+                                {/* Photo column with background uploading */}
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden group cursor-pointer shadow-sm hover:scale-105 transition-transform">
+                                    {item.image_url ? (
+                                      <img src={item.image_url} alt="Product preview" className="w-full h-full object-cover group-hover:opacity-75 transition-opacity" />
+                                    ) : (
+                                      <div className="text-gray-400 text-[10px] text-center font-medium">No Img</div>
+                                    )}
+                                    
+                                    {/* Edit Overlay on Hover */}
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <ImagePlus className="w-4 h-4 text-white animate-pulse" />
+                                    </div>
+
+                                    {/* Inline hidden input */}
+                                    <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                          processBulkEditImageUpload(item.id, e.target.files[0]);
+                                        }
+                                      }}
+                                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                    />
+
+                                    {/* Loader overlay */}
+                                    {(item.uploadStatus === 'compressing' || item.uploadStatus === 'uploading') && (
+                                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+
+                                {/* Name & SKU inputs */}
+                                <td className="px-4 py-3">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <input 
+                                        type="text" 
+                                        required
+                                        value={item.name}
+                                        onChange={(e) => handleBulkEditChange(item.id, "name", e.target.value)}
+                                        className="w-full px-2.5 py-1 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-bold text-gray-900 bg-transparent hover:bg-gray-50 focus:bg-white transition-all"
+                                        placeholder="Name"
+                                      />
+                                      {modified && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 border border-green-200 text-green-700 uppercase tracking-wide shrink-0">
+                                          Modified
+                                        </span>
+                                      )}
+                                    </div>
+                                    <input 
+                                      type="text" 
+                                      required
+                                      value={item.sku}
+                                      onChange={(e) => handleBulkEditChange(item.id, "sku", e.target.value)}
+                                      className="w-1/2 px-2.5 py-0.5 border border-transparent rounded-lg text-xs focus:border-gray-200 outline-none font-mono font-bold text-gray-500 bg-transparent hover:bg-gray-50 focus:bg-white transition-all"
+                                      placeholder="SKU"
+                                    />
+                                  </div>
+                                </td>
+
+                                {/* Category Dropdown */}
+                                <td className="px-4 py-3">
+                                  <Select 
+                                    options={categories}
+                                    value={item.category}
+                                    onChange={(val) => handleBulkEditChange(item.id, "category", val)}
+                                    allowCustom={true}
+                                    placeholder="Category"
+                                  />
+                                </td>
+
+                                {/* Pricing inline inputs */}
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-1.5 justify-center">
+                                    <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-1.5 py-1 focus-within:ring-2 focus-within:ring-[#2E8C13]/20 focus-within:ring-offset-0 focus-within:border-[#2E8C13] transition-all w-1/2">
+                                      <span className="text-gray-400 text-xs font-semibold select-none mr-0.5">₹</span>
+                                      <input 
+                                        type="number" 
+                                        required
+                                        value={item.purchase_price}
+                                        onChange={(e) => handleBulkEditChange(item.id, "purchase_price", e.target.value)}
+                                        className="w-full bg-transparent text-xs font-medium text-gray-600 outline-none text-center"
+                                        placeholder="Cost"
+                                        min="0"
+                                      />
+                                    </div>
+                                    <div className="flex items-center bg-[#2E8C13]/5 border border-gray-200 rounded-lg px-1.5 py-1 focus-within:ring-2 focus-within:ring-[#2E8C13]/20 focus-within:ring-offset-0 focus-within:border-[#2E8C13] transition-all w-1/2">
+                                      <span className="text-[#2E8C13] text-xs font-bold select-none mr-0.5">₹</span>
+                                      <input 
+                                        type="number" 
+                                        required
+                                        value={item.price}
+                                        onChange={(e) => handleBulkEditChange(item.id, "price", e.target.value)}
+                                        className="w-full bg-transparent text-xs font-bold text-[#2E8C13] outline-none text-center"
+                                        placeholder="Sell"
+                                        min="0"
+                                      />
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Stock input & physical steppers */}
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="flex items-center gap-1.5 justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const currentStock = Number(item.stock || 0);
+                                        handleBulkEditChange(item.id, "stock", Math.max(0, currentStock - 1).toString());
+                                      }}
+                                      className="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 font-bold rounded-lg transition-colors text-sm shrink-0 shadow-sm"
+                                    >
+                                      -
+                                    </button>
+                                    <input 
+                                      type="number" 
+                                      required
+                                      value={item.stock}
+                                      onChange={(e) => handleBulkEditChange(item.id, "stock", e.target.value)}
+                                      className={`w-16 px-1.5 py-1 border border-gray-200 rounded-lg text-sm text-center font-extrabold outline-none focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] ${
+                                        Number(item.stock) === 0 ? "text-red-600 bg-red-50/20" : Number(item.stock) <= 15 ? "text-orange-600 bg-orange-50/20" : "text-gray-900"
+                                      }`}
+                                      placeholder="Qty"
+                                      min="0"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const currentStock = Number(item.stock || 0);
+                                        handleBulkEditChange(item.id, "stock", (currentStock + 1).toString());
+                                      }}
+                                      className="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 font-bold rounded-lg transition-colors text-sm shrink-0 shadow-sm"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </td>
+
+                                {/* Status Select Dropdown */}
+                                <td className="px-4 py-3">
+                                  <select
+                                    value={item.status}
+                                    onChange={(e) => handleBulkEditChange(item.id, "status", e.target.value)}
+                                    className={`w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-bold ${
+                                      item.status === 'Active' ? 'text-green-700 bg-green-50/30' :
+                                      item.status === 'Low Stock' ? 'text-orange-700 bg-orange-50/30' :
+                                      item.status === 'Inactive' ? 'text-gray-600 bg-gray-50' : 'text-red-700 bg-red-50/30'
+                                    }`}
+                                  >
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                    <option value="Low Stock">Low Stock</option>
+                                    <option value="Out of Stock">Out of Stock</option>
+                                  </select>
+                                </td>
+
+                                {/* Delete Action Trash Icon */}
+                                <td className="px-4 py-3 whitespace-nowrap text-right">
+                                  <button 
+                                    type="button"
+                                    onClick={() => handleBulkEditDelete(item)}
+                                    className="text-gray-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-all border border-transparent hover:border-rose-100 shadow-sm"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-6 border-t border-gray-100 bg-white">
+              <div className="text-xs text-gray-500 font-medium">
+                {bulkEditProducts.filter(isProductModified).length > 0 && (
+                  <span className="flex items-center gap-1.5 text-[#2E8C13] font-bold">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    Ready to save changes for {bulkEditProducts.filter(isProductModified).length} products!
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => {
+                    setIsBulkEditOpen(false);
+                    setBulkEditProducts([]);
+                  }}
+                  disabled={bulkEditLoading}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="primary" 
+                  onClick={handleSaveBulkEdit}
+                  disabled={
+                    bulkEditLoading || 
+                    bulkEditProducts.filter(isProductModified).length === 0 || 
+                    bulkEditProducts.some(q => q.uploadStatus === 'compressing' || q.uploadStatus === 'uploading')
+                  }
+                  className="gap-2 font-bold transition-all px-6 py-2 bg-[#2E8C13] hover:bg-[#257310]"
+                >
+                  {bulkEditLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving changes...
+                    </>
+                  ) : (
+                    <>
+                      Save {bulkEditProducts.filter(isProductModified).length} Modifications
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
           </div>
-        </Modal>
+        </div>
       )}
     </div>
   );
