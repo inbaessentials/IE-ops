@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw } from "lucide-react";
+import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw, Check, ImagePlus } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -68,6 +68,124 @@ function StatusDropdown({ value, onChange }: { value: string, onChange: (val: st
               </button>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Premium Multi-Select Dropdown Component for Products
+function ProductMultiSelect({
+  products,
+  selectedProducts,
+  onChange
+}: {
+  products: any[];
+  selectedProducts: string[];
+  onChange: (selected: string[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const toggleProduct = (productName: string) => {
+    if (selectedProducts.includes(productName)) {
+      onChange(selectedProducts.filter(name => name !== productName));
+    } else {
+      onChange([...selectedProducts, productName]);
+    }
+  };
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <div 
+        className="flex items-center justify-between w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg cursor-pointer focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="text-sm font-semibold text-gray-700">
+          {selectedProducts.length === 0 
+            ? "Select products..." 
+            : `${selectedProducts.length} product${selectedProducts.length > 1 ? "s" : ""} selected`}
+        </span>
+        <div className="flex items-center gap-2">
+          {selectedProducts.length > 0 && (
+            <span className="text-[10px] bg-[#2E8C13]/10 text-[#2E8C13] px-2 py-0.5 rounded-full font-extrabold shrink-0 animate-pulse">
+              Active
+            </span>
+          )}
+          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-lg shadow-xl max-h-72 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+          <div className="p-2 border-b border-gray-100 bg-gray-50/50">
+            <input 
+              type="text"
+              placeholder="Search products to add..."
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+
+          <div className="overflow-y-auto max-h-60 divide-y divide-gray-50">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((p, idx) => {
+                const isSelected = selectedProducts.includes(p.name);
+                return (
+                  <div 
+                    key={idx}
+                    className={`px-4 py-2.5 text-sm cursor-pointer flex items-center justify-between hover:bg-primary/5 transition-colors ${
+                      isSelected ? 'bg-primary/5' : ''
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation(); 
+                      toggleProduct(p.name);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}} 
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-opacity-20 accent-[#2E8C13] cursor-pointer"
+                      />
+                      
+                      {p.image_url && (
+                        <img src={p.image_url} alt={p.name} className="w-8 h-8 rounded object-cover border border-gray-100 flex-shrink-0 animate-in fade-in" />
+                      )}
+                      
+                      <div className="flex flex-col text-left">
+                        <span className="font-bold text-gray-800 leading-tight">{p.name}</span>
+                        <span className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                          Stock: {p.stock ?? 0} units • ₹{p.price}
+                        </span>
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-[#2E8C13]" />}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="px-4 py-3 text-xs text-gray-400 text-center font-medium">No products found</div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -369,6 +487,26 @@ export default function SalesPage() {
   
   const handleRemoveItem = (index: number) => {
     setNewOrderItems(newOrderItems.filter((_, i) => i !== index));
+  };
+
+  const handleMultiSelectChange = (selectedNames: string[]) => {
+    // Filter out completely empty items before reconciling
+    const activeItems = newOrderItems.filter(it => it.product !== "");
+    
+    const updatedItems = selectedNames.map(name => {
+      const existingItem = activeItems.find(it => it.product === name);
+      if (existingItem) {
+        return existingItem;
+      }
+      const matchedProduct = dbProducts.find(p => p.name === name);
+      return {
+        product: name,
+        qty: 1,
+        price: matchedProduct ? Number(matchedProduct.price || 0) : 0
+      };
+    });
+
+    setNewOrderItems(updatedItems);
   };
   
   const handleItemChange = (index: number, field: string, value: any) => {
@@ -854,50 +992,104 @@ export default function SalesPage() {
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Order Items</h3>
-              {newOrderItems.map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
-                      <Select 
-                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
-                        value={item.product}
-                        onChange={(val) => handleItemChange(idx, 'product', val)}
-                        placeholder="Select product..."
-                      />
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
-                        <input 
-                          type="number" 
-                          min={1} 
-                          value={item.qty} 
-                          onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                          className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                        />
+              
+              {/* Product MultiSelect Selector */}
+              <div className="space-y-1.5 pb-2 border-b border-gray-100">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Bulk Select Products</label>
+                <ProductMultiSelect 
+                  products={dbProducts}
+                  selectedProducts={newOrderItems.filter(it => it.product).map(it => it.product)}
+                  onChange={handleMultiSelectChange}
+                />
+              </div>
+
+              {newOrderItems.length > 0 ? (
+                newOrderItems.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg animate-in slide-in-from-top-1 transition-all relative">
+                    <div className="flex-1 space-y-3">
+                      {item.product ? (
+                        /* Selected product display card style */
+                        <div className="flex items-center gap-3">
+                          {dbProducts.find(p => p.name === item.product)?.image_url ? (
+                            <img 
+                              src={dbProducts.find(p => p.name === item.product)?.image_url} 
+                              alt={item.product} 
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-bold flex-shrink-0">No Img</div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate leading-snug">{item.product}</p>
+                            <p className="text-[10px] text-gray-400 font-semibold">
+                              Available Stock: {dbProducts.find(p => p.name === item.product)?.stock ?? 0} units
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Fallback single select dropdown */
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+                          <Select 
+                            options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
+                            value={item.product}
+                            onChange={(val) => handleItemChange(idx, 'product', val)}
+                            placeholder="Select product..."
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
+                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="number" 
+                              min={1} 
+                              value={item.qty} 
+                              onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
+                              className="w-full px-3 py-1 border border-gray-200 rounded text-sm text-center font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
+                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
+                          <input 
+                            type="number" 
+                            value={item.price} 
+                            onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
+                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-50 text-primary" 
+                          />
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
-                        <input 
-                          type="number" 
-                          value={item.price} 
-                          onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                          className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-100" 
-                        />
-                      </div>
                     </div>
-                  </div>
-                  {newOrderItems.length > 1 && (
-                    <button type="button" onClick={() => handleRemoveItem(idx)} className="mt-6 p-2 text-gray-400 hover:text-red-600 transition-colors">
+                    <button type="button" onClick={() => handleRemoveItem(idx)} className="p-2 text-gray-400 hover:text-red-600 transition-colors self-start mt-2">
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 border border-dashed border-gray-200 rounded-xl">
+                  <p className="text-xs text-gray-400 font-medium italic">No products added. Select products above to populate.</p>
                 </div>
-              ))}
+              )}
               
               <Button type="button" variant="outline" className="w-full text-xs" onClick={handleAddItem}>
-                + Add Another Item
+                + Add Custom Item Row
               </Button>
             </div>
 
@@ -969,50 +1161,104 @@ export default function SalesPage() {
 
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Order Items</h3>
-              {newOrderItems.map((item, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg">
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
-                      <Select 
-                        options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
-                        value={item.product}
-                        onChange={(val) => handleItemChange(idx, 'product', val)}
-                        placeholder="Select product..."
-                      />
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
-                        <input 
-                          type="number" 
-                          min={1} 
-                          value={item.qty} 
-                          onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                          className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                        />
+              
+              {/* Product MultiSelect Selector */}
+              <div className="space-y-1.5 pb-2 border-b border-gray-100">
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Bulk Select Products</label>
+                <ProductMultiSelect 
+                  products={dbProducts}
+                  selectedProducts={newOrderItems.filter(it => it.product).map(it => it.product)}
+                  onChange={handleMultiSelectChange}
+                />
+              </div>
+
+              {newOrderItems.length > 0 ? (
+                newOrderItems.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 border border-gray-100 rounded-lg animate-in slide-in-from-top-1 transition-all relative">
+                    <div className="flex-1 space-y-3">
+                      {item.product ? (
+                        /* Selected product display card style */
+                        <div className="flex items-center gap-3">
+                          {dbProducts.find(p => p.name === item.product)?.image_url ? (
+                            <img 
+                              src={dbProducts.find(p => p.name === item.product)?.image_url} 
+                              alt={item.product} 
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-bold flex-shrink-0">No Img</div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate leading-snug">{item.product}</p>
+                            <p className="text-[10px] text-gray-400 font-semibold">
+                              Available Stock: {dbProducts.find(p => p.name === item.product)?.stock ?? 0} units
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Fallback single select dropdown */
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
+                          <Select 
+                            options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Available Stock: ${p.stock ?? 0} units` }))}
+                            value={item.product}
+                            onChange={(val) => handleItemChange(idx, 'product', val)}
+                            placeholder="Select product..."
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Quantity</label>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
+                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
+                            >
+                              -
+                            </button>
+                            <input 
+                              type="number" 
+                              min={1} 
+                              value={item.qty} 
+                              onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
+                              className="w-full px-3 py-1 border border-gray-200 rounded text-sm text-center font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
+                              className="w-7 h-7 flex items-center justify-center bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold rounded shadow-sm text-xs shrink-0"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
+                          <input 
+                            type="number" 
+                            value={item.price} 
+                            onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
+                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-50 text-primary" 
+                          />
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Price (₹)</label>
-                        <input 
-                          type="number" 
-                          value={item.price} 
-                          onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                          className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-gray-100" 
-                        />
-                      </div>
                     </div>
-                  </div>
-                  {newOrderItems.length > 1 && (
-                    <button type="button" onClick={() => handleRemoveItem(idx)} className="mt-6 p-2 text-gray-400 hover:text-red-600 transition-colors">
+                    <button type="button" onClick={() => handleRemoveItem(idx)} className="p-2 text-gray-400 hover:text-red-600 transition-colors self-start mt-2">
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 border border-dashed border-gray-200 rounded-xl">
+                  <p className="text-xs text-gray-400 font-medium italic">No products added. Select products above to populate.</p>
                 </div>
-              ))}
+              )}
               
               <Button type="button" variant="outline" className="w-full text-xs" onClick={handleAddItem}>
-                + Add Another Item
+                + Add Custom Item Row
               </Button>
             </div>
 

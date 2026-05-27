@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { 
   Search, Filter, Download, Plus, Star, ShoppingBag, 
-  MapPin, Calendar, CheckCircle2, Package, Truck, ChevronDown, ChevronUp 
+  MapPin, Calendar, CheckCircle2, Package, Truck, ChevronDown, ChevronUp,
+  Users, Award, TrendingUp, Trophy, Coins
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -342,6 +343,18 @@ export default function CustomersPage() {
     { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer), destructive: true },
   ];
 
+  // Dynamic metrics calculation for widgets based on currently filtered customers subset
+  const totalCustomersCount = filteredCustomers.length;
+  const repeatCustomersCount = filteredCustomers.filter(c => c.isRepeat).length;
+  const totalSpentAll = filteredCustomers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
+  const avgSpentPerCustomer = totalCustomersCount > 0 ? (totalSpentAll / totalCustomersCount) : 0;
+  
+  // Find top spender
+  let topSpenderCustomer: any = null;
+  if (filteredCustomers.length > 0) {
+    topSpenderCustomer = [...filteredCustomers].sort((a, b) => b.totalSpent - a.totalSpent)[0];
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -359,6 +372,70 @@ export default function CustomersPage() {
             Add Customer
           </Button>
         </div>
+      </div>
+
+      {/* Dynamic Customers Metrics Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Customers</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
+          </div>
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
+            <Users className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Loyal Customers</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
+          </div>
+          <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
+            <Award className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Avg LTV / Spent</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-emerald-600">
+              ₹{avgSpentPerCustomer.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </h3>
+          </div>
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Spender</p>
+            {topSpenderCustomer && topSpenderCustomer.totalSpent > 0 ? (
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-indigo-700 truncate max-w-[130px] leading-tight">
+                  {topSpenderCustomer.name}
+                </h3>
+                <p className="text-xs text-gray-400 font-semibold mt-0.5">
+                  ₹{topSpenderCustomer.totalSpent.toLocaleString("en-IN")} LTV
+                </p>
+              </div>
+            ) : (
+              <h3 className="text-2xl font-semibold tracking-tight text-gray-400">N/A</h3>
+            )}
+          </div>
+          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-in zoom-in duration-200">
+            <Trophy className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total LTV Value</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-purple-600">
+              ₹{totalSpentAll.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+            </h3>
+          </div>
+          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200">
+            <Coins className="w-5 h-5" />
+          </div>
+        </Card>
       </div>
 
       <Card>
