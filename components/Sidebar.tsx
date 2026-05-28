@@ -12,7 +12,8 @@ import {
   ArchiveRestore, 
   Wallet, 
   BarChart3, 
-  Settings 
+  Settings,
+  Target
 } from "lucide-react";
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },
+  { name: "Goals", href: "/goals", icon: Target },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
