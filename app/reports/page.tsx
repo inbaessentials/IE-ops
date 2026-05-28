@@ -9,8 +9,10 @@ import {
 } from "lucide-react";
 import ReportCharts from "@/components/ReportCharts";
 import { supabase } from "@/lib/supabase";
+import PulseIntelligence from "@/components/PulseIntelligence";
 
 export default function ReportsPage() {
+  const [activeReportTab, setActiveReportTab] = useState<"financial" | "pulse">("financial");
   const [timeframe, setTimeframe] = useState("Last 30 Days");
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -264,8 +266,34 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-[400px] text-sm text-gray-500 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm">
+      {/* Persistent Tabs Switcher Bar */}
+      <div className="flex border-b border-gray-200 gap-2 mb-6">
+        <button
+          onClick={() => setActiveReportTab("financial")}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 outline-none ${
+            activeReportTab === "financial"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <span>📊</span> Financial Performance
+        </button>
+        <button
+          onClick={() => setActiveReportTab("pulse")}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 outline-none ${
+            activeReportTab === "pulse"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <span>🧠</span> Inba Pulse Intelligence
+        </button>
+      </div>
+
+      {activeReportTab === "pulse" ? (
+        <PulseIntelligence />
+      ) : loading ? (
+        <div className="flex items-center justify-center h-[400px] text-sm text-gray-500 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse">
           Generating reports...
         </div>
       ) : (
