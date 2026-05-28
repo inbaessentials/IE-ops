@@ -471,97 +471,103 @@ export default function GoalsPage() {
       ) : (
         <>
           {/* Active Goal Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Achieved Card */}
-            <Card className="p-5 border border-gray-150 shadow-sm relative overflow-hidden group">
-              <div className="flex justify-between items-start">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-[#2E8C13]/10 text-[#2E8C13]">
+                  <Target className="w-6 h-6" />
+                </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Active Goal</span>
-                  <h4 className="text-base font-bold text-gray-800 truncate mt-0.5">{activeGoal.name}</h4>
-                  <h3 className="text-2xl font-black text-[#2E8C13] tracking-tight mt-2.5">
-                    {activeGoal.type === "revenue" || activeGoal.type === "category"
-                      ? formatCurrency(achievedValue)
-                      : `${achievedValue} units`}
-                  </h3>
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <span className="text-[11px] font-semibold text-gray-400">
-                      Target: {activeGoal.type === "revenue" || activeGoal.type === "category" ? formatCurrency(targetValue) : `${targetValue} units`}
-                    </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 border rounded-full shrink-0 ${pacingBadgeColor}`}>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider truncate">
+                    {activeGoal.name}
+                  </p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <h3 className="text-2xl font-semibold tracking-tight text-[#2E8C13]">
+                      {activeGoal.type === "revenue" || activeGoal.type === "category"
+                        ? formatCurrency(achievedValue)
+                        : `${achievedValue} units`}
+                    </h3>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 border ${pacingBadgeColor}`}>
                       {pacingStatus}
                     </span>
                   </div>
+                  <p className="text-[10px] text-gray-400 font-semibold mt-1">
+                    Target: {activeGoal.type === "revenue" || activeGoal.type === "category" ? formatCurrency(targetValue) : `${targetValue} units`}
+                  </p>
+                  <div className="w-full h-1 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-[#2E8C13] rounded-full transition-all duration-300" style={{ width: `${Math.min(100, achievementPercentage)}%` }} />
+                  </div>
                 </div>
-                <div className="p-3 bg-[#2E8C13]/10 text-[#2E8C13] rounded-xl shrink-0">
-                  <Target className="w-5 h-5" />
-                </div>
-              </div>
-              {/* Dynamic progress bar */}
-              <div className="w-full h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden">
-                <div className="h-full bg-[#2E8C13] rounded-full transition-all duration-300" style={{ width: `${Math.min(100, achievementPercentage)}%` }} />
-              </div>
+              </CardContent>
             </Card>
 
             {/* Pacing Card */}
-            <Card className="p-5 border border-gray-150 shadow-sm relative overflow-hidden group">
-              <div className="flex justify-between items-start">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-purple-50 text-purple-600">
+                  <Calendar className="w-6 h-6" />
+                </div>
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Daily Pace Required</span>
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight mt-3">
-                    {activeGoal.type === "revenue" || activeGoal.type === "category"
-                      ? formatCurrency(dailyPacingNeeded)
-                      : `${Math.ceil(dailyPacingNeeded)} units`}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 font-semibold mt-2.5">
-                    For next <strong className="text-gray-700">{daysRemaining} days</strong> in period
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Daily Pace Required</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
+                      {activeGoal.type === "revenue" || activeGoal.type === "category"
+                        ? formatCurrency(dailyPacingNeeded)
+                        : `${Math.ceil(dailyPacingNeeded)} units`}
+                    </h3>
+                  </div>
+                  <p className="text-[10px] text-gray-400 font-semibold mt-1">
+                    For next <strong className="text-gray-700">{daysRemaining} days</strong>
                   </p>
                 </div>
-                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                  <Calendar className="w-5 h-5" />
-                </div>
-              </div>
+              </CardContent>
             </Card>
 
             {/* Forecast Card */}
-            <Card className="p-5 border border-gray-150 shadow-sm relative overflow-hidden group">
-              <div className="flex justify-between items-start">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Run-Rate EOM Forecast</span>
-                  <h3 className={`text-2xl font-black tracking-tight mt-3 ${forecastPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}`}>
-                    {activeGoal.type === "revenue" || activeGoal.type === "category"
-                      ? formatCurrency(forecastedOutcome)
-                      : `${Math.round(forecastedOutcome)} units`}
-                  </h3>
-                  <p className="text-[11px] text-gray-400 font-semibold mt-2.5">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Run-Rate Forecast</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <h3 className={`text-2xl font-semibold tracking-tight ${forecastPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}`}>
+                      {activeGoal.type === "revenue" || activeGoal.type === "category"
+                        ? formatCurrency(forecastedOutcome)
+                        : `${Math.round(forecastedOutcome)} units`}
+                    </h3>
+                  </div>
+                  <p className="text-[10px] font-semibold mt-1">
                     {forecastPercentage >= 100 ? (
-                      <span className="text-emerald-700">Projected: {Math.round(forecastPercentage)}% (Hits goal!)</span>
+                      <span className="text-emerald-600">Projected: {Math.round(forecastPercentage)}%</span>
                     ) : (
-                      <span className="text-amber-700">Projected: {Math.round(forecastPercentage)}% ({formatCurrency(remainingValue)} gap)</span>
+                      <span className="text-amber-600">Projected: {Math.round(forecastPercentage)}%</span>
                     )}
                   </p>
                 </div>
-                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-              </div>
+              </CardContent>
             </Card>
 
             {/* Margin Mix Card */}
-            <Card className="p-5 border border-gray-150 shadow-sm relative overflow-hidden group">
-              <div className="flex justify-between items-start">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-blue-50 text-blue-600">
+                  <Percent className="w-6 h-6" />
+                </div>
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Goal Sales Margin Mix</span>
-                  <h3 className="text-2xl font-black text-blue-600 tracking-tight mt-3">
-                    {grossProfitMargin}%
-                  </h3>
-                  <p className="text-[11px] text-gray-400 font-semibold mt-2.5">
-                    Average gross profit yield
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Goal Margin Mix</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
+                      {grossProfitMargin}%
+                    </h3>
+                  </div>
+                  <p className="text-[10px] text-gray-400 font-semibold mt-1">
+                    Average profit margin
                   </p>
                 </div>
-                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                  <Percent className="w-5 h-5" />
-                </div>
-              </div>
+              </CardContent>
             </Card>
           </div>
 
