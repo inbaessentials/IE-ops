@@ -4,14 +4,47 @@ import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { 
   TrendingUp, Coins, Award, Trophy, Calendar, Users, 
-  ShoppingBag, Sparkles, Percent, ShieldAlert, Tag, HelpCircle
+  ShoppingBag, Sparkles, Percent, ShieldAlert, Tag, CalendarDays
 } from "lucide-react";
 import { 
-  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend
+  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend, ReferenceLine
 } from "recharts";
 import { supabase } from "@/lib/supabase";
 
 const TIERS_COLORS = ["#9ca3af", "#45B823", "#2E8C13", "#1F590D"];
+
+const SouthIndianCities = [
+  "erode", "coimbatore", "chennai", "bangalore", "bengaluru", 
+  "hyderabad", "madurai", "salem", "trichy", "tiruchirappalli", 
+  "tiruppur", "vellore", "kochi", "cochin", "mysore", "mysuru"
+];
+
+const extractCity = (addressStr: string) => {
+  if (!addressStr || typeof addressStr !== 'string') return "Other";
+  const cleanAddr = addressStr.toLowerCase();
+  
+  // 1. Search for known South Indian cities first
+  for (const city of SouthIndianCities) {
+    if (cleanAddr.includes(city)) {
+      return city === "bengaluru" ? "Bangalore" : city.charAt(0).toUpperCase() + city.slice(1);
+    }
+  }
+  
+  // 2. Fallback: Parse parts
+  const withoutZip = cleanAddr.replace(/\b\d{6}\b/g, "").trim();
+  const parts = withoutZip.split(",").map(p => p.trim());
+  if (parts.length >= 2) {
+    const ignoreList = ["tamil nadu", "tamilnadu", "karnataka", "andhra pradesh", "telangana", "india", "state"];
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const part = parts[i];
+      if (part && !ignoreList.includes(part) && part.length > 2 && part.length < 20) {
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      }
+    }
+  }
+  
+  return "Other";
+};
 
 export default function PulseIntelligence() {
   const [loading, setLoading] = useState(true);
@@ -19,6 +52,7 @@ export default function PulseIntelligence() {
   const [orderItems, setOrderItems] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [campaignDays, setCampaignDays] = useState<string[]>(["Wednesday"]);
 
   const fetchPulseData = async () => {
     try {
@@ -68,14 +102,12 @@ export default function PulseIntelligence() {
     const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0;
     
     if (priceVal > 0) {
-      // Accumulate frequency mapping for sweet-spot
       if (!priceFrequency[priceVal]) {
         priceFrequency[priceVal] = { units: 0, revenue: 0 };
       }
       priceFrequency[priceVal].units += qty;
       priceFrequency[priceVal].revenue += priceVal * qty;
 
-      // Accumulate bracket tiers
       if (priceVal < 150) {
         priceTiers[0].units += qty;
         priceTiers[0].revenue += priceVal * qty;
@@ -131,7 +163,30 @@ export default function PulseIntelligence() {
     }
   });
 
-  // 3. Dynamic Operations recommendations Logic
+  // 3. City distribution scraped from order shipping address fields
+  const cityDistribution: Record<string, { name: string; count: number; sales: number }> = {};
+  let totalOrderSalesSum = 0;
+
+  orders.forEach(order => {
+    const val = parseFloat((order.amount || "").replace(/[^0-9.]/g, "")) || 0;
+    totalOrderSalesSum += val;
+    const city = extractCity(order.address);
+    if (!cityDistribution[city]) {
+      cityDistribution[city] = { name: city, count: 0, sales: 0 };
+    }
+    cityDistribution[city].count += 1;
+    cityDistribution[city].sales += val;
+  });
+
+  const sortedCities = Object.values(cityDistribution)
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 4)
+    .map(c => ({
+      ...c,
+      share: totalOrderSalesSum > 0 ? Math.round((c.sales / totalOrderSalesSum) * 100) : 0
+    }));
+
+  // 4. Dynamic Operations recommendations Logic
   // A. Low Stock restock Trigger
   const lowStockProducts = products.filter(p => p.stock <= 15 && p.status !== "Out of Stock");
   const restockAlerts = lowStockProducts.map(p => {
@@ -161,7 +216,6 @@ export default function PulseIntelligence() {
     }
   });
   
-  // Calculate day before peak for marketing campaign trigger
   const peakDayIdx = daysOfWeek.indexOf(peakDay);
   const prevDayIdx = peakDayIdx === 0 ? 6 : peakDayIdx - 1;
   const marketingTriggerDay = daysOfWeek[prevDayIdx];
@@ -172,6 +226,20 @@ export default function PulseIntelligence() {
     .filter(e => ["courier", "logistics", "shipping", "delivery"].includes((e.category || "").toLowerCase()))
     .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const logisticsPct = totalOperExpenses > 0 ? Math.round((logisticsExpenses / totalOperExpenses) * 100) : 0;
+
+  // E. Campaign Day Correlation analysis
+  const getCorrelationAnalysis = () => {
+    if (campaignDays.length === 0) return "Select campaign days below to see how they align with customer pulses.";
+    
+    const peakSalesDay = peakDay;
+    const isCampaignOnPeak = campaignDays.includes(peakSalesDay);
+    if (isCampaignOnPeak) {
+      return `🎉 High Correlation: Your campaign runs on ${peakSalesDay} perfectly align with your organic customer purchase peak of ${formatCurrency(maxDaySales)}!`;
+    } else {
+      const suggestDay = daysOfWeek[daysOfWeek.indexOf(peakSalesDay) === 0 ? 6 : daysOfWeek.indexOf(peakSalesDay) - 1];
+      return `💡 Optimization tip: You run campaigns on [${campaignDays.join(", ")}], but sales peak organically on ${peakSalesDay}. Consider shifting a campaign to ${suggestDay} to trigger even higher spikes!`;
+    }
+  };
 
   if (loading) {
     return (
@@ -195,8 +263,8 @@ export default function PulseIntelligence() {
               <h3 className="text-2xl font-bold text-gray-900 mt-1">
                 {sweetSpotPrice > 0 ? formatCurrency(sweetSpotPrice) : "N/A"}
               </h3>
-              <p className="text-[11px] text-gray-500 mt-1 font-semibold">
-                Highest sales volume ({maxUnits} units)
+              <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
+                Volume vs <span className="text-[#2E8C13] font-bold">{highYieldPrice > 0 ? formatCurrency(highYieldPrice) : "N/A"} (Yield)</span>
               </p>
             </div>
             <div className="p-3 bg-emerald-50 text-[#2E8C13] rounded-xl group-hover:scale-105 transition-transform duration-200">
@@ -213,8 +281,8 @@ export default function PulseIntelligence() {
               <h3 className="text-2xl font-bold text-gray-900 mt-1">
                 {highYieldPrice > 0 ? formatCurrency(highYieldPrice) : "N/A"}
               </h3>
-              <p className="text-[11px] text-gray-500 mt-1 font-semibold">
-                Highest gross revenue ({formatCurrency(maxRevenue)})
+              <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
+                Yield vs <span className="text-blue-600 font-bold">{sweetSpotPrice > 0 ? formatCurrency(sweetSpotPrice) : "N/A"} (Volume)</span>
               </p>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
@@ -239,7 +307,7 @@ export default function PulseIntelligence() {
           </div>
         </Card>
 
-        {/* Price Elasticity Score */}
+        {/* Logistics Share */}
         <Card className="p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
           <div className="flex justify-between items-start">
             <div>
@@ -326,6 +394,19 @@ export default function PulseIntelligence() {
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
                       formatter={(value: any) => [formatCurrency(Number(value)), "Sales"]}
                     />
+                    
+                    {/* Render Campaign Reference Lines on Chart Overlay */}
+                    {campaignDays.map(day => (
+                      <ReferenceLine
+                        key={day}
+                        x={day.substring(0, 3)}
+                        stroke="#45B823"
+                        strokeWidth={1.5}
+                        strokeDasharray="3 3"
+                        label={{ value: "🚀 Campaign", fill: "#2E8C13", fontSize: 9, fontWeight: "bold", position: "top" }}
+                      />
+                    ))}
+
                     <Area type="monotone" dataKey="sales" stroke="#2E8C13" strokeWidth={2.5} fillOpacity={1} fill="url(#pulseColor)" name="Daily Sales Volume" />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -334,6 +415,96 @@ export default function PulseIntelligence() {
                   No sales velocity records logged yet.
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* NEW Row: Geographical Shipping Cities & Interactive Campaign Matrix */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Shipping Locations via Address Parsing */}
+        <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="border-b border-gray-50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Users className="w-4.5 h-4.5 text-[#2E8C13]" /> Top Customer Cities (Address Scraping)
+            </CardTitle>
+            <p className="text-xs text-gray-500">Geographical analysis of sales contributions parsed from shipping addresses</p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {sortedCities.length > 0 ? (
+                sortedCities.map((city, idx) => {
+                  const barColors = ["bg-[#2E8C13]", "bg-[#45B823]", "bg-[#8AE66B]", "bg-gray-400"];
+                  return (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex justify-between text-xs font-semibold text-gray-700">
+                        <span>{city.name}</span>
+                        <span>
+                          {formatCurrency(city.sales)}{" "}
+                          <span className="text-gray-400 font-normal">
+                            ({city.count} {city.count === 1 ? "order" : "orders"} • {city.share}%)
+                          </span>
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${barColors[idx % barColors.length]} rounded-full`}
+                          style={{ width: `${city.share}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center p-8 text-sm text-gray-400">
+                  No location data parsed yet.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Campaign Impact Matrix Selector & Correlation Score */}
+        <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="border-b border-gray-50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Sparkles className="w-4.5 h-4.5 text-[#2E8C13]" /> Weekly Campaign Overlay Panel
+            </CardTitle>
+            <p className="text-xs text-gray-500">Toggle the days you ran WhatsApp blasts or Ad campaigns to trace conversion overlays</p>
+          </CardHeader>
+          <CardContent className="p-6 space-y-5">
+            {/* Interactive Selector Checkboxes */}
+            <div className="flex flex-wrap items-center gap-2">
+              {daysOfWeek.map((day) => {
+                const isSelected = campaignDays.includes(day);
+                return (
+                  <button
+                    key={day}
+                    onClick={() => {
+                      if (isSelected) {
+                        setCampaignDays(campaignDays.filter(d => d !== day));
+                      } else {
+                        setCampaignDays([...campaignDays, day]);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                      isSelected
+                        ? "bg-[#2E8C13] text-white border-[#2E8C13] shadow-sm font-bold"
+                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 font-medium"
+                    }`}
+                  >
+                    {day.substring(0, 3)}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Live Correlation Analysis Message */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/5 to-gray-50/10 border border-[#2E8C13]/10">
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Campaign Correlation Score</h4>
+              <p className="text-sm font-semibold text-gray-800 mt-2 leading-relaxed">
+                {getCorrelationAnalysis()}
+              </p>
             </div>
           </CardContent>
         </Card>
