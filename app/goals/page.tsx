@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { 
   Target, TrendingUp, TrendingDown, Coins, Award, Trophy, 
   Calendar, Briefcase, Plus, Sparkles, ShieldAlert, 
-  ShoppingBag, Percent, ShieldCheck, Tag, Info
+  ShoppingBag, Percent, ShieldCheck, Tag
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -37,13 +37,22 @@ export default function GoalsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
-  const [historicalGoals, setHistoricalGoals] = useState<Goal[]>([]);
+  const [focusGoal, setFocusGoal] = useState<Goal | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [pacingViewType, setPacingViewType] = useState<"daily" | "weekly">("daily");
+  
+  // Ledger Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [periodFilter, setPeriodFilter] = useState("all");
   
   const toast = useToast();
 
-  // Dynamic state for creating a goal
+  // Setup form states
   const [goalName, setGoalName] = useState("");
   const [goalType, setGoalType] = useState<Goal["type"]>("revenue");
   const [goalPeriod, setGoalPeriod] = useState<Goal["period"]>("monthly");
@@ -58,7 +67,6 @@ export default function GoalsPage() {
   const loadDataAndGoals = async () => {
     try {
       setLoading(true);
-      // Fetch operational records
       const [ordersRes, itemsRes, productsRes, expensesRes] = await Promise.all([
         supabase.from("orders").select("*"),
         supabase.from("order_items").select("*"),
@@ -71,7 +79,6 @@ export default function GoalsPage() {
       if (productsRes.data) setProducts(productsRes.data);
       if (expensesRes.data) setExpenses(expensesRes.data);
 
-      // Try load goals from Supabase goals table
       try {
         const { data: dbGoals, error: dbError } = await supabase
           .from("goals")
@@ -79,34 +86,45 @@ export default function GoalsPage() {
           .order("created_at", { ascending: false });
 
         if (!dbError && dbGoals) {
+          setGoals(dbGoals);
           const now = new Date();
           const active = dbGoals.find(g => new Date(g.end_date) >= now);
-          const history = dbGoals.filter(g => new Date(g.end_date) < now);
-          
           setActiveGoal(active || null);
-          setHistoricalGoals(history);
+          
+          if (active) {
+            setFocusGoal(prev => prev && dbGoals.some(g => g.id === prev.id) ? dbGoals.find(g => g.id === prev.id) || active : active);
+          } else if (dbGoals.length > 0) {
+            setFocusGoal(prev => prev && dbGoals.some(g => g.id === prev.id) ? dbGoals.find(g => g.id === prev.id) || dbGoals[0] : dbGoals[0]);
+          } else {
+            setFocusGoal(null);
+          }
           return;
         }
       } catch (err) {
-        console.warn("Supabase goals table not active, falling back to LocalStorage.", err);
+        console.warn("Supabase goals table not active, using LocalStorage.");
       }
 
-      // LocalStorage fallback
       const cached = localStorage.getItem("inba_goals");
       if (cached) {
         const localGoals: Goal[] = JSON.parse(cached);
+        setGoals(localGoals);
         const now = new Date();
         const active = localGoals.find(g => new Date(g.end_date) >= now);
-        const history = localGoals.filter(g => new Date(g.end_date) < now);
-        
         setActiveGoal(active || null);
-        setHistoricalGoals(history);
+        
+        if (active) {
+          setFocusGoal(prev => prev && localGoals.some(g => g.id === prev.id) ? localGoals.find(g => g.id === prev.id) || active : active);
+        } else if (localGoals.length > 0) {
+          setFocusGoal(prev => prev && localGoals.some(g => g.id === prev.id) ? localGoals.find(g => g.id === prev.id) || localGoals[0] : localGoals[0]);
+        } else {
+          setFocusGoal(null);
+        }
       } else {
-        // Default seed active goal to showcase the module instantly
         const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         const lastDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
         
         const seedGoal: Goal = {
+          id: "seed-goal",
           name: "May Growth Accelerator",
           type: "revenue",
           target_amount: 30000,
@@ -115,7 +133,9 @@ export default function GoalsPage() {
           end_date: lastDayOfMonth.toISOString(),
           priority: "medium"
         };
+        setGoals([seedGoal]);
         setActiveGoal(seedGoal);
+        setFocusGoal(seedGoal);
       }
     } catch (e) {
       console.error("Error loading operational goals:", e);
@@ -136,10 +156,64 @@ export default function GoalsPage() {
     }).format(value);
   };
 
+  const handleOpenAdd = () => {
+    setEditingGoal(null);
+    setGoalName("");
+    setGoalType("revenue");
+    setGoalPeriod("monthly");
+    setTargetAmount(10000);
+    setLinkedValue("");
+    setStartDateStr(new Date().toISOString().split("T")[0]);
+    setEndDateStr(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split("T")[0]);
+    setGoalPriority("medium");
+    setIsDrawerOpen(true);
+  };
+
+  const handleOpenEdit = (goal: Goal) => {
+    setEditingGoal(goal);
+    setGoalName(goal.name);
+    setGoalType(goal.type);
+    setGoalPeriod(goal.period);
+    setTargetAmount(goal.target_amount);
+    setLinkedValue(goal.linked_value || "");
+    setStartDateStr(new Date(goal.start_date).toISOString().split("T")[0]);
+    setEndDateStr(new Date(goal.end_date).toISOString().split("T")[0]);
+    setGoalPriority(goal.priority);
+    setIsDrawerOpen(true);
+  };
+
+  const handleDeleteGoal = async (goalId: string) => {
+    if (!confirm("Are you sure you want to delete this goal configuration?")) return;
+    
+    try {
+      const { error } = await supabase.from("goals").delete().eq("id", goalId);
+      if (!error) {
+        toast("Goal deleted successfully from database!", "success");
+        loadDataAndGoals();
+        return;
+      }
+    } catch (e) {
+      console.warn("Supabase delete failed, using LocalStorage.", e);
+    }
+    
+    const cached = localStorage.getItem("inba_goals");
+    if (cached) {
+      const localGoals: Goal[] = JSON.parse(cached);
+      const filtered = localGoals.filter(g => g.id !== goalId);
+      localStorage.setItem("inba_goals", JSON.stringify(filtered));
+      toast("Goal deleted successfully!", "success");
+      loadDataAndGoals();
+    } else {
+      setGoals([]);
+      setActiveGoal(null);
+      toast("Goal deleted.", "success");
+    }
+  };
+
   const handleSaveGoal = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newGoal: Goal = {
+    const payload: Goal = {
       name: goalName || `${goalPeriod.charAt(0).toUpperCase() + goalPeriod.slice(1)} ${goalType.replace("_", " ")} Target`,
       type: goalType,
       target_amount: Number(targetAmount),
@@ -151,19 +225,33 @@ export default function GoalsPage() {
     };
 
     try {
-      // Try to write to Supabase
-      const { data, error } = await supabase.from("goals").insert([newGoal]).select();
-      if (!error && data) {
-        toast("Goal persistent in Supabase!", "success");
-        loadDataAndGoals();
-        setIsDrawerOpen(false);
-        return;
+      if (editingGoal && editingGoal.id) {
+        const { data, error } = await supabase
+          .from("goals")
+          .update(payload)
+          .eq("id", editingGoal.id)
+          .select();
+        
+        if (!error && data) {
+          toast("Goal updated successfully!", "success");
+          loadDataAndGoals();
+          setIsDrawerOpen(false);
+          setEditingGoal(null);
+          return;
+        }
+      } else {
+        const { data, error } = await supabase.from("goals").insert([payload]).select();
+        if (!error && data) {
+          toast("Goal created successfully!", "success");
+          loadDataAndGoals();
+          setIsDrawerOpen(false);
+          return;
+        }
       }
     } catch (e) {
-      console.warn("Saving Supabase goals failed, saving to LocalStorage.", e);
+      console.warn("Supabase save failed, using LocalStorage.", e);
     }
 
-    // LocalStorage write
     const cached = localStorage.getItem("inba_goals");
     let currentGoals: Goal[] = [];
     if (cached) {
@@ -171,41 +259,35 @@ export default function GoalsPage() {
         currentGoals = JSON.parse(cached);
       } catch (err) {}
     }
-    const goalWithId = {
-      ...newGoal,
-      id: Math.random().toString(36).substring(2, 9),
-      created_at: new Date().toISOString()
-    };
-    currentGoals.push(goalWithId);
-    localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
 
-    toast("Goal saved locally!", "success");
+    if (editingGoal && editingGoal.id) {
+      currentGoals = currentGoals.map(g => g.id === editingGoal.id ? { ...payload, id: editingGoal.id, created_at: editingGoal.created_at } : g);
+      localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
+      toast("Goal updated locally!", "success");
+    } else {
+      const goalWithId = {
+        ...payload,
+        id: Math.random().toString(36).substring(2, 9),
+        created_at: new Date().toISOString()
+      };
+      currentGoals.push(goalWithId);
+      localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
+      toast("Goal saved locally!", "success");
+    }
+
     loadDataAndGoals();
     setIsDrawerOpen(false);
+    setEditingGoal(null);
   };
 
   const handleClearGoal = () => {
     if (confirm("Are you sure you want to end this active goal?")) {
       setActiveGoal(null);
-      toast("Active goal deleted.", "error");
+      toast("Active goal ended.", "error");
     }
   };
 
-  // ----------------------------------------------------
-  // CORE PACING & VALUE CALCULATIONS
-  // ----------------------------------------------------
-  let achievedValue = 0;
-  let targetValue = activeGoal?.target_amount || 0;
-  
-  let achievedRevenue = 0;
-  let achievedUnits = 0;
-  let achievedCategorySum = 0;
-  let achievedProductQty = 0;
-
-  let totalOperExpenses = 0;
-  let grossProfitSum = 0;
-
-  // Build product specifications lists
+  // Helper mappings for categories and cost structures
   const productCatMap: Record<string, string> = {};
   const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number }> = {};
   
@@ -220,114 +302,158 @@ export default function GoalsPage() {
     }
   });
 
-  if (activeGoal) {
-    const startDate = new Date(activeGoal.start_date);
-    const endDate = new Date(activeGoal.end_date);
-
-    // Filter orders within goal period
+  // Calculate live progress for a specific goal
+  const calculateGoalProgress = (goal: Goal) => {
+    const start = new Date(goal.start_date);
+    const end = new Date(goal.end_date);
+    const now = new Date();
+    
     const goalOrders = orders.filter(o => {
       const oDate = new Date(o.created_at || o.date);
-      return oDate >= startDate && oDate <= endDate;
+      return oDate >= start && oDate <= end;
     });
-
-    // Sum revenue
-    goalOrders.forEach(o => {
-      const val = parseFloat((o.amount || "").replace(/[^0-9.]/g, "")) || 0;
-      achievedRevenue += val;
-    });
-
-    // Sum items sold
+    
+    let achieved = 0;
+    
     const goalOrderIds = new Set(goalOrders.map(o => o.id));
     const goalItems = orderItems.filter(item => goalOrderIds.has(item.order_id));
 
     goalItems.forEach(item => {
       const qty = item.qty || 1;
-      achievedUnits += qty;
+      const prodName = (item.name || "").trim().toLowerCase();
+      const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0;
+      const matched = productCostMap[prodName];
+      const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
 
+      if (goal.type === "revenue") {
+        achieved += sellingPrice * qty;
+      } else if (goal.type === "units") {
+        achieved += qty;
+      } else if (goal.type === "category" && goal.linked_value) {
+        const cat = productCatMap[prodName] || "Uncategorized";
+        if (cat.toLowerCase() === goal.linked_value.toLowerCase()) {
+          achieved += sellingPrice * qty;
+        }
+      } else if ((goal.type === "product" || goal.type === "stock_reduction") && goal.linked_value) {
+        if (prodName === goal.linked_value.toLowerCase()) {
+          achieved += qty;
+        }
+      }
+    });
+    
+    // In case no items found but we have orders for general revenue
+    if (goal.type === "revenue" && achieved === 0) {
+      goalOrders.forEach(o => {
+        achieved += parseFloat((o.amount || "").replace(/[^0-9.]/g, "")) || 0;
+      });
+    }
+
+    let status: "Active" | "Achieved" | "Missed" = "Active";
+    if (now > end) {
+      status = achieved >= goal.target_amount ? "Achieved" : "Missed";
+    } else {
+      status = "Active";
+    }
+    
+    return { achieved, status };
+  };
+
+  // ----------------------------------------------------
+  // DYNAMIC SELECTED GOAL METRICS
+  // ----------------------------------------------------
+  const now = new Date();
+  let achievedValue = 0;
+  let targetValue = focusGoal?.target_amount || 0;
+  let grossProfitSum = 0;
+  let achievedRevenue = 0;
+
+  if (focusGoal) {
+    const { achieved, status } = calculateGoalProgress(focusGoal);
+    achievedValue = achieved;
+    
+    // Sum general profit yields for focus goal period
+    const start = new Date(focusGoal.start_date);
+    const end = new Date(focusGoal.end_date);
+    const goalOrders = orders.filter(o => {
+      const oDate = new Date(o.created_at || o.date);
+      return oDate >= start && oDate <= end;
+    });
+    const oIds = new Set(goalOrders.map(o => o.id));
+    orderItems.filter(item => oIds.has(item.order_id)).forEach(item => {
+      const qty = item.qty || 1;
       const prodName = (item.name || "").trim().toLowerCase();
       const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0;
       const matched = productCostMap[prodName];
       const purchasePrice = matched ? matched.purchasePrice : 0;
       const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
-
-      // Sum gross margins
+      
+      achievedRevenue += sellingPrice * qty;
       grossProfitSum += (sellingPrice - purchasePrice) * qty;
-
-      // Sum specific category
-      if (activeGoal.type === "category" && activeGoal.linked_value) {
-        const cat = productCatMap[prodName] || "Uncategorized";
-        if (cat.toLowerCase() === activeGoal.linked_value.toLowerCase()) {
-          achievedCategorySum += sellingPrice * qty;
-        }
-      }
-
-      // Sum specific product / stock reduction
-      if ((activeGoal.type === "product" || activeGoal.type === "stock_reduction") && activeGoal.linked_value) {
-        if (prodName === activeGoal.linked_value.toLowerCase()) {
-          achievedProductQty += qty;
-        }
-      }
     });
-
-    // Map targets to correct type
-    if (activeGoal.type === "revenue") achievedValue = achievedRevenue;
-    else if (activeGoal.type === "units") achievedValue = achievedUnits;
-    else if (activeGoal.type === "category") achievedValue = achievedCategorySum;
-    else if (activeGoal.type === "product" || activeGoal.type === "stock_reduction") achievedValue = achievedProductQty;
-    else achievedValue = achievedRevenue;
   }
-
-  // Calculate overall operational expenses
-  expenses.forEach(e => {
-    totalOperExpenses += Number(e.amount || 0);
-  });
 
   const achievementPercentage = targetValue > 0 ? (achievedValue / targetValue) * 100 : 0;
   const remainingValue = Math.max(0, targetValue - achievedValue);
 
-  // Time metrics calculations
-  const now = new Date();
-  const startDate = activeGoal ? new Date(activeGoal.start_date) : new Date();
-  const endDate = activeGoal ? new Date(activeGoal.end_date) : new Date();
-
+  // Time scopes
+  const startDate = focusGoal ? new Date(focusGoal.start_date) : new Date();
+  const endDate = focusGoal ? new Date(focusGoal.end_date) : new Date();
   const totalDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const daysElapsed = Math.max(0, Math.round((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const daysRemaining = Math.max(1, Math.round((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  const isPastGoal = now > endDate;
+  
+  let daysElapsed = 0;
+  let daysRemaining = 0;
+
+  if (isPastGoal) {
+    daysElapsed = totalDays;
+    daysRemaining = 0;
+  } else {
+    daysElapsed = Math.max(0, Math.round((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+    daysRemaining = Math.max(0, Math.round((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+  }
   
   const expectedPacingPercentage = totalDays > 0 ? (daysElapsed / totalDays) * 100 : 0;
 
-  // Stress-free pacing status mapping
-  let pacingStatus: "Ahead of pace" | "On track" | "Slightly behind" | "Needs attention" = "On track";
+  let pacingStatus: "Ahead of pace" | "On track" | "Slightly behind" | "Needs attention" | "Goal Hit" | "Goal Missed" = "On track";
   let pacingBadgeColor = "bg-green-50 text-green-700 border-green-200";
 
-  if (achievementPercentage >= expectedPacingPercentage + 10) {
-    pacingStatus = "Ahead of pace";
-    pacingBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-250";
-  } else if (achievementPercentage >= expectedPacingPercentage - 5) {
-    pacingStatus = "On track";
-    pacingBadgeColor = "bg-green-50 text-green-700 border-green-250";
-  } else if (achievementPercentage >= expectedPacingPercentage - 15) {
-    pacingStatus = "Slightly behind";
-    pacingBadgeColor = "bg-amber-50 text-amber-700 border-amber-250";
+  if (isPastGoal) {
+    if (achievedValue >= targetValue) {
+      pacingStatus = "Goal Hit";
+      pacingBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-250";
+    } else {
+      pacingStatus = "Goal Missed";
+      pacingBadgeColor = "bg-rose-50 text-rose-700 border-rose-250";
+    }
   } else {
-    pacingStatus = "Needs attention";
-    pacingBadgeColor = "bg-rose-50 text-rose-700 border-rose-250";
+    if (achievementPercentage >= expectedPacingPercentage + 10) {
+      pacingStatus = "Ahead of pace";
+      pacingBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-250";
+    } else if (achievementPercentage >= expectedPacingPercentage - 5) {
+      pacingStatus = "On track";
+      pacingBadgeColor = "bg-green-50 text-green-700 border-green-250";
+    } else if (achievementPercentage >= expectedPacingPercentage - 15) {
+      pacingStatus = "Slightly behind";
+      pacingBadgeColor = "bg-amber-50 text-amber-700 border-amber-250";
+    } else {
+      pacingStatus = "Needs attention";
+      pacingBadgeColor = "bg-rose-50 text-rose-700 border-rose-250";
+    }
   }
 
-  // Pace projection metrics
   const dailyPacingNeeded = daysRemaining > 0 ? remainingValue / daysRemaining : 0;
   const dailyRunRate = daysElapsed > 0 ? achievedValue / daysElapsed : achievedValue;
-  const forecastedOutcome = achievedValue + (dailyRunRate * daysRemaining);
+  const forecastedOutcome = isPastGoal ? achievedValue : achievedValue + (dailyRunRate * daysRemaining);
   const forecastPercentage = targetValue > 0 ? (forecastedOutcome / targetValue) * 100 : 0;
-
-  // Dynamic overall margin mix
   const grossProfitMargin = achievedRevenue > 0 ? Math.round((grossProfitSum / achievedRevenue) * 100) : 41;
 
   // ----------------------------------------------------
-  // PROGRESS ANALYTICS SLOPE CHART (IDEAL VS ACTUAL)
+  // PROGRESS ANALYTICS SLOPE CHART DATA GENERATORS
   // ----------------------------------------------------
+  // A. Daily progression mapping
   const chartData: any[] = [];
-  if (activeGoal) {
+  if (focusGoal) {
     const stepCount = Math.min(totalDays, 12);
     const msInterval = (endDate.getTime() - startDate.getTime()) / stepCount;
 
@@ -337,36 +463,42 @@ export default function GoalsPage() {
       const idealVal = (targetValue / stepCount) * i;
       
       let actualVal = 0;
-      if (loopTime <= now) {
+      if (loopTime <= now || isPastGoal) {
         const ordersBefore = orders.filter(o => {
           const oDate = new Date(o.created_at || o.date);
           return oDate >= startDate && oDate <= loopTime;
         });
 
-        if (activeGoal.type === "revenue") {
+        const oIds = new Set(ordersBefore.map(o => o.id));
+        const itemsBefore = orderItems.filter(item => oIds.has(item.order_id));
+
+        itemsBefore.forEach(item => {
+          const qty = item.qty || 1;
+          const prodName = (item.name || "").trim().toLowerCase();
+          const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0;
+          const matched = productCostMap[prodName];
+          const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
+
+          if (focusGoal.type === "revenue") {
+            actualVal += sellingPrice * qty;
+          } else if (focusGoal.type === "units") {
+            actualVal += qty;
+          } else if (focusGoal.type === "category" && focusGoal.linked_value) {
+            const cat = productCatMap[prodName] || "Uncategorized";
+            if (cat.toLowerCase() === focusGoal.linked_value.toLowerCase()) {
+              actualVal += sellingPrice * qty;
+            }
+          } else if ((focusGoal.type === "product" || focusGoal.type === "stock_reduction") && focusGoal.linked_value) {
+            if (prodName === focusGoal.linked_value.toLowerCase()) {
+              actualVal += qty;
+            }
+          }
+        });
+
+        // Backup for revenue
+        if (focusGoal.type === "revenue" && actualVal === 0) {
           ordersBefore.forEach(o => {
             actualVal += parseFloat((o.amount || "").replace(/[^0-9.]/g, "")) || 0;
-          });
-        } else if (activeGoal.type === "units") {
-          const oIds = new Set(ordersBefore.map(o => o.id));
-          orderItems.filter(item => oIds.has(item.order_id)).forEach(item => {
-            actualVal += item.qty || 1;
-          });
-        } else if (activeGoal.type === "category" && activeGoal.linked_value) {
-          const oIds = new Set(ordersBefore.map(o => o.id));
-          orderItems.filter(item => oIds.has(item.order_id)).forEach(item => {
-            const prodName = (item.name || "").trim().toLowerCase();
-            const cat = productCatMap[prodName] || "Uncategorized";
-            if (cat.toLowerCase() === activeGoal.linked_value!.toLowerCase()) {
-              actualVal += (parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0) * (item.qty || 1);
-            }
-          });
-        } else if ((activeGoal.type === "product" || activeGoal.type === "stock_reduction") && activeGoal.linked_value) {
-          const oIds = new Set(ordersBefore.map(o => o.id));
-          orderItems.filter(item => oIds.has(item.order_id)).forEach(item => {
-            if ((item.name || "").trim().toLowerCase() === activeGoal.linked_value!.toLowerCase()) {
-              actualVal += item.qty || 1;
-            }
           });
         }
       }
@@ -374,21 +506,98 @@ export default function GoalsPage() {
       chartData.push({
         dateLabel: label,
         "Ideal Pace": Math.round(idealVal),
-        "Actual Achieved": loopTime <= now ? Math.round(actualVal) : null
+        "Actual Achieved": (loopTime <= now || isPastGoal) ? Math.round(actualVal) : null
       });
     }
   }
 
+  // B. Weekly milestones grouping
+  const getWeeklyChartData = () => {
+    if (!focusGoal) return [];
+    
+    const totalWeeks = Math.ceil(totalDays / 7);
+    const weeklyData: any[] = [];
+
+    for (let w = 1; w <= totalWeeks; w++) {
+      const weekEndDate = new Date(startDate.getTime() + (w * 7 * 24 * 60 * 60 * 1000));
+      const label = `Week ${w}`;
+      const idealVal = Math.min(targetValue, (targetValue / totalWeeks) * w);
+      
+      let actualVal = 0;
+      const isWeekAvailable = isPastGoal || (new Date(startDate.getTime() + ((w - 1) * 7 * 24 * 60 * 60 * 1000)) <= now);
+      
+      if (isWeekAvailable) {
+        const ordersBefore = orders.filter(o => {
+          const oDate = new Date(o.created_at || o.date);
+          return oDate >= startDate && oDate <= weekEndDate;
+        });
+
+        const oIds = new Set(ordersBefore.map(o => o.id));
+        const itemsBefore = orderItems.filter(item => oIds.has(item.order_id));
+
+        itemsBefore.forEach(item => {
+          const qty = item.qty || 1;
+          const prodName = (item.name || "").trim().toLowerCase();
+          const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0;
+          const matched = productCostMap[prodName];
+          const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
+
+          if (focusGoal.type === "revenue") {
+            actualVal += sellingPrice * qty;
+          } else if (focusGoal.type === "units") {
+            actualVal += qty;
+          } else if (focusGoal.type === "category" && focusGoal.linked_value) {
+            const cat = productCatMap[prodName] || "Uncategorized";
+            if (cat.toLowerCase() === focusGoal.linked_value.toLowerCase()) {
+              actualVal += sellingPrice * qty;
+            }
+          } else if ((focusGoal.type === "product" || focusGoal.type === "stock_reduction") && focusGoal.linked_value) {
+            if (prodName === focusGoal.linked_value.toLowerCase()) {
+              actualVal += qty;
+            }
+          }
+        });
+
+        if (focusGoal.type === "revenue" && actualVal === 0) {
+          ordersBefore.forEach(o => {
+            actualVal += parseFloat((o.amount || "").replace(/[^0-9.]/g, "")) || 0;
+          });
+        }
+      }
+      
+      weeklyData.push({
+        dateLabel: label,
+        "Ideal Pace": Math.round(idealVal),
+        "Actual Achieved": isWeekAvailable ? Math.round(actualVal) : null
+      });
+    }
+    
+    return weeklyData;
+  };
+
   // ----------------------------------------------------
-  // PRODUCT PRIORITY FOCUS LOGIC
+  // PRODUCT PRIORITY & DEMAND CALCULATION
   // ----------------------------------------------------
   const productQuantities: Record<string, number> = {};
-  orderItems.forEach(item => {
-    const name = item.name || "";
-    if (name) productQuantities[name] = (productQuantities[name] || 0) + (item.qty || 0);
-  });
+  if (focusGoal) {
+    const start = new Date(focusGoal.start_date);
+    const end = new Date(focusGoal.end_date);
+    const goalOrders = orders.filter(o => {
+      const oDate = new Date(o.created_at || o.date);
+      return oDate >= start && oDate <= end;
+    });
+    const oIds = new Set(goalOrders.map(o => o.id));
+    orderItems.filter(item => oIds.has(item.order_id)).forEach(item => {
+      const name = item.name || "";
+      if (name) productQuantities[name] = (productQuantities[name] || 0) + (item.qty || 0);
+    });
+  } else {
+    orderItems.forEach(item => {
+      const name = item.name || "";
+      if (name) productQuantities[name] = (productQuantities[name] || 0) + (item.qty || 0);
+    });
+  }
 
-  // A. Top Contributors
   const topContributors = Object.entries(productQuantities).map(([name, qty]) => {
     const match = products.find(p => p.name.trim().toLowerCase() === name.trim().toLowerCase());
     const unitPrice = match ? Number(match.price) : 299;
@@ -396,7 +605,6 @@ export default function GoalsPage() {
     return { name, qty, revenue };
   }).sort((a, b) => b.revenue - a.revenue).slice(0, 3);
 
-  // B. Cash Blocks (Overstocked slow moving items)
   const cashBlocks = products
     .filter(p => p.stock > 10)
     .map(p => {
@@ -411,7 +619,6 @@ export default function GoalsPage() {
     .filter(p => p.velocity <= 2)
     .slice(0, 3);
 
-  // C. Stockout Warnings
   const stockoutWarnings = products
     .filter(p => p.stock <= 15 && p.stock > 0 && p.status !== "Out of Stock")
     .map(p => {
@@ -424,14 +631,32 @@ export default function GoalsPage() {
     .sort((a, b) => b.velocity - a.velocity)
     .slice(0, 3);
 
-  // Bestsellers list for combo triggers
-  const bestSellerList = Object.entries(productQuantities)
-    .sort((a, b) => b[1] - a[1])
-    .map(e => e[0]);
-
-  // Static options compiling default lists
   const defaultProductsList = products.map(p => p.name);
   const defaultCategoriesList = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+
+  // Target Management Ledger statistics and calculations
+  let totalSetups = goals.length;
+  let activeCount = 0;
+  let achievedCount = 0;
+  let missedCount = 0;
+
+  goals.forEach(g => {
+    const { status } = calculateGoalProgress(g);
+    if (status === "Active") activeCount++;
+    else if (status === "Achieved") achievedCount++;
+    else if (status === "Missed") missedCount++;
+  });
+
+  const filteredGoals = goals.filter(g => {
+    const { status } = calculateGoalProgress(g);
+    const matchesSearch = g.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          g.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesType = typeFilter === "all" || g.type.toLowerCase() === typeFilter.toLowerCase();
+    const matchesPeriod = periodFilter === "all" || g.period.toLowerCase() === periodFilter.toLowerCase();
+    
+    return matchesSearch && matchesStatus && matchesType && matchesPeriod;
+  });
 
   return (
     <div className="space-y-6">
@@ -446,31 +671,75 @@ export default function GoalsPage() {
         <div className="flex items-center gap-3">
           {activeGoal && (
             <Button variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={handleClearGoal}>
-              End Goal
+              End Active Goal
             </Button>
           )}
-          <Button className="gap-2" onClick={() => setIsDrawerOpen(true)}>
+          <Button className="gap-2" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" /> Setup Goal
           </Button>
         </div>
       </div>
 
-      {!activeGoal ? (
+      {/* Focus Goal Selector Bar */}
+      {goals.length > 0 && (
+        <div className="bg-white p-4 rounded-xl border border-gray-150/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Analyzing Focus Target:</span>
+            <select
+              value={focusGoal?.id || ""}
+              onChange={(e) => {
+                const found = goals.find(g => g.id === e.target.value);
+                if (found) setFocusGoal(found);
+              }}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-800 bg-gray-50/50 hover:bg-gray-50 outline-none cursor-pointer focus:border-[#2E8C13] focus:ring-1 focus:ring-[#2E8C13]"
+            >
+              {goals.map(g => {
+                const { status } = calculateGoalProgress(g);
+                return (
+                  <option key={g.id} value={g.id}>
+                    {g.name} [{status}] ({g.type.replace("_", " ")})
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          {focusGoal && (
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-gray-400 font-semibold">Period:</span>
+                <span className="text-gray-700 font-bold">
+                  {new Date(focusGoal.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })} —{" "}
+                  {new Date(focusGoal.end_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider ${
+                focusGoal.priority === "high" ? "bg-rose-50 text-rose-700 border-rose-200" :
+                focusGoal.priority === "medium" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                "bg-blue-50 text-blue-700 border-blue-200"
+              }`}>
+                {focusGoal.priority} Priority
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!focusGoal ? (
         <Card className="p-12 text-center flex flex-col items-center justify-center border border-dashed border-gray-300 bg-gray-50/30">
           <div className="w-16 h-16 bg-[#2E8C13]/10 text-[#2E8C13] rounded-full flex items-center justify-center mb-4">
             <Target className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">No active goal set</h3>
+          <h3 className="text-lg font-bold text-gray-900">No goals set</h3>
           <p className="text-sm text-gray-500 max-w-sm mt-1.5 leading-relaxed">
             Configure a monthly, weekly, or category target to help focus Inba Essentials growth without daily target stress.
           </p>
-          <Button className="mt-5 gap-2" onClick={() => setIsDrawerOpen(true)}>
+          <Button className="mt-5 gap-2" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" /> Configure First Goal
           </Button>
         </Card>
       ) : (
         <>
-          {/* Active Goal Overview Cards */}
+          {/* Selected Goal Overview Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Achieved Card */}
             <Card className="hover:shadow-lg transition-shadow">
@@ -480,11 +749,11 @@ export default function GoalsPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider truncate">
-                    {activeGoal.name}
+                    {focusGoal.name}
                   </p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <h3 className="text-2xl font-semibold tracking-tight text-[#2E8C13]">
-                      {activeGoal.type === "revenue" || activeGoal.type === "category"
+                      {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(achievedValue)
                         : `${achievedValue} units`}
                     </h3>
@@ -493,7 +762,7 @@ export default function GoalsPage() {
                     </span>
                   </div>
                   <p className="text-[10px] text-gray-400 font-semibold mt-1">
-                    Target: {activeGoal.type === "revenue" || activeGoal.type === "category" ? formatCurrency(targetValue) : `${targetValue} units`}
+                    Target: {focusGoal.type === "revenue" || focusGoal.type === "category" ? formatCurrency(targetValue) : `${targetValue} units`}
                   </p>
                   <div className="w-full h-1 bg-gray-100 rounded-full mt-2 overflow-hidden">
                     <div className="h-full bg-[#2E8C13] rounded-full transition-all duration-300" style={{ width: `${Math.min(100, achievementPercentage)}%` }} />
@@ -512,13 +781,17 @@ export default function GoalsPage() {
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Daily Pace Required</p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
-                      {activeGoal.type === "revenue" || activeGoal.type === "category"
+                      {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(dailyPacingNeeded)
                         : `${Math.ceil(dailyPacingNeeded)} units`}
                     </h3>
                   </div>
                   <p className="text-[10px] text-gray-400 font-semibold mt-1">
-                    For next <strong className="text-gray-700">{daysRemaining} days</strong>
+                    {isPastGoal ? (
+                      <span className="text-gray-400">Target period has completed</span>
+                    ) : (
+                      <>For next <strong className="text-gray-700">{daysRemaining} days</strong></>
+                    )}
                   </p>
                 </div>
               </CardContent>
@@ -534,16 +807,20 @@ export default function GoalsPage() {
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Run-Rate Forecast</p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <h3 className={`text-2xl font-semibold tracking-tight ${forecastPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}`}>
-                      {activeGoal.type === "revenue" || activeGoal.type === "category"
+                      {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(forecastedOutcome)
                         : `${Math.round(forecastedOutcome)} units`}
                     </h3>
                   </div>
                   <p className="text-[10px] font-semibold mt-1">
-                    {forecastPercentage >= 100 ? (
-                      <span className="text-emerald-600">Projected: {Math.round(forecastPercentage)}%</span>
+                    {isPastGoal ? (
+                      <span className={achievementPercentage >= 100 ? "text-emerald-600" : "text-rose-600"}>
+                        Final outcome: {Math.round(achievementPercentage)}%
+                      </span>
                     ) : (
-                      <span className="text-amber-600">Projected: {Math.round(forecastPercentage)}%</span>
+                      <span className={forecastPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}>
+                        Projected: {Math.round(forecastPercentage)}%
+                      </span>
                     )}
                   </p>
                 </div>
@@ -573,21 +850,41 @@ export default function GoalsPage() {
 
           {/* Target vs Achieved Progress Area Chart */}
           <Card className="border border-gray-100 shadow-sm">
-            <CardHeader className="border-b border-gray-50 pb-4 flex flex-row items-center justify-between">
+            <CardHeader className="border-b border-gray-50 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#2E8C13]" /> Cumulative Target vs Achieved Slope
                 </CardTitle>
                 <p className="text-xs text-gray-500">Compare actual achieved accumulation against the ideal target pacing line</p>
               </div>
-              <Badge variant="default" className="bg-[#2E8C13]/5 text-[#2E8C13] border-none font-bold">
-                {Math.round(achievementPercentage)}% Done
-              </Badge>
+              
+              {/* Daily / Weekly Pacing Toggles */}
+              <div className="flex bg-gray-100 p-0.5 rounded-lg text-xs shrink-0 self-start sm:self-auto">
+                <button 
+                  onClick={() => setPacingViewType("daily")}
+                  className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+                    pacingViewType === "daily" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Daily Progression
+                </button>
+                <button 
+                  onClick={() => setPacingViewType("weekly")}
+                  className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+                    pacingViewType === "weekly" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Weekly Milestones
+                </button>
+              </div>
             </CardHeader>
             <CardContent className="p-6">
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <AreaChart 
+                    data={pacingViewType === "weekly" ? getWeeklyChartData() : chartData} 
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
                     <defs>
                       <linearGradient id="achievedColor" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#2E8C13" stopOpacity={0.15}/>
@@ -607,69 +904,6 @@ export default function GoalsPage() {
                 </ResponsiveContainer>
               </div>
             </CardContent>
-          </Card>
-
-          {/* NEW AI OPERATIONS ASSISTANT CONSOLE */}
-          <Card className="border border-[#2E8C13]/10 overflow-hidden shadow-sm bg-gradient-to-br from-white to-gray-50/20">
-            <div className="p-5 border-b border-gray-150/60 bg-gradient-to-r from-emerald-500/5 to-transparent flex items-center gap-2.5">
-              <div className="p-1.5 bg-[#2E8C13]/10 text-[#2E8C13] rounded-lg shrink-0">
-                <Sparkles className="w-4.5 h-4.5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-gray-900 leading-tight">Inba Goal-Focused Operations Guide</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Stress-free action recommendations compiled dynamically to lock in your goal.</p>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              {/* Gap Recommendation */}
-              <div className="flex gap-4 p-4 rounded-xl border border-[#2E8C13]/10 bg-[#2E8C13]/5">
-                <div className="p-2 bg-[#2E8C13]/10 text-[#2E8C13] rounded-lg shrink-0 self-start">
-                  <Target className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-sm font-bold text-gray-900 leading-tight uppercase tracking-wider text-[11px] text-[#2E8C13]">Monthly Goal Pace Recommendation</h4>
-                  <p className="text-xs text-gray-700 mt-1.5 leading-relaxed font-semibold">
-                    {pacingStatus === "Needs attention" || pacingStatus === "Slightly behind" ? (
-                      <>
-                        You are currently <strong className="text-rose-700">{pacingStatus.toLowerCase()}</strong>. To secure your target, we need <strong>{activeGoal.type === "revenue" || activeGoal.type === "category" ? formatCurrency(dailyPacingNeeded) : `${Math.ceil(dailyPacingNeeded)} units`} per day</strong>. Pushing high-margin options like <strong>Rose Water</strong> or your best-selling product will help close the gap comfortably!
-                      </>
-                    ) : (
-                      <>
-                        Excellent! You have strong momentum and are <strong className="text-emerald-700">{pacingStatus.toLowerCase()}</strong>! Keep running standard workflows. You are forecasted to hit <strong>{Math.round(forecastPercentage)}% of your target</strong> early.
-                      </>
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Overstocked Capital release bundle warning */}
-              {cashBlocks.length > 0 && bestSellerList.length > 0 ? (
-                <div className="flex gap-4 p-4 rounded-xl border border-indigo-100 bg-indigo-50/20">
-                  <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0 self-start">
-                    <ShoppingBag className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-sm font-bold text-indigo-900 leading-tight uppercase tracking-wider text-[11px]">📦 Capital unlock Combo suggestion</h4>
-                    <p className="text-xs text-indigo-800 mt-1.5 leading-relaxed font-medium">
-                      You have <strong>{formatCurrency(cashBlocks[0].cashVal)} in capital blocked</strong> in slow-moving stock of <strong>{cashBlocks[0].name}</strong> ({cashBlocks[0].stock} units in inventory). We suggest bundling it as a combo with your high-velocity bestseller <strong>{bestSellerList[0]}</strong> at a 15% discount to unlock cash flow and accelerate sales towards your target!
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Margins spotlight */}
-              <div className="flex gap-4 p-4 rounded-xl border border-amber-100 bg-amber-50/20">
-                <div className="p-2 bg-amber-100 text-amber-600 rounded-lg shrink-0 self-start">
-                  <Percent className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-sm font-bold text-amber-950 leading-tight uppercase tracking-wider text-[11px]">💡 Margin optimization tip</h4>
-                  <p className="text-xs text-amber-900 mt-1.5 leading-relaxed font-medium">
-                    Your goal sales are generating an average of <strong className="text-amber-800">{grossProfitMargin}% gross margin</strong>. Highlighting high-margin wellness items like <strong>Rose Water Spray</strong> (60% margins) in your communications can capture maximum profits towards your growth outcomes with fewer transactions.
-                  </p>
-                </div>
-              </div>
-            </div>
           </Card>
 
           {/* Product Priority Focus Lists (Contributors, Cash Blocks, Stockout Warnings) */}
@@ -749,63 +983,176 @@ export default function GoalsPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Historical Outcomes Log */}
-          {historicalGoals.length > 0 && (
-            <Card className="border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-50 bg-gray-50/20">
-                <h3 className="text-sm font-bold text-gray-900">Historical Goal Outcomes</h3>
-                <p className="text-[11px] text-gray-500 mt-0.5">Track previous targets and completed outcome cycles</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50/30 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
-                    <tr>
-                      <th className="p-3 pl-6">Goal Name</th>
-                      <th className="p-3">Period Range</th>
-                      <th className="p-3">Goal Type</th>
-                      <th className="p-3">Target vs Achieved</th>
-                      <th className="p-3 pr-6 text-right">Score (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {historicalGoals.map((g, idx) => {
-                      const histStart = new Date(g.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-                      const histEnd = new Date(g.end_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-                      
-                      // Calculate mock/achieved score for history
-                      const mockAchieved = g.target_amount * (0.85 + Math.random() * 0.25);
-                      const mockPercentage = Math.round((mockAchieved / g.target_amount) * 100);
-
-                      return (
-                        <tr key={idx} className="hover:bg-gray-50/30 transition-colors">
-                          <td className="p-3 pl-6 font-semibold text-gray-800">{g.name}</td>
-                          <td className="p-3 text-gray-500 font-semibold">{histStart} — {histEnd}</td>
-                          <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">{g.type.replace("_", " ")}</td>
-                          <td className="p-3 font-medium text-gray-600">
-                            {formatCurrency(g.target_amount)} / {formatCurrency(mockAchieved)}
-                          </td>
-                          <td className="p-3 pr-6 text-right font-black text-gray-900">
-                            <span className={mockPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}>
-                              {mockPercentage}%
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
         </>
       )}
+
+      {/* Target Management Ledger Table */}
+      <Card className="border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-gray-50 bg-gray-50/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">Target Management Ledger</h3>
+              <p className="text-[11px] text-gray-500 mt-0.5">Manage and track all business target setups, progress status, and outcomes</p>
+            </div>
+          </div>
+          
+          {/* Summary Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
+            <div className="bg-gray-50/50 p-2.5 rounded-lg border border-gray-100 text-center">
+              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">Total Setups</span>
+              <span className="text-lg font-bold text-gray-800 block mt-1">{totalSetups} Goals</span>
+            </div>
+            <div className="bg-emerald-50/20 p-2.5 rounded-lg border border-emerald-100/50 text-center">
+              <span className="text-[10px] text-emerald-700/60 font-semibold uppercase tracking-wider block">Achieved Targets</span>
+              <span className="text-lg font-bold text-emerald-700 block mt-1">{achievedCount} Hit</span>
+            </div>
+            <div className="bg-rose-50/20 p-2.5 rounded-lg border border-rose-100/50 text-center">
+              <span className="text-[10px] text-rose-700/60 font-semibold uppercase tracking-wider block">Missed Targets</span>
+              <span className="text-lg font-bold text-rose-700 block mt-1">{missedCount} Missed</span>
+            </div>
+            <div className="bg-blue-50/20 p-2.5 rounded-lg border border-blue-100/50 text-center">
+              <span className="text-[10px] text-blue-700/60 font-semibold uppercase tracking-wider block">Active Pacing</span>
+              <span className="text-lg font-bold text-blue-700 block mt-1">{activeCount} Pacing</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Ledger Filters Bar */}
+        <div className="p-4 border-b border-gray-100 bg-white/50 flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div className="w-full md:w-72">
+            <input
+              type="text"
+              placeholder="Search goals by name or type..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none bg-gray-50/30 focus:border-[#2E8C13] focus:ring-1 focus:ring-[#2E8C13]/20 font-medium"
+            />
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-200 rounded-md text-[11px] font-semibold bg-white cursor-pointer outline-none focus:border-[#2E8C13]"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="achieved">Achieved</option>
+                <option value="missed">Missed</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Type:</span>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-200 rounded-md text-[11px] font-semibold bg-white cursor-pointer outline-none focus:border-[#2E8C13]"
+              >
+                <option value="all">All Types</option>
+                <option value="revenue">Gross Revenue</option>
+                <option value="units">Units Sold</option>
+                <option value="category">Category-wise</option>
+                <option value="product">Product-specific</option>
+                <option value="stock_reduction">Stock Reduction</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Period:</span>
+              <select
+                value={periodFilter}
+                onChange={(e) => setPeriodFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-200 rounded-md text-[11px] font-semibold bg-white cursor-pointer outline-none focus:border-[#2E8C13]"
+              >
+                <option value="all">All Periods</option>
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50/30 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
+              <tr>
+                <th className="p-3 pl-6">Goal Name</th>
+                <th className="p-3">Period Range</th>
+                <th className="p-3">Goal Type</th>
+                <th className="p-3">Target Amount</th>
+                <th className="p-3">Achieved Progress</th>
+                <th className="p-3">Status</th>
+                <th className="p-3 pr-6 text-right font-bold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredGoals.length > 0 ? (
+                filteredGoals.map((g, idx) => {
+                  const histStart = new Date(g.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+                  const histEnd = new Date(g.end_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+                  
+                  const { achieved, status } = calculateGoalProgress(g);
+                  const progressPct = g.target_amount > 0 ? Math.round((achieved / g.target_amount) * 100) : 0;
+
+                  return (
+                    <tr key={g.id || idx} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-3 pl-6 font-semibold text-gray-800">{g.name}</td>
+                      <td className="p-3 text-gray-500 font-semibold">{histStart} — {histEnd}</td>
+                      <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">{g.type.replace("_", " ")}</td>
+                      <td className="p-3 font-semibold text-gray-900">
+                        {g.type === "revenue" || g.type === "category" ? formatCurrency(g.target_amount) : `${g.target_amount} units`}
+                      </td>
+                      <td className="p-3 font-semibold text-gray-700">
+                        {g.type === "revenue" || g.type === "category" ? formatCurrency(achieved) : `${achieved} units`}
+                        <span className="text-gray-400 font-normal ml-1">({progressPct}%)</span>
+                      </td>
+                      <td className="p-3">
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          status === "Active" ? "bg-blue-50 text-blue-700 border-blue-150" :
+                          status === "Achieved" ? "bg-emerald-50 text-emerald-700 border-emerald-150" :
+                          "bg-amber-50 text-amber-700 border-amber-150"
+                        }`}>
+                          {status}
+                        </span>
+                      </td>
+                      <td className="p-3 pr-6 text-right space-x-3 whitespace-nowrap">
+                        <button 
+                          onClick={() => handleOpenEdit(g)}
+                          className="text-xs font-bold text-[#2E8C13] hover:underline cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteGoal(g.id || "")}
+                          className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={7} className="text-center p-8 text-sm text-gray-400 font-medium">
+                    No goal setups found. Click "Setup Goal" above to configure.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* SETUP GOAL DRAWER */}
       <Drawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
-        title="Setup Business Goal"
+        title={editingGoal ? "Edit Business Goal" : "Setup Business Goal"}
       >
         <form className="space-y-4" onSubmit={handleSaveGoal}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
@@ -933,7 +1280,7 @@ export default function GoalsPage() {
 
           <div className="pt-4 flex justify-end gap-3 mt-6">
             <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Activate Goal</Button>
+            <Button type="submit" variant="primary">{editingGoal ? "Save Changes" : "Activate Goal"}</Button>
           </div>
         </form>
       </Drawer>
