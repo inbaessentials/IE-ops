@@ -124,23 +124,24 @@ export default function PulseIntelligence() {
     }
   });
 
-  // Calculate pricing Sweet Spot and High-Yield tags
-  let sweetSpotPrice = 0;
-  let maxUnits = 0;
-  let highYieldPrice = 0;
-  let maxRevenue = 0;
+  // Calculate pricing Sweet Spot and High-Yield tags along with runner-ups
+  const sortedPricesByUnits = Object.entries(priceFrequency)
+    .map(([price, stats]) => ({ price: Number(price), units: stats.units, revenue: stats.revenue }))
+    .sort((a, b) => b.units - a.units);
 
-  Object.entries(priceFrequency).forEach(([price, stats]) => {
-    const numPrice = Number(price);
-    if (stats.units > maxUnits) {
-      maxUnits = stats.units;
-      sweetSpotPrice = numPrice;
-    }
-    if (stats.revenue > maxRevenue) {
-      maxRevenue = stats.revenue;
-      highYieldPrice = numPrice;
-    }
-  });
+  const sortedPricesByRevenue = Object.entries(priceFrequency)
+    .map(([price, stats]) => ({ price: Number(price), units: stats.units, revenue: stats.revenue }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const sweetSpotPrice = sortedPricesByUnits[0]?.price || 0;
+  const maxUnits = sortedPricesByUnits[0]?.units || 0;
+  const runnerUpUnitsPrice = sortedPricesByUnits[1]?.price || 0;
+  const runnerUpUnitsCount = sortedPricesByUnits[1]?.units || 0;
+
+  const highYieldPrice = sortedPricesByRevenue[0]?.price || 0;
+  const maxRevenue = sortedPricesByRevenue[0]?.revenue || 0;
+  const runnerUpRevenuePrice = sortedPricesByRevenue[1]?.price || 0;
+  const runnerUpRevenueAmount = sortedPricesByRevenue[1]?.revenue || 0;
 
   // 2. Weekly Customer Pulse Wave Calculations
   const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -264,7 +265,14 @@ export default function PulseIntelligence() {
                 {sweetSpotPrice > 0 ? formatCurrency(sweetSpotPrice) : "N/A"}
               </h3>
               <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
-                Volume vs <span className="text-[#2E8C13] font-bold">{highYieldPrice > 0 ? formatCurrency(highYieldPrice) : "N/A"} (Yield)</span>
+                {runnerUpUnitsCount > 0 ? (
+                  <>
+                    <span className="text-emerald-700 font-bold">{maxUnits} units</span> vs{" "}
+                    <span className="text-gray-600 font-bold">{runnerUpUnitsCount} of {formatCurrency(runnerUpUnitsPrice)}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-600 font-bold">{maxUnits} units (100%)</span>
+                )}
               </p>
             </div>
             <div className="p-3 bg-emerald-50 text-[#2E8C13] rounded-xl group-hover:scale-105 transition-transform duration-200">
@@ -282,7 +290,14 @@ export default function PulseIntelligence() {
                 {highYieldPrice > 0 ? formatCurrency(highYieldPrice) : "N/A"}
               </h3>
               <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
-                Yield vs <span className="text-blue-600 font-bold">{sweetSpotPrice > 0 ? formatCurrency(sweetSpotPrice) : "N/A"} (Volume)</span>
+                {runnerUpRevenueAmount > 0 ? (
+                  <>
+                    <span className="text-blue-700 font-bold">{formatCurrency(maxRevenue)}</span> vs{" "}
+                    <span className="text-gray-600 font-bold">{formatCurrency(runnerUpRevenueAmount)} of {formatCurrency(runnerUpRevenuePrice)}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-600 font-bold">{formatCurrency(maxRevenue)} yield</span>
+                )}
               </p>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
