@@ -9,9 +9,18 @@ interface DrawerProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  size?: "md" | "lg" | "xl" | "2xl" | "full";
 }
 
-export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
+const SIZE_CLASSES = {
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl",
+  full: "max-w-full"
+};
+
+export function Drawer({ isOpen, onClose, title, children, size = "md" }: DrawerProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -31,6 +40,8 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
 
   if (!isOpen || !mounted) return null;
 
+  const widthClass = SIZE_CLASSES[size] || "max-w-md";
+
   return createPortal(
     <>
       {/* Backdrop */}
@@ -40,7 +51,7 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
       />
       
       {/* Sliding Drawer */}
-      <div className="fixed top-0 bottom-0 right-0 z-[101] w-full max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 m-0 p-0 border-0">
+      <div className={`fixed top-0 bottom-0 right-0 z-[101] w-full ${widthClass} bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 m-0 p-0 border-0`}>
         <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-white shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
           <button 

@@ -768,7 +768,19 @@ export default function SalesPage() {
             <h1 className="text-2xl font-bold text-gray-900">Sales Orders</h1>
             <p className="text-sm text-gray-500 mt-1">Track and manage customer orders and invoices.</p>
           </div>
-          <Button className="gap-2" onClick={() => setIsAddDrawerOpen(true)}>
+          <Button className="gap-2" onClick={() => {
+            // Reset state variables to ensure a clean create form
+            setNewOrderCustomer("");
+            setNewOrderPhone("");
+            setNewOrderAddress("");
+            setNewOrderPayment("UPI / Online");
+            setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+            setShippingType("free");
+            setShippingFee(0);
+            setOrderNotes("");
+            setActiveDrawerTab("customer");
+            setIsAddDrawerOpen(true);
+          }}>
             <Plus className="w-4 h-4" />
             Create Order
           </Button>
@@ -1011,10 +1023,10 @@ export default function SalesPage() {
         </Card>
 
         {/* Create Order Drawer */}
-        <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Sales Order">
+        <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Sales Order" size="xl">
           <form className="space-y-4 pb-20" onSubmit={handleCreateOrder}>
             {/* Premium Tab Switcher */}
-            <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-150 gap-1 mb-4 select-none">
+            <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50 gap-1.5 mb-6 select-none shadow-xs">
               {[
                 { id: "customer", label: "Customer Info", icon: User },
                 { id: "products", label: "Product Info", icon: ShoppingBag },
@@ -1033,13 +1045,13 @@ export default function SalesPage() {
                       }
                       setActiveDrawerTab(tab.id as any);
                     }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-lg transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 ${
                       isActive 
-                        ? "bg-primary text-white shadow-sm font-extrabold" 
-                        : "text-gray-500 hover:text-gray-800 hover:bg-gray-100/70"
+                        ? "bg-white text-primary border border-slate-100 shadow-sm font-black" 
+                        : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-gray-400"}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-primary" : "text-slate-400"}`} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -1091,7 +1103,7 @@ export default function SalesPage() {
                   <Button 
                     type="button" 
                     variant="primary" 
-                    className="gap-1.5"
+                    className="gap-1.5 shadow-md shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all"
                     onClick={() => {
                       if (!newOrderCustomer.trim()) {
                         toast("Please enter or select a customer name", "error");
@@ -1128,7 +1140,7 @@ export default function SalesPage() {
                   <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                     {newOrderItems.length > 0 ? (
                       newOrderItems.map((item, idx) => (
-                        <div key={idx} className="relative bg-white border border-gray-250 hover:border-primary/45 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full overflow-hidden">
+                        <div key={idx} className="relative bg-white border border-gray-250 hover:border-primary/45 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full">
                           {/* Header Info Row */}
                           <div className="flex items-start justify-between gap-2.5 min-w-0">
                             {item.product ? (
@@ -1171,15 +1183,15 @@ export default function SalesPage() {
                           </div>
 
                           {/* Lower Controls Row */}
-                          <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 gap-4 mt-0.5">
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-4 mt-0.5">
                             {/* Quantity Stepper Capsule */}
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Quantity</span>
-                              <div className="flex items-center bg-gray-50 border border-gray-250 rounded-xl p-0.5 min-w-[100px] justify-between shadow-inner">
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Quantity</span>
+                              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-0.5 min-w-[110px] justify-between shadow-xs">
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
-                                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors font-extrabold text-sm select-none"
+                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
                                 >
                                   -
                                 </button>
@@ -1188,12 +1200,12 @@ export default function SalesPage() {
                                   min={1} 
                                   value={item.qty} 
                                   onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                                  className="w-8 text-center text-xs font-black bg-transparent border-0 outline-none text-gray-800 focus:ring-0 p-0" 
+                                  className="w-10 text-center text-xs font-black bg-transparent border-0 outline-none text-slate-800 focus:ring-0 p-0" 
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
-                                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors font-extrabold text-sm select-none"
+                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
                                 >
                                   +
                                 </button>
@@ -1202,14 +1214,14 @@ export default function SalesPage() {
 
                             {/* Selling Unit Price Capsule */}
                             <div className="flex flex-col gap-1 items-end">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Unit Price</span>
-                              <div className="flex items-center bg-[#2E8C13]/5 border border-gray-200 rounded-xl px-2.5 py-1 max-w-[110px] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-inner">
-                                <span className="text-primary text-xs font-extrabold mr-1 select-none">₹</span>
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Unit Price</span>
+                              <div className="flex items-center bg-[#2E8C13]/5 border border-slate-200 rounded-xl px-3 py-1.5 max-w-[120px] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
+                                <span className="text-primary text-xs font-black mr-1 select-none">₹</span>
                                 <input 
                                   type="number" 
                                   value={item.price} 
                                   onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                                  className="w-14 text-right text-xs font-black text-primary bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                                  className="w-16 text-right text-xs font-black text-primary bg-transparent outline-none border-0 p-0 focus:ring-0" 
                                 />
                               </div>
                             </div>
@@ -1233,7 +1245,7 @@ export default function SalesPage() {
                   <Button 
                     type="button" 
                     variant="primary" 
-                    className="gap-1.5"
+                    className="gap-1.5 shadow-md shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all"
                     onClick={() => {
                       if (newOrderItems.length === 0 || newOrderItems.some(it => !it.product)) {
                         toast("Please select a product for all rows or remove empty rows", "error");
@@ -1251,32 +1263,38 @@ export default function SalesPage() {
             {/* TAB 3: PRICING & SHIPPING */}
             {activeDrawerTab === "checkout" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                {/* 1. Payment Method Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <CreditCard className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-bold text-gray-800">Pricing & Shipping Settings</h3>
+                    <h3 className="text-sm font-extrabold text-slate-800">Payment & Invoicing</h3>
                   </div>
-                  
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Payment Method</label>
+                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Payment Method</label>
                     <Select 
                       options={["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
                       value={newOrderPayment}
                       onChange={setNewOrderPayment}
                     />
                   </div>
+                </div>
 
-                  {/* Shipping Selector Options */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Shipping Options</label>
-                    <div className="flex bg-gray-150/40 p-1 rounded-xl border border-gray-200/50 gap-1 select-none">
+                {/* 2. Shipping Options Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
+                    <Truck className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Shipping Type</label>
+                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 gap-1 select-none">
                       <button
                         type="button"
                         onClick={() => { setShippingType("free"); setShippingFee(0); }}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
                           shippingType === "free"
-                            ? "bg-white text-primary border border-gray-100 shadow-xs font-extrabold"
-                            : "text-gray-500 hover:text-gray-800"
+                            ? "bg-white text-primary shadow-sm font-extrabold"
+                            : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
                         Free Shipping
@@ -1286,8 +1304,8 @@ export default function SalesPage() {
                         onClick={() => setShippingType("paid")}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
                           shippingType === "paid"
-                            ? "bg-white text-primary border border-gray-100 shadow-xs font-extrabold"
-                            : "text-gray-500 hover:text-gray-800"
+                            ? "bg-white text-primary shadow-sm font-extrabold"
+                            : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
                         Flat Rate / Paid
@@ -1295,55 +1313,56 @@ export default function SalesPage() {
                     </div>
 
                     {shippingType === "paid" && (
-                      <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mt-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
-                        <span className="text-gray-400 text-xs font-semibold mr-1 select-none">₹</span>
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
+                        <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
                         <input 
                           required
                           type="number"
                           min={0}
-                          placeholder="Enter shipping amount..."
+                          placeholder="Enter flat rate shipping fee..."
                           value={shippingFee || ""} 
                           onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
-                          className="w-full text-xs font-bold text-gray-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                          className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
                         />
                       </div>
                     )}
                   </div>
+                </div>
 
-                  {/* Order Notes Textarea */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Order Notes / Custom Requests</label>
-                    <textarea 
-                      rows={2} 
-                      value={orderNotes}
-                      onChange={(e) => setOrderNotes(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-200 bg-gray-50/30 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all" 
-                      placeholder="Special notes, packaging requirements, speed post, etc."
-                    ></textarea>
+                {/* 3. Order Notes Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                  <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
+                  <textarea 
+                    rows={2} 
+                    value={orderNotes}
+                    onChange={(e) => setOrderNotes(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-200 bg-slate-50/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-900 transition-all leading-relaxed" 
+                    placeholder="Enter special notes, custom requests, packing instructions, speed post, etc."
+                  ></textarea>
+                </div>
+                
+                {/* 4. Stripe-like Receipt Summary Card */}
+                <div className="bg-[#2E8C13]/[0.03] border border-[#2E8C13]/10 rounded-2xl p-5 space-y-3 mt-4">
+                  <div className="flex justify-between items-center text-xs text-slate-500 font-bold">
+                    <span>Items Subtotal ({newOrderItems.length} items)</span>
+                    <span className="text-slate-800 font-extrabold">₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString("en-IN")}</span>
                   </div>
-                  
-                  {/* Checkout Summary Block */}
-                  <div className="pt-4 border-t border-gray-100 space-y-2">
-                    <div className="flex justify-between items-center text-xs text-gray-500 font-semibold">
-                      <span>Subtotal ({newOrderItems.length} items)</span>
-                      <span className="text-gray-800 font-bold">₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-gray-500 font-semibold">
-                      <span>Shipping Fee</span>
-                      <span className={shippingType === "free" ? "text-emerald-600 font-extrabold" : "text-gray-800 font-bold"}>
-                        {shippingType === "free" ? "Free" : `₹${shippingFee.toLocaleString("en-IN")}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-base font-black text-gray-900 pt-2 border-t border-gray-100">
-                      <span>Grand Total</span>
-                      <span className="text-primary text-lg">₹{calculateTotal().toLocaleString("en-IN")}</span>
-                    </div>
+                  <div className="flex justify-between items-center text-xs text-slate-500 font-bold">
+                    <span>Shipping Surcharge</span>
+                    <span className={shippingType === "free" ? "text-emerald-600 font-extrabold" : "text-gray-800 font-extrabold"}>
+                      {shippingType === "free" ? "Free" : `₹${shippingFee.toLocaleString("en-IN")}`}
+                    </span>
+                  </div>
+                  <div className="border-t border-dashed border-[#2E8C13]/20 my-3 pt-3 flex justify-between items-center">
+                    <span className="text-sm font-extrabold text-slate-700">Total Amount</span>
+                    <span className="text-[#2E8C13] font-black text-2xl tracking-tight">₹{calculateTotal().toLocaleString("en-IN")}</span>
                   </div>
                 </div>
                 
-                <div className="pt-4 flex justify-between items-center gap-3">
+                {/* Actions row */}
+                <div className="pt-6 mt-4 border-t border-slate-100 flex justify-between items-center gap-3">
                   <Button type="button" variant="outline" onClick={() => setActiveDrawerTab("products")}>Back</Button>
-                  <Button type="submit" variant="primary" className="px-6 py-2.5 font-bold shadow-md">
+                  <Button type="submit" variant="primary" className="px-6 py-2.5 font-bold shadow-lg shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all">
                     Create Order
                   </Button>
                 </div>
@@ -1353,10 +1372,10 @@ export default function SalesPage() {
         </Drawer>
 
         {/* Edit Order Drawer */}
-        <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingOrder(null); }} title={editingOrder ? `Edit Order ${editingOrder.id}` : "Edit Sales Order"}>
+        <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingOrder(null); }} title={editingOrder ? `Edit Order ${editingOrder.id}` : "Edit Sales Order"} size="xl">
           <form className="space-y-4 pb-20" onSubmit={handleUpdateOrder}>
             {/* Premium Tab Switcher */}
-            <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-150 gap-1 mb-4 select-none">
+            <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50 gap-1.5 mb-6 select-none shadow-xs">
               {[
                 { id: "customer", label: "Customer Info", icon: User },
                 { id: "products", label: "Product Info", icon: ShoppingBag },
@@ -1375,13 +1394,13 @@ export default function SalesPage() {
                       }
                       setActiveDrawerTab(tab.id as any);
                     }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-lg transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 ${
                       isActive 
-                        ? "bg-primary text-white shadow-sm font-extrabold" 
-                        : "text-gray-500 hover:text-gray-800 hover:bg-gray-100/70"
+                        ? "bg-white text-primary border border-slate-100 shadow-sm font-black" 
+                        : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-gray-400"}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-primary" : "text-slate-400"}`} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -1433,7 +1452,7 @@ export default function SalesPage() {
                   <Button 
                     type="button" 
                     variant="primary" 
-                    className="gap-1.5"
+                    className="gap-1.5 shadow-md shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all"
                     onClick={() => {
                       if (!newOrderCustomer.trim()) {
                         toast("Please enter or select a customer name", "error");
@@ -1470,7 +1489,7 @@ export default function SalesPage() {
                   <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                     {newOrderItems.length > 0 ? (
                       newOrderItems.map((item, idx) => (
-                        <div key={idx} className="relative bg-white border border-gray-250 hover:border-primary/45 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full overflow-hidden">
+                        <div key={idx} className="relative bg-white border border-gray-250 hover:border-primary/45 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full">
                           {/* Header Info Row */}
                           <div className="flex items-start justify-between gap-2.5 min-w-0">
                             {item.product ? (
@@ -1513,15 +1532,15 @@ export default function SalesPage() {
                           </div>
 
                           {/* Lower Controls Row */}
-                          <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 gap-4 mt-0.5">
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-4 mt-0.5">
                             {/* Quantity Stepper Capsule */}
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Quantity</span>
-                              <div className="flex items-center bg-gray-50 border border-gray-250 rounded-xl p-0.5 min-w-[100px] justify-between shadow-inner">
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Quantity</span>
+                              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-0.5 min-w-[110px] justify-between shadow-xs">
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
-                                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors font-extrabold text-sm select-none"
+                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
                                 >
                                   -
                                 </button>
@@ -1530,12 +1549,12 @@ export default function SalesPage() {
                                   min={1} 
                                   value={item.qty} 
                                   onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                                  className="w-8 text-center text-xs font-black bg-transparent border-0 outline-none text-gray-800 focus:ring-0 p-0" 
+                                  className="w-10 text-center text-xs font-black bg-transparent border-0 outline-none text-slate-800 focus:ring-0 p-0" 
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
-                                  className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors font-extrabold text-sm select-none"
+                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
                                 >
                                   +
                                 </button>
@@ -1544,14 +1563,14 @@ export default function SalesPage() {
 
                             {/* Selling Unit Price Capsule */}
                             <div className="flex flex-col gap-1 items-end">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Unit Price</span>
-                              <div className="flex items-center bg-[#2E8C13]/5 border border-gray-200 rounded-xl px-2.5 py-1 max-w-[110px] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-inner">
-                                <span className="text-primary text-xs font-extrabold mr-1 select-none">₹</span>
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Unit Price</span>
+                              <div className="flex items-center bg-[#2E8C13]/5 border border-slate-200 rounded-xl px-3 py-1.5 max-w-[120px] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
+                                <span className="text-primary text-xs font-black mr-1 select-none">₹</span>
                                 <input 
                                   type="number" 
                                   value={item.price} 
                                   onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                                  className="w-14 text-right text-xs font-black text-primary bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                                  className="w-16 text-right text-xs font-black text-primary bg-transparent outline-none border-0 p-0 focus:ring-0" 
                                 />
                               </div>
                             </div>
@@ -1575,7 +1594,7 @@ export default function SalesPage() {
                   <Button 
                     type="button" 
                     variant="primary" 
-                    className="gap-1.5"
+                    className="gap-1.5 shadow-md shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all"
                     onClick={() => {
                       if (newOrderItems.length === 0 || newOrderItems.some(it => !it.product)) {
                         toast("Please select a product for all rows or remove empty rows", "error");
@@ -1593,32 +1612,38 @@ export default function SalesPage() {
             {/* TAB 3: PRICING & SHIPPING */}
             {activeDrawerTab === "checkout" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
+                {/* 1. Payment Method Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <CreditCard className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-bold text-gray-800">Pricing & Shipping Settings</h3>
+                    <h3 className="text-sm font-extrabold text-slate-800">Payment & Invoicing</h3>
                   </div>
-                  
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Payment Method</label>
+                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Payment Method</label>
                     <Select 
                       options={["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
                       value={newOrderPayment}
                       onChange={setNewOrderPayment}
                     />
                   </div>
+                </div>
 
-                  {/* Shipping Selector Options */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Shipping Options</label>
-                    <div className="flex bg-gray-150/40 p-1 rounded-xl border border-gray-200/50 gap-1 select-none">
+                {/* 2. Shipping Options Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
+                    <Truck className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Shipping Type</label>
+                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 gap-1 select-none">
                       <button
                         type="button"
                         onClick={() => { setShippingType("free"); setShippingFee(0); }}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
                           shippingType === "free"
-                            ? "bg-white text-primary border border-gray-100 shadow-xs font-extrabold"
-                            : "text-gray-500 hover:text-gray-800"
+                            ? "bg-white text-primary shadow-sm font-extrabold"
+                            : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
                         Free Shipping
@@ -1628,8 +1653,8 @@ export default function SalesPage() {
                         onClick={() => setShippingType("paid")}
                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
                           shippingType === "paid"
-                            ? "bg-white text-primary border border-gray-100 shadow-xs font-extrabold"
-                            : "text-gray-500 hover:text-gray-800"
+                            ? "bg-white text-primary shadow-sm font-extrabold"
+                            : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
                         Flat Rate / Paid
@@ -1637,55 +1662,56 @@ export default function SalesPage() {
                     </div>
 
                     {shippingType === "paid" && (
-                      <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 mt-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
-                        <span className="text-gray-400 text-xs font-semibold mr-1 select-none">₹</span>
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
+                        <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
                         <input 
                           required
                           type="number"
                           min={0}
-                          placeholder="Enter shipping amount..."
+                          placeholder="Enter flat rate shipping fee..."
                           value={shippingFee || ""} 
                           onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
-                          className="w-full text-xs font-bold text-gray-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                          className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
                         />
                       </div>
                     )}
                   </div>
+                </div>
 
-                  {/* Order Notes Textarea */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Order Notes / Custom Requests</label>
-                    <textarea 
-                      rows={2} 
-                      value={orderNotes}
-                      onChange={(e) => setOrderNotes(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-200 bg-gray-50/30 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all" 
-                      placeholder="Special notes, packaging requirements, speed post, etc."
-                    ></textarea>
+                {/* 3. Order Notes Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                  <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
+                  <textarea 
+                    rows={2} 
+                    value={orderNotes}
+                    onChange={(e) => setOrderNotes(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-200 bg-slate-50/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all leading-relaxed" 
+                    placeholder="Enter special notes, custom requests, packing instructions, speed post, etc."
+                  ></textarea>
+                </div>
+                
+                {/* 4. Stripe-like Receipt Summary Card */}
+                <div className="bg-[#2E8C13]/[0.03] border border-[#2E8C13]/10 rounded-2xl p-5 space-y-3 mt-4">
+                  <div className="flex justify-between items-center text-xs text-slate-500 font-bold">
+                    <span>Items Subtotal ({newOrderItems.length} items)</span>
+                    <span className="text-slate-800 font-extrabold">₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString("en-IN")}</span>
                   </div>
-                  
-                  {/* Checkout Summary Block */}
-                  <div className="pt-4 border-t border-gray-100 space-y-2">
-                    <div className="flex justify-between items-center text-xs text-gray-500 font-semibold">
-                      <span>Subtotal ({newOrderItems.length} items)</span>
-                      <span className="text-gray-800 font-bold">₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.qty), 0).toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs text-gray-500 font-semibold">
-                      <span>Shipping Fee</span>
-                      <span className={shippingType === "free" ? "text-emerald-600 font-extrabold" : "text-gray-800 font-bold"}>
-                        {shippingType === "free" ? "Free" : `₹${shippingFee.toLocaleString("en-IN")}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-base font-black text-gray-900 pt-2 border-t border-gray-100">
-                      <span>Grand Total</span>
-                      <span className="text-primary text-lg">₹{calculateTotal().toLocaleString("en-IN")}</span>
-                    </div>
+                  <div className="flex justify-between items-center text-xs text-slate-500 font-bold">
+                    <span>Shipping Surcharge</span>
+                    <span className={shippingType === "free" ? "text-emerald-600 font-extrabold" : "text-gray-800 font-extrabold"}>
+                      {shippingType === "free" ? "Free" : `₹${shippingFee.toLocaleString("en-IN")}`}
+                    </span>
+                  </div>
+                  <div className="border-t border-dashed border-[#2E8C13]/20 my-3 pt-3 flex justify-between items-center">
+                    <span className="text-sm font-extrabold text-slate-700">Total Amount</span>
+                    <span className="text-[#2E8C13] font-black text-2xl tracking-tight">₹{calculateTotal().toLocaleString("en-IN")}</span>
                   </div>
                 </div>
                 
-                <div className="pt-4 flex justify-between items-center gap-3">
+                {/* Actions row */}
+                <div className="pt-6 mt-4 border-t border-slate-100 flex justify-between items-center gap-3">
                   <Button type="button" variant="outline" onClick={() => setActiveDrawerTab("products")}>Back</Button>
-                  <Button type="submit" variant="primary" className="px-6 py-2.5 font-bold shadow-md">
+                  <Button type="submit" variant="primary" className="px-6 py-2.5 font-bold shadow-lg shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all">
                     Update Order
                   </Button>
                 </div>
@@ -1695,7 +1721,7 @@ export default function SalesPage() {
         </Drawer>
 
         {/* View Order Drawer */}
-        <Drawer isOpen={!!viewingOrder} onClose={() => setViewingOrder(null)} title="Order Details">
+        <Drawer isOpen={!!viewingOrder} onClose={() => setViewingOrder(null)} title="Order Details" size="xl">
           {viewingOrder && (
             <div className="space-y-6 pb-20">
               <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
