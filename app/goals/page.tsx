@@ -146,6 +146,60 @@ export default function GoalsPage() {
 
   useEffect(() => {
     loadDataAndGoals();
+
+    // Auto-sync categories in browser localStorage
+    try {
+      const savedCats = localStorage.getItem("inba_categories");
+      let catList = savedCats ? JSON.parse(savedCats) : [
+        { id: 1, name: "Herbal" },
+        { id: 2, name: "Cosmetic" },
+        { id: 3, name: "Grocery" },
+        { id: 4, name: "Wellness" }
+      ];
+      
+      // Filter out 'Chudi Materials'
+      catList = catList.filter((c: any) => c.name !== "Chudi Materials");
+      
+      // Add 'Inba Stock' and 'Raw Silk' if missing
+      if (!catList.some((c: any) => c.name === "Inba Stock")) {
+        catList.push({ id: Date.now(), name: "Inba Stock" });
+      }
+      if (!catList.some((c: any) => c.name === "Raw Silk")) {
+        catList.push({ id: Date.now() + 1, name: "Raw Silk" });
+      }
+      
+      localStorage.setItem("inba_categories", JSON.stringify(catList));
+    } catch (e) {
+      console.warn("Failed to auto-sync category master list:", e);
+    }
+
+    // Auto-sync category goals in browser localStorage
+    try {
+      const savedGoals = localStorage.getItem("inba_goals");
+      if (savedGoals) {
+        let goalsList = JSON.parse(savedGoals);
+        let modified = false;
+
+        goalsList = goalsList.map((g: any) => {
+          if (g.type === "category" && g.linked_value === "Chudi Materials") {
+            modified = true;
+            return {
+              ...g,
+              linked_value: "Inba Stock",
+              name: g.name.replace("Chudi Materials", "Inba Stock")
+            };
+          }
+          return g;
+        });
+
+        if (modified) {
+          localStorage.setItem("inba_goals", JSON.stringify(goalsList));
+          loadDataAndGoals(); // reload to pick up local changes
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to auto-sync category goals list:", e);
+    }
   }, []);
 
   const formatCurrency = (value: number) => {

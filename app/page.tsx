@@ -57,6 +57,32 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardStats();
+
+    // Auto-sync categories in browser localStorage
+    try {
+      const savedCats = localStorage.getItem("inba_categories");
+      let catList = savedCats ? JSON.parse(savedCats) : [
+        { id: 1, name: "Herbal" },
+        { id: 2, name: "Cosmetic" },
+        { id: 3, name: "Grocery" },
+        { id: 4, name: "Wellness" }
+      ];
+      
+      // Filter out 'Chudi Materials'
+      catList = catList.filter((c: any) => c.name !== "Chudi Materials");
+      
+      // Add 'Inba Stock' and 'Raw Silk' if missing
+      if (!catList.some((c: any) => c.name === "Inba Stock")) {
+        catList.push({ id: Date.now(), name: "Inba Stock" });
+      }
+      if (!catList.some((c: any) => c.name === "Raw Silk")) {
+        catList.push({ id: Date.now() + 1, name: "Raw Silk" });
+      }
+      
+      localStorage.setItem("inba_categories", JSON.stringify(catList));
+    } catch (e) {
+      console.warn("Failed to auto-sync category master list:", e);
+    }
   }, []);
 
   const formatCurrency = (value: number) => {
