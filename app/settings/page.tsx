@@ -38,7 +38,14 @@ export default function SettingsPage() {
   // Category Editing States
   const [isEditingCategoryName, setIsEditingCategoryName] = useState(false);
   const [editCategoryNameValue, setEditCategoryNameValue] = useState("");
-  const [activeCategoryProducts, setActiveCategoryProducts] = useState<string[]>([]);
+  const [activeCategoryProducts, setActiveCategoryProducts] = useState<any[]>([]);
+
+  // Product Inline Editing States
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [editProductName, setEditProductName] = useState("");
+  const [editProductPrice, setEditProductPrice] = useState("");
+  const [editProductStock, setEditProductStock] = useState("");
+  const [editProductSku, setEditProductSku] = useState("");
 
   // Supplier States
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -63,10 +70,10 @@ export default function SettingsPage() {
         localStorage.setItem("inba_categories", JSON.stringify(masterList));
       }
 
-      const { data: products } = await supabase.from("products").select("id, name, category");
+      const { data: products } = await supabase.from("products").select("id, name, sku, price, stock, category, image_url");
 
       const countMap: Record<string, number> = {};
-      const categoryProductsMap: Record<string, string[]> = {};
+      const categoryProductsMap: Record<string, any[]> = {};
       
       products?.forEach(p => {
         const cat = p.category || "Uncategorized";
@@ -74,7 +81,7 @@ export default function SettingsPage() {
         if (!categoryProductsMap[cat]) {
           categoryProductsMap[cat] = [];
         }
-        categoryProductsMap[cat].push(p.name);
+        categoryProductsMap[cat].push(p);
       });
 
       const merged = masterList.map((cat: any) => ({
@@ -400,22 +407,73 @@ export default function SettingsPage() {
     toast(`Category "${catName}" deleted`, "error");
   };
 
-  const handleMoveProductCategory = async (prodName: string, targetCatName: string) => {
+  const handleMoveProductCategory = async (prodId: number, targetCatName: string) => {
     if (!viewingCategory) return;
     
     toast(`Moving product to ${targetCatName}...`, "info");
     const { error } = await supabase
       .from("products")
       .update({ category: targetCatName })
-      .eq("name", prodName);
+      .eq("id", prodId);
 
     if (!error) {
-      toast(`Successfully moved "${prodName}" to category "${targetCatName}"`, "success");
+      toast("Product moved successfully!", "success");
     } else {
-      toast("Failed to move product in cloud", "error");
+      toast("Failed to move product", "error");
     }
 
     loadCategories();
+  };
+
+  const handleStartEditProduct = (prod: any) => {
+    setEditingProductId(prod.id);
+    setEditProductName(prod.name || "");
+    setEditProductPrice(String(prod.price || 0));
+    setEditProductStock(String(prod.stock || 0));
+    setEditProductSku(prod.sku || "");
+  };
+
+  const handleSaveProductInline = async (prodId: number) => {
+    if (!editProductName.trim()) {
+      toast("Product name cannot be empty", "error");
+      return;
+    }
+    
+    toast("Saving product updates...", "info");
+    const { error } = await supabase
+      .from("products")
+      .update({
+        name: editProductName.trim(),
+        price: Number(editProductPrice) || 0,
+        stock: Number(editProductStock) || 0,
+        sku: editProductSku.trim()
+      })
+      .eq("id", prodId);
+
+    if (!error) {
+      toast("Product updated successfully!", "success");
+      setEditingProductId(null);
+      loadCategories();
+    } else {
+      toast("Failed to update product details", "error");
+    }
+  };
+
+  const handleDeleteProductInline = async (prodId: number, prodName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete "${prodName}"?`)) return;
+    
+    toast(`Deleting "${prodName}"...`, "info");
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", prodId);
+
+    if (!error) {
+      toast(`Product "${prodName}" deleted successfully`, "success");
+      loadCategories();
+    } else {
+      toast("Failed to delete product from database", "error");
+    }
   };
 
   const tabs = [
@@ -634,17 +692,17 @@ export default function SettingsPage() {
                   {categories.map((cat) => (
                     <div 
                       key={cat.id} 
-                      onClick={() => {
+                      onClick={async () => {
                         setViewingCategory(cat);
                         setIsEditingCategoryName(false);
                         setEditCategoryNameValue(cat.name);
                         
-                        const mockProds = [];
-                        const limit = Math.min(cat.count, 6);
-                        for (let i = 1; i <= limit; i++) {
-                          mockProds.push(`Product Sample ${i}`);
-                        }
-                        setActiveCategoryProducts(mockProds);
+                        // Fetch real products under this category from Supabase
+                        const { data: realProds } = await supabase
+                          .from("products")
+                          .select("id, name, sku, price, stock, category, image_url")
+                          .eq("category", cat.name);
+                        setActiveCategoryProducts(realProds || []);
                       }}
                       className="p-4 px-6 flex items-center justify-between hover:bg-gray-50 transition-colors group cursor-pointer"
                     >
@@ -756,9 +814,9 @@ export default function SettingsPage() {
       </div>
 
       {/* Category Details Drawer */}
-      <Drawer isOpen={!!viewingCategory} onClose={() => setViewingCategory(null)} title="Category Details">
+      <Drawer isOpen={!!viewingCategory} onClose={() => setViewingCategory(null)} title="Category Details" size="xl">
         {viewingCategory && (
-          <div className="space-y-6 pb-20">
+          <div className="space-y-6 pb-20 animate-in fade-in duration-200">
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
               {/* Top Badge & Action Bar */}
               <div className="flex items-center justify-between">
@@ -811,42 +869,136 @@ export default function SettingsPage() {
 
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                <h4 className="text-sm font-semibold text-gray-900">Linked Products</h4>
-                <div className="text-xs text-gray-500">Showing {Math.min(activeCategoryProducts.length, 3)} of {activeCategoryProducts.length}</div>
+                <h4 className="text-sm font-bold text-gray-800">Linked Products</h4>
+                <div className="text-xs text-slate-500 font-semibold">{activeCategoryProducts.length} products linked</div>
               </div>
               
               {activeCategoryProducts.length > 0 ? (
-                <div className="divide-y divide-gray-100">
-                  {activeCategoryProducts.slice(0, 3).map((item, index) => (
-                    <div key={item} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-bold">PROD</div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{item}</p>
-                          <p className="text-xs text-gray-500">SKU: SMPL-{(index + 1) * 100}</p>
-                        </div>
+                <div className="divide-y divide-gray-100 max-h-[450px] overflow-y-auto pr-1">
+                  {activeCategoryProducts.map((item) => {
+                    const isEditing = editingProductId === item.id;
+                    return (
+                      <div key={item.id} className="p-4">
+                        {isEditing ? (
+                          <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200/80 flex flex-col gap-3.5 animate-in slide-in-from-top-1">
+                            <div className="space-y-1">
+                              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Product Name</label>
+                              <input 
+                                type="text"
+                                value={editProductName}
+                                onChange={(e) => setEditProductName(e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-800"
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-2.5">
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">SKU</label>
+                                <input 
+                                  type="text"
+                                  value={editProductSku}
+                                  onChange={(e) => setEditProductSku(e.target.value)}
+                                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-800"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Price (₹)</label>
+                                <input 
+                                  type="number"
+                                  value={editProductPrice}
+                                  onChange={(e) => setEditProductPrice(e.target.value)}
+                                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-800"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Stock</label>
+                                <input 
+                                  type="number"
+                                  value={editProductStock}
+                                  onChange={(e) => setEditProductStock(e.target.value)}
+                                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-800"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100/80">
+                              <Button size="sm" variant="ghost" onClick={() => setEditingProductId(null)}>Cancel</Button>
+                              <Button size="sm" className="shadow-md shadow-[#2E8C13]/10 hover:bg-[#257310] transition-all" onClick={() => handleSaveProductInline(item.id)}>Save Changes</Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50/50 p-1.5 rounded-xl transition-all duration-200">
+                            <div className="flex items-center gap-3">
+                              {item.image_url ? (
+                                <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0" />
+                              ) : (
+                                <div className="w-10 h-10 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-[10px] text-slate-400 font-extrabold shrink-0">PROD</div>
+                              )}
+                              <div className="text-left">
+                                <p className="text-sm font-bold text-gray-800 leading-snug break-words pr-2 max-w-[240px]">{item.name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-[10px] text-gray-400 font-bold">SKU: {item.sku || "N/A"}</span>
+                                  <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                  <span className="text-[10px] text-emerald-600 font-extrabold">Stock: {item.stock ?? 0} units</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 self-end md:self-auto shrink-0 select-none">
+                              {/* Price Tag */}
+                              <div className="text-right shrink-0">
+                                <p className="text-sm font-extrabold text-primary">₹{(item.price || 0).toLocaleString("en-IN")}</p>
+                              </div>
+
+                              {/* Move To Dropdown */}
+                              <div className="w-32 shrink-0">
+                                <Select 
+                                  options={categories.map(c => c.name).filter(n => n !== viewingCategory.name)}
+                                  value=""
+                                  onChange={(newCat) => handleMoveProductCategory(item.id, newCat)}
+                                  placeholder="Move to..."
+                                />
+                              </div>
+
+                              {/* Edit / Delete Buttons */}
+                              <div className="flex items-center gap-1">
+                                <button 
+                                  onClick={() => handleStartEditProduct(item)}
+                                  className="text-gray-400 hover:text-primary hover:bg-gray-100 p-2 rounded-lg transition-colors border border-transparent hover:border-gray-100 shrink-0"
+                                  title="Edit Product Details"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteProductInline(item.id, item.name)}
+                                  className="text-gray-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-colors border border-transparent hover:border-rose-100 shrink-0"
+                                  title="Delete Product"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Select 
-                          options={categories.map(c => c.name).filter(n => n !== viewingCategory.name)}
-                          value=""
-                          onChange={(newCat) => handleMoveProductCategory(item, newCat)}
-                          placeholder="Move to..."
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="p-12 text-center text-gray-500 text-sm">
+                <div className="p-12 text-center text-gray-500 text-sm italic">
                   No products linked to this category yet.
                 </div>
               )}
             </div>
             
-            {activeCategoryProducts.length > 3 && (
-              <Button variant="outline" className="w-full">View all in Inventory</Button>
-            )}
+            <Button 
+              variant="outline" 
+              className="w-full text-xs font-bold py-2.5 border-dashed border-gray-300 hover:border-primary hover:text-primary transition-all animate-none mt-2"
+              onClick={() => {
+                setViewingCategory(null);
+                window.location.href = "/inventory";
+              }}
+            >
+              View all in Inventory
+            </Button>
           </div>
         )}
       </Drawer>
