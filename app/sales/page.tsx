@@ -1137,12 +1137,12 @@ export default function SalesPage() {
                     />
                   </div>
 
-                  <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                  <div className="space-y-1 max-h-[380px] overflow-y-auto pr-1">
                     {newOrderItems.length > 0 ? (
                       newOrderItems.map((item, idx) => (
-                        <div key={idx} className="relative bg-white border border-gray-250 hover:border-primary/45 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full">
+                        <div key={idx} className="relative py-4 border-b border-slate-100 flex flex-col gap-3 animate-in slide-in-from-top-1 min-w-0 w-full last:border-b-0 last:pb-0">
                           {/* Header Info Row */}
-                          <div className="flex items-start justify-between gap-2.5 min-w-0">
+                          <div className="flex items-start justify-between gap-2.5 min-w-0 pr-8">
                             {item.product ? (
                               <div className="flex items-center gap-2.5 flex-1 min-w-0">
                                 {dbProducts.find(p => p.name === item.product)?.image_url ? (
@@ -1176,22 +1176,22 @@ export default function SalesPage() {
                             <button 
                               type="button" 
                               onClick={() => handleRemoveItem(idx)} 
-                              className="absolute top-3.5 right-3.5 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-lg transition-all border border-transparent hover:border-rose-100 shrink-0"
+                              className="absolute top-4 right-0 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-lg transition-all border border-transparent hover:border-rose-100 shrink-0"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
 
                           {/* Lower Controls Row */}
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-4 mt-0.5">
+                          <div className="flex items-center justify-between pt-2 gap-4 mt-0.5">
                             {/* Quantity Stepper Capsule */}
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Quantity</span>
-                              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-0.5 min-w-[110px] justify-between shadow-xs">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quantity</span>
+                              <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] justify-between shadow-xs focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
-                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
+                                  className="w-9 h-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-l-xl transition-colors font-bold text-sm select-none"
                                 >
                                   -
                                 </button>
@@ -1200,12 +1200,12 @@ export default function SalesPage() {
                                   min={1} 
                                   value={item.qty} 
                                   onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                                  className="w-10 text-center text-xs font-black bg-transparent border-0 outline-none text-slate-800 focus:ring-0 p-0" 
+                                  className="w-10 text-center text-xs font-bold bg-transparent border-0 outline-none text-slate-800 focus:ring-0 p-0" 
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
-                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
+                                  className="w-9 h-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-r-xl transition-colors font-bold text-sm select-none"
                                 >
                                   +
                                 </button>
@@ -1214,14 +1214,14 @@ export default function SalesPage() {
 
                             {/* Selling Unit Price Capsule */}
                             <div className="flex flex-col gap-1 items-end">
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Unit Price</span>
-                              <div className="flex items-center bg-[#2E8C13]/5 border border-slate-200 rounded-xl px-3 py-1.5 max-w-[120px] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
-                                <span className="text-primary text-xs font-black mr-1 select-none">₹</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Price</span>
+                              <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] px-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
+                                <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
                                 <input 
                                   type="number" 
                                   value={item.price} 
                                   onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                                  className="w-16 text-right text-xs font-black text-primary bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                                  className="w-full text-right text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
                                 />
                               </div>
                             </div>
@@ -1486,12 +1486,12 @@ export default function SalesPage() {
                     />
                   </div>
 
-                  <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                  <div className="space-y-1 max-h-[380px] overflow-y-auto pr-1">
                     {newOrderItems.length > 0 ? (
                       newOrderItems.map((item, idx) => (
-                        <div key={idx} className="relative bg-white border border-gray-250 hover:border-primary/45 rounded-xl p-3.5 shadow-sm transition-all duration-200 flex flex-col gap-3 group animate-in slide-in-from-top-1 min-w-0 w-full">
+                        <div key={idx} className="relative py-4 border-b border-slate-100 flex flex-col gap-3 animate-in slide-in-from-top-1 min-w-0 w-full last:border-b-0 last:pb-0">
                           {/* Header Info Row */}
-                          <div className="flex items-start justify-between gap-2.5 min-w-0">
+                          <div className="flex items-start justify-between gap-2.5 min-w-0 pr-8">
                             {item.product ? (
                               <div className="flex items-center gap-2.5 flex-1 min-w-0">
                                 {dbProducts.find(p => p.name === item.product)?.image_url ? (
@@ -1525,22 +1525,22 @@ export default function SalesPage() {
                             <button 
                               type="button" 
                               onClick={() => handleRemoveItem(idx)} 
-                              className="absolute top-3.5 right-3.5 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-lg transition-all border border-transparent hover:border-rose-100 shrink-0"
+                              className="absolute top-4 right-0 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50/50 rounded-lg transition-all border border-transparent hover:border-rose-100 shrink-0"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
 
                           {/* Lower Controls Row */}
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-4 mt-0.5">
+                          <div className="flex items-center justify-between pt-2 gap-4 mt-0.5">
                             {/* Quantity Stepper Capsule */}
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Quantity</span>
-                              <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-0.5 min-w-[110px] justify-between shadow-xs">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quantity</span>
+                              <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] justify-between shadow-xs focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", Math.max(1, (item.qty || 1) - 1))}
-                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
+                                  className="w-9 h-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-l-xl transition-colors font-bold text-sm select-none"
                                 >
                                   -
                                 </button>
@@ -1549,12 +1549,12 @@ export default function SalesPage() {
                                   min={1} 
                                   value={item.qty} 
                                   onChange={(e) => handleItemChange(idx, 'qty', parseInt(e.target.value) || 1)}
-                                  className="w-10 text-center text-xs font-black bg-transparent border-0 outline-none text-slate-800 focus:ring-0 p-0" 
+                                  className="w-10 text-center text-xs font-bold bg-transparent border-0 outline-none text-slate-800 focus:ring-0 p-0" 
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleItemChange(idx, "qty", (item.qty || 1) + 1)}
-                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors font-black text-sm select-none"
+                                  className="w-9 h-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-r-xl transition-colors font-bold text-sm select-none"
                                 >
                                   +
                                 </button>
@@ -1563,14 +1563,14 @@ export default function SalesPage() {
 
                             {/* Selling Unit Price Capsule */}
                             <div className="flex flex-col gap-1 items-end">
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Unit Price</span>
-                              <div className="flex items-center bg-[#2E8C13]/5 border border-slate-200 rounded-xl px-3 py-1.5 max-w-[120px] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
-                                <span className="text-primary text-xs font-black mr-1 select-none">₹</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Price</span>
+                              <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] px-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
+                                <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
                                 <input 
                                   type="number" 
                                   value={item.price} 
                                   onChange={(e) => handleItemChange(idx, 'price', parseInt(e.target.value) || 0)}
-                                  className="w-16 text-right text-xs font-black text-primary bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                                  className="w-full text-right text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
                                 />
                               </div>
                             </div>
