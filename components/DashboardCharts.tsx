@@ -7,10 +7,32 @@ import {
   Legend, Cell, PieChart, Pie
 } from "recharts";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
 
 const COLORS = ["#2E8C13", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
 export default function DashboardCharts({ categoryFilter = "All" }: { categoryFilter?: string }) {
+  const { config } = usePlatform();
+
+  const getChartTitle = (key: string, filter: string) => {
+    let base = config.chartLabels.find(c => c.key === key)?.label || key;
+    if (filter !== "All" && key === "salesTrend") {
+      const trendWord = base.toLowerCase().includes("enrollment") ? "Enrollment" : base.toLowerCase().includes("order") ? "Order" : "Sales";
+      return `${filter} ${trendWord} Trend`;
+    }
+    if (filter !== "All" && key === "categoryShare") {
+      const shareWord = base.split('(')[1]?.split(')')[0] || 'Sales';
+      return `${filter} Share (${shareWord})`;
+    }
+    return base;
+  };
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
+
+  const salesLabel = config.dashboardCards.find(c => c.key === 'Total Sales')?.title || 'Sales';
+  const expensesLabel = config.dashboardCards.find(c => c.key === 'Total Expenses')?.title || 'Expenses';
   const [rawOrders, setRawOrders] = useState<any[]>([]);
   const [rawExpenses, setRawExpenses] = useState<any[]>([]);
   const [rawOrderItems, setRawOrderItems] = useState<any[]>([]);
@@ -192,9 +214,9 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
       <Card className="col-span-1 lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="border-b border-gray-50/50 pb-4">
           <CardTitle className="text-base font-bold text-gray-900">
-            {categoryFilter === "All" ? "Sales Trend (Last 7 Days)" : `${categoryFilter} Sales Trend`}
+            {getChartTitle("salesTrend", categoryFilter)}
           </CardTitle>
-          <p className="text-xs text-gray-500 mt-1">Daily gross sales volume</p>
+          <p className="text-xs text-gray-500 mt-1">Daily gross {salesLabel.toLowerCase()} volume</p>
         </CardHeader>
         <CardContent className="h-[300px] w-full p-6">
           {totalSalesVal > 0 ? (
@@ -211,7 +233,7 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
                 <CartesianGrid vertical={false} stroke="#f3f4f6" strokeDasharray="3 3" />
                 <Tooltip 
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, "Sales"]}
+                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, salesLabel]}
                 />
                 <Area type="monotone" dataKey="sales" stroke="#2E8C13" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSales)" />
               </AreaChart>
@@ -221,7 +243,7 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
               <svg className="w-12 h-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
-              No sales recorded for this category in the last 7 days.
+              No {salesLabel.toLowerCase()} recorded for this category in the last 7 days.
             </div>
           )}
         </CardContent>
@@ -231,10 +253,10 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
       <Card className="col-span-1 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="border-b border-gray-50/50 pb-4">
           <CardTitle className="text-base font-bold text-gray-900">
-            {categoryFilter === "All" ? "Category Share (Sales)" : `${categoryFilter} Share (Sales)`}
+            {getChartTitle("categoryShare", categoryFilter)}
           </CardTitle>
           <p className="text-xs text-gray-500 mt-1">
-            {categoryFilter === "All" ? "Revenue by product category" : "Revenue share by top products"}
+            {categoryFilter === "All" ? `Revenue by ${getModuleProp('Inventory', 'singularDisplayName').toLowerCase()} category` : `Revenue share by top ${getModuleProp('Inventory', 'displayName').toLowerCase()}`}
           </p>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center p-6">
@@ -256,7 +278,7 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
                 </Pie>
                 <Tooltip 
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, "Sales"]}
+                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, salesLabel]}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
               </PieChart>
@@ -267,7 +289,7 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
               </svg>
-              No category sales recorded yet.
+              No category {salesLabel.toLowerCase()} recorded yet.
             </div>
           )}
         </CardContent>
@@ -276,8 +298,8 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
       {/* Expense Breakdown */}
       <Card className="col-span-1 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="border-b border-gray-50/50 pb-4">
-          <CardTitle className="text-base font-bold text-gray-900">Expense Breakdown</CardTitle>
-          <p className="text-xs text-gray-500 mt-1">Expenses by category</p>
+          <CardTitle className="text-base font-bold text-gray-900">{getChartTitle("expenseBreakdown", categoryFilter)}</CardTitle>
+          <p className="text-xs text-gray-500 mt-1">{expensesLabel} by category</p>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center p-6">
           {totalExpensesVal > 0 ? (
@@ -298,7 +320,7 @@ export default function DashboardCharts({ categoryFilter = "All" }: { categoryFi
                 </Pie>
                 <Tooltip 
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, "Expenses"]}
+                  formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, expensesLabel]}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
               </PieChart>

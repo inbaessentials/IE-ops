@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
+import { usePlatform } from "@/lib/PlatformContext";
 
 interface PurchaseOrder {
   id: string;
@@ -32,6 +33,7 @@ interface PurchaseOrder {
 }
 
 export default function PurchasesPage() {
+  const { platform, config } = usePlatform();
   const toast = useToast();
   
   // State variables
@@ -43,6 +45,10 @@ export default function PurchasesPage() {
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
 
   // Form Field States
   const [selectedSupplier, setSelectedSupplier] = useState("");
@@ -240,8 +246,8 @@ export default function PurchasesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage wholesale supplier purchases, materials, and restocks.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Purchases', 'displayName')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{getModuleProp('Purchases', 'description')}</p>
         </div>
         <Button className="gap-2 shrink-0" onClick={() => {
           setSelectedSupplier(suppliers[0]?.name || "");
@@ -251,7 +257,7 @@ export default function PurchasesPage() {
           setIsAddDrawerOpen(true);
         }}>
           <Plus className="w-4 h-4" />
-          Create Purchase Order
+          Create {getModuleProp('Purchases', 'singularDisplayName')}
         </Button>
       </div>
 
@@ -259,7 +265,7 @@ export default function PurchasesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total POs</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Purchases', 'displayName')}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -268,7 +274,7 @@ export default function PurchasesPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Ordered Value</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
             <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">
               ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString()}
             </h3>
@@ -279,7 +285,7 @@ export default function PurchasesPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Deliveries</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Actions</p>
             <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
               {purchaseOrders.filter(o => o.status !== "Received").length}
             </h3>

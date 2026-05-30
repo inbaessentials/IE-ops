@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
 
 // Helper to get relative time
 const getRelativeTime = (dateStr: string) => {
@@ -28,12 +29,17 @@ const getCategoryBadgeStyles = (category: string) => {
   const cat = (category || "").toLowerCase();
   switch (cat) {
     case "courier":
+    case "logistics":
       return "bg-indigo-50 text-indigo-700 border border-indigo-100/50";
     case "packaging":
+    case "office supplies":
       return "bg-amber-50 text-amber-700 border border-amber-100/50";
     case "ads":
+    case "marketing":
+    case "technology":
       return "bg-emerald-50 text-emerald-700 border border-emerald-100/50";
     case "salaries":
+    case "rent":
       return "bg-purple-50 text-purple-700 border border-purple-100/50";
     default:
       return "bg-slate-50 text-slate-700 border border-slate-100/50";
@@ -59,6 +65,7 @@ const generateNextDisplayId = (existingExpenses: any[]) => {
 };
 
 export default function ExpensesPage() {
+  const { platform, config } = usePlatform();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
@@ -67,6 +74,10 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState("Courier");
   
   const toast = useToast();
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
 
   const fetchExpenses = async () => {
     const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
@@ -81,13 +92,13 @@ export default function ExpensesPage() {
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
-    setCategory("Courier");
+    setCategory(platform === "online-course" ? "Technology" : platform === "wholesale" ? "Logistics" : "Courier");
     setIsDrawerOpen(true);
   };
 
   const handleOpenEdit = (expense: any) => {
     setEditingExpense(expense);
-    setCategory(expense.category || "Courier");
+    setCategory(expense.category || (platform === "online-course" ? "Technology" : platform === "wholesale" ? "Logistics" : "Courier"));
     setIsDrawerOpen(true);
   };
 
@@ -95,9 +106,9 @@ export default function ExpensesPage() {
     const { error } = await supabase.from('expenses').delete().eq('id', id);
     if (!error) {
       setExpenses(expenses.filter(e => e.id !== id));
-      toast("Expense Deleted Successfully", "error");
+      toast(`${getModuleProp('Expenses', 'singularDisplayName') || 'Expense'} Deleted Successfully`, "error");
     } else {
-      toast("Failed to delete expense", "error");
+      toast(`Failed to delete ${getModuleProp('Expenses', 'singularDisplayName').toLowerCase() || 'expense'}`, "error");
     }
   };
 
@@ -119,7 +130,7 @@ export default function ExpensesPage() {
         if (error) throw error;
         if (data) {
           setExpenses(expenses.map(exp => exp.id === editingExpense.id ? data[0] : exp));
-          toast("Expense Updated Successfully", "success");
+          toast(`${getModuleProp('Expenses', 'singularDisplayName') || 'Expense'} Updated Successfully`, "success");
         }
       } else {
         // Fetch fresh list from Supabase for ID computation, falling back to local state
@@ -131,18 +142,18 @@ export default function ExpensesPage() {
         if (error) throw error;
         if (data) {
           setExpenses([data[0], ...expenses]);
-          toast("Expense Added Successfully", "success");
+          toast(`${getModuleProp('Expenses', 'singularDisplayName') || 'Expense'} Added Successfully`, "success");
         }
       }
       setIsDrawerOpen(false);
     } catch (err: any) {
       console.error("Save expense error:", err);
-      toast(err.message || "Failed to save expense", "error");
+      toast(err.message || `Failed to save ${getModuleProp('Expenses', 'singularDisplayName').toLowerCase() || 'expense'}`, "error");
     }
   };
 
   const getDropdownItems = (expense: any) => [
-    { label: "Edit Expense", onClick: () => handleOpenEdit(expense) },
+    { label: `Edit ${getModuleProp('Expenses', 'singularDisplayName') || 'Expense'}`, onClick: () => handleOpenEdit(expense) },
     { label: "Delete", onClick: () => handleDelete(expense.id), destructive: true },
   ];
 
@@ -210,7 +221,12 @@ export default function ExpensesPage() {
   });
 
   // Dynamic category options aggregate static defaults with actual recorded categories
-  const defaultCategories = ["Courier", "Packaging", "Ads", "Salaries", "Other"];
+  const defaultCategories = platform === "online-course" 
+    ? ["Technology", "Marketing", "Salaries", "Other"]
+    : platform === "wholesale"
+    ? ["Logistics", "Office Supplies", "Rent", "Other"]
+    : ["Courier", "Packaging", "Ads", "Salaries", "Other"];
+
   const dynamicCategories = Array.from(new Set([
     ...defaultCategories,
     ...expenses.map(e => e.category).filter(Boolean)
@@ -223,16 +239,19 @@ export default function ExpensesPage() {
     new Date(now.setMonth(now.getMonth() - 1)).toLocaleString('default', { month: 'long', year: 'numeric' })
   ];
 
+  const expensesTitle = getModuleProp('Expenses', 'displayName') || 'Expenses';
+  const expenseSingular = getModuleProp('Expenses', 'singularDisplayName') || 'Expense';
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
-          <p className="text-sm text-gray-500 mt-1">Track operational costs like courier, packaging, and ads.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{expensesTitle}</h1>
+          <p className="text-sm text-gray-500 mt-1">{getModuleProp('Expenses', 'description') || 'Track operational costs like courier, packaging, and ads.'}</p>
         </div>
         <Button className="gap-2" onClick={handleOpenAdd}>
           <Plus className="w-4 h-4" />
-          Add Expense
+          Add {expenseSingular}
         </Button>
       </div>
 
@@ -267,7 +286,7 @@ export default function ExpensesPage() {
         {/* Avg cost Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Average Expense</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Average {expenseSingular}</p>
             <h3 className="text-2xl font-bold tracking-tight text-amber-600">
               ₹{averageExpense.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
@@ -329,7 +348,7 @@ export default function ExpensesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search expenses..." 
+              placeholder={`Search ${expensesTitle.toLowerCase()}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -350,12 +369,12 @@ export default function ExpensesPage() {
               <Search className="w-8 h-8 text-gray-300" />
             </div>
             <h3 className="text-lg font-medium text-gray-900">
-              {searchQuery.trim() !== "" ? "No matching expenses" : "No expenses found"}
+              {searchQuery.trim() !== "" ? `No matching ${expensesTitle.toLowerCase()}` : `No ${expensesTitle.toLowerCase()} found`}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
               {searchQuery.trim() !== "" 
-                ? `We couldn't find any expenses matching "${searchQuery}"`
-                : "There are no expenses recorded for this period."}
+                ? `We couldn't find any ${expensesTitle.toLowerCase()} matching "${searchQuery}"`
+                : getModuleProp('Expenses', 'emptyStateText') || `There are no ${expensesTitle.toLowerCase()} recorded for this period.`}
             </p>
           </div>
         ) : (
@@ -413,7 +432,7 @@ export default function ExpensesPage() {
       <Drawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
-        title={editingExpense ? "Edit Expense" : "Add Expense"}
+        title={editingExpense ? `Edit ${expenseSingular}` : `Add ${expenseSingular}`}
       >
         <form className="space-y-4" onSubmit={handleSaveExpense}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
@@ -433,12 +452,12 @@ export default function ExpensesPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-              <textarea name="notes" rows={3} defaultValue={editingExpense?.notes} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm text-gray-800" placeholder="Details about this expense..."></textarea>
+              <textarea name="notes" rows={3} defaultValue={editingExpense?.notes} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm text-gray-800" placeholder={`Details about this ${expenseSingular.toLowerCase()}...`}></textarea>
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-3 mt-6">
             <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">{editingExpense ? "Update Expense" : "Save Expense"}</Button>
+            <Button type="submit" variant="primary">{editingExpense ? `Update ${expenseSingular}` : `Save ${expenseSingular}`}</Button>
           </div>
         </form>
       </Drawer>

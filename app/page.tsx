@@ -15,12 +15,22 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import DashboardCharts from "@/components/DashboardCharts";
+import { usePlatform } from "@/lib/PlatformContext";
 
 export default function Dashboard() {
+  const { platform, config } = usePlatform();
   const [dateRange, setDateRange] = useState("All time");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+
+  const getCardTitle = (key: string) => {
+    return config.dashboardCards.find(card => card.key === key)?.title || key;
+  };
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
 
   const [rawOrders, setRawOrders] = useState<any[]>([]);
   const [rawOrderItems, setRawOrderItems] = useState<any[]>([]);
@@ -352,12 +362,15 @@ export default function Dashboard() {
     { title: "Total Expenses", value: formatCurrency(totalExpensesSum), icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
   ];
 
+  const dashboardTitle = platform === 'inba' ? 'Operations Overview' : platform === 'fashion' ? 'Fashion Operations Overview' : platform === 'online-course' ? 'LMS Academy Overview' : platform === 'wholesale' ? 'B2B Wholesale Overview' : 'Operations Overview';
+  const dashboardDesc = platform === 'inba' ? 'Real-time health monitoring of Inba Essentials operations.' : platform === 'fashion' ? 'Real-time health monitoring of Fashion collection operations.' : platform === 'online-course' ? 'Real-time health monitoring of course enrollments and academy operations.' : platform === 'wholesale' ? 'Real-time health monitoring of wholesale B2B distribution.' : 'Real-time health monitoring of business operations.';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Operations Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">Real-time health monitoring of Inba Essentials operations.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{dashboardTitle}</h1>
+          <p className="text-sm text-gray-500 mt-1">{dashboardDesc}</p>
         </div>
         
         {/* Properly Positioned & Styled Filter Bar */}
@@ -423,7 +436,7 @@ export default function Dashboard() {
                     <Icon className={`w-6 h-6 ${kpi.color}`} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{kpi.title}</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{getCardTitle(kpi.title)}</p>
                     <div className="flex items-baseline gap-2 mt-1">
                       <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{kpi.value}</h3>
                       {totalSalesSum > 0 && (
@@ -453,9 +466,9 @@ export default function Dashboard() {
           <CardHeader className="border-b border-gray-50/50 pb-4">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#2E8C13]" />
-              Top Selling Products
+              Top Selling {getModuleProp('Inventory', 'displayName')}
             </CardTitle>
-            <p className="text-xs text-gray-500 mt-1">High demand products based on units sold</p>
+            <p className="text-xs text-gray-500 mt-1">High demand {getModuleProp('Inventory', 'displayName').toLowerCase()} based on units sold</p>
           </CardHeader>
           <CardContent className="p-0">
             {topProducts.length > 0 ? (
@@ -463,7 +476,7 @@ export default function Dashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/80 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      <th className="py-3 px-6">Product</th>
+                      <th className="py-3 px-6">{getModuleProp('Inventory', 'singularDisplayName')}</th>
                       <th className="py-3 px-6">Category</th>
                       <th className="py-3 px-6 text-center">Units Sold</th>
                       <th className="py-3 px-6 text-right">Revenue</th>
@@ -489,7 +502,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="p-8 text-center text-sm text-gray-400 font-medium">
-                No selling products found in this range.
+                No selling {getModuleProp('Inventory', 'displayName').toLowerCase()} found in this range.
               </div>
             )}
           </CardContent>
@@ -500,9 +513,9 @@ export default function Dashboard() {
           <CardHeader className="border-b border-gray-50/50 pb-4">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />
-              Restock Action Center
+              {getModuleProp('Inventory', 'singularDisplayName')} Action Center
             </CardTitle>
-            <p className="text-xs text-gray-500 mt-1">Critical low stock items needing immediate restock</p>
+            <p className="text-xs text-gray-500 mt-1">Critical low stock {getModuleProp('Inventory', 'displayName').toLowerCase()} needing immediate attention</p>
           </CardHeader>
           <CardContent className="p-0">
             {lowStockItems.length > 0 ? (
@@ -523,7 +536,7 @@ export default function Dashboard() {
                         </span>
                         <Link href="/inventory">
                           <span className="text-xs font-bold text-[#2E8C13] hover:text-[#2E8C13]/80 hover:underline transition-colors cursor-pointer">
-                            Restock
+                            {platform === 'online-course' ? 'Manage' : 'Restock'}
                           </span>
                         </Link>
                       </div>
@@ -533,7 +546,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="p-8 text-center text-sm text-gray-400 font-medium">
-                All items in this category are healthy! 🎉
+                All {getModuleProp('Inventory', 'displayName').toLowerCase()} in this category are healthy! 🎉
               </div>
             )}
           </CardContent>

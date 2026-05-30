@@ -10,6 +10,7 @@ import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
 
 const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
   New: { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
@@ -232,11 +233,20 @@ const serializeAddressField = (cleanAddress: string, shippingType: "free" | "pai
 };
 
 export default function SalesPage() {
+  const { platform, config } = usePlatform();
   const toast = useToast();
   const [orders, setOrders] = useState<any[]>([]);
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<any>(null);
   const [printingOrder, setPrintingOrder] = useState<any>(null);
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
+
+  const getHelperText = (key: string, fallback: string) => {
+    return config.helperText.find(h => h.key === key)?.text || fallback;
+  };
   
   // Searching & Filtering States
   const [searchTerm, setSearchTerm] = useState("");
@@ -765,8 +775,8 @@ export default function SalesPage() {
       <div className="space-y-6 print:hidden">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sales Orders</h1>
-            <p className="text-sm text-gray-500 mt-1">Track and manage customer orders and invoices.</p>
+            <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Sales', 'displayName')}</h1>
+            <p className="text-sm text-gray-500 mt-1">Track and manage customer {getModuleProp('Sales', 'displayName').toLowerCase()} and invoices.</p>
           </div>
           <Button className="gap-2" onClick={() => {
             // Reset state variables to ensure a clean create form
@@ -782,7 +792,7 @@ export default function SalesPage() {
             setIsAddDrawerOpen(true);
           }}>
             <Plus className="w-4 h-4" />
-            Create Order
+            Create {getModuleProp('Sales', 'singularDisplayName')}
           </Button>
         </div>
 
@@ -799,7 +809,7 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Orders</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Sales', 'displayName')}</p>
               <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalOrdersCount}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -817,7 +827,9 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Revenue</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                {config.dashboardCards.find(c => c.key === 'Total Sales')?.title || 'Total Revenue'}
+              </p>
               <h3 className="text-2xl font-semibold tracking-tight text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -835,7 +847,7 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Orders</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending {getModuleProp('Sales', 'displayName')}</p>
               <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{pendingOrdersCount}</h3>
             </div>
             <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -853,7 +865,9 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Shipped/Delivered</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                {platform === 'online-course' ? 'Provisioned / Active' : 'Shipped / Delivered'}
+              </p>
               <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">{completedOrdersCount}</h3>
             </div>
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -862,7 +876,9 @@ export default function SalesPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/inventory'}>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Items Sold</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                {config.dashboardCards.find(c => c.key === 'Total Items Sold')?.title || 'Total Items Sold'}
+              </p>
               <h3 className="text-2xl font-semibold tracking-tight text-purple-600">{totalItemsSold}</h3>
             </div>
             <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -879,7 +895,7 @@ export default function SalesPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
                   type="text" 
-                  placeholder="Search by ID, Customer..." 
+                  placeholder={getHelperText("searchSales", "Search orders...")} 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-semibold"

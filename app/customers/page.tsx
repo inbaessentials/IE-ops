@@ -13,8 +13,10 @@ import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
 
 export default function CustomersPage() {
+  const { platform, config } = usePlatform();
   const [customers, setCustomers] = useState<any[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +24,14 @@ export default function CustomersPage() {
   const [viewingCustomer, setViewingCustomer] = useState<any>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
+
+  const getHelperText = (key: string, fallback: string) => {
+    return config.helperText.find(h => h.key === key)?.text || fallback;
+  };
 
   // Form States for Add Customer
   const [fullName, setFullName] = useState("");
@@ -359,8 +369,8 @@ export default function CustomersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="text-sm text-gray-500 mt-1">View customer history, orders, and details.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Customers', 'displayName')}</h1>
+          <p className="text-sm text-gray-500 mt-1">View {getModuleProp('Customers', 'singularDisplayName').toLowerCase()} history, orders, and details.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
@@ -369,7 +379,7 @@ export default function CustomersPage() {
           </Button>
           <Button className="gap-2" onClick={() => setIsAddDrawerOpen(true)}>
             <Plus className="w-4 h-4" />
-            Add Customer
+            Add {getModuleProp('Customers', 'singularDisplayName')}
           </Button>
         </div>
       </div>
@@ -378,7 +388,7 @@ export default function CustomersPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Customers</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Customers', 'displayName')}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
@@ -387,7 +397,7 @@ export default function CustomersPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Loyal Customers</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Loyal {getModuleProp('Customers', 'displayName')}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
           </div>
           <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
@@ -444,7 +454,7 @@ export default function CustomersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search by customer name, email or phone..." 
+              placeholder={getHelperText("searchCustomers", "Search directory...")} 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"

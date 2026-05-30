@@ -12,13 +12,23 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/Modal";
+import { usePlatform } from "@/lib/PlatformContext";
 
 export default function InventoryPage() {
+  const { platform, config } = usePlatform();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>(["Herbal", "Cosmetic", "Grocery", "Wellness"]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
+
+  const getHelperText = (key: string, fallback: string) => {
+    return config.helperText.find(h => h.key === key)?.text || fallback;
+  };
   const toast = useToast();
 
   // Search & Filter states
@@ -703,8 +713,8 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your products, stock levels, and variants.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Inventory', 'displayName')} Management</h1>
+          <p className="text-sm text-gray-500 mt-1">{getModuleProp('Inventory', 'description')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" className="gap-2 border border-gray-200 font-semibold" onClick={() => setIsBulkUploadOpen(true)}>
@@ -713,11 +723,11 @@ export default function InventoryPage() {
           </Button>
           <Button variant="ghost" className="gap-2 border border-gray-200 text-[#2E8C13] hover:text-[#257310] hover:bg-green-50 font-semibold" onClick={handleOpenBulkEdit}>
             <Sliders className="w-4 h-4" />
-            Bulk Edit Products
+            Bulk Edit {getModuleProp('Inventory', 'displayName')}
           </Button>
           <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" />
-            Add Product
+            Add {getModuleProp('Inventory', 'singularDisplayName')}
           </Button>
         </div>
       </div>
@@ -726,7 +736,7 @@ export default function InventoryPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Products</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Inventory', 'displayName')}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalProductsCount}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -735,8 +745,8 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Stock</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">units</span></h3>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {platform === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">{platform === 'online-course' ? 'slots' : 'units'}</span></h3>
           </div>
           <div className="p-3 bg-green-50 text-green-600 rounded-xl">
             <Layers className="w-5 h-5" />
@@ -744,7 +754,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Out of Stock</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{platform === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
@@ -753,7 +763,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Low Stock</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{platform === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -762,7 +772,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Inventory Value</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{platform === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
             <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -779,7 +789,7 @@ export default function InventoryPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
                 type="text" 
-                placeholder="Search products by name or SKU..." 
+                placeholder={getHelperText("searchProducts", "Search catalog...")} 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-medium"

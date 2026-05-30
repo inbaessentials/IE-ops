@@ -16,6 +16,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
 
 interface Goal {
   id?: string;
@@ -31,6 +32,10 @@ interface Goal {
 }
 
 export default function GoalsPage() {
+  const { platform, config } = usePlatform();
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
   const [orderItems, setOrderItems] = useState<any[]>([]);
@@ -237,12 +242,13 @@ export default function GoalsPage() {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!confirm("Are you sure you want to delete this goal configuration?")) return;
+    const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
+    if (!confirm(`Are you sure you want to delete this ${goalSingular.toLowerCase()} configuration?`)) return;
     
     try {
       const { error } = await supabase.from("goals").delete().eq("id", goalId);
       if (!error) {
-        toast("Goal deleted successfully from database!", "success");
+        toast(`${goalSingular} deleted successfully from database!`, "success");
         loadDataAndGoals();
         return;
       }
@@ -255,12 +261,12 @@ export default function GoalsPage() {
       const localGoals: Goal[] = JSON.parse(cached);
       const filtered = localGoals.filter(g => g.id !== goalId);
       localStorage.setItem("inba_goals", JSON.stringify(filtered));
-      toast("Goal deleted successfully!", "success");
+      toast(`${goalSingular} deleted successfully!`, "success");
       loadDataAndGoals();
     } else {
       setGoals([]);
       setActiveGoal(null);
-      toast("Goal deleted.", "success");
+      toast(`${goalSingular} deleted.`, "success");
     }
   };
 
@@ -286,8 +292,9 @@ export default function GoalsPage() {
           .eq("id", editingGoal.id)
           .select();
         
+        const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
         if (!error && data) {
-          toast("Goal updated successfully!", "success");
+          toast(`${goalSingular} updated successfully!`, "success");
           loadDataAndGoals();
           setIsDrawerOpen(false);
           setEditingGoal(null);
@@ -295,8 +302,9 @@ export default function GoalsPage() {
         }
       } else {
         const { data, error } = await supabase.from("goals").insert([payload]).select();
+        const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
         if (!error && data) {
-          toast("Goal created successfully!", "success");
+          toast(`${goalSingular} created successfully!`, "success");
           loadDataAndGoals();
           setIsDrawerOpen(false);
           return;
@@ -314,10 +322,11 @@ export default function GoalsPage() {
       } catch (err) {}
     }
 
+    const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
     if (editingGoal && editingGoal.id) {
       currentGoals = currentGoals.map(g => g.id === editingGoal.id ? { ...payload, id: editingGoal.id, created_at: editingGoal.created_at } : g);
       localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
-      toast("Goal updated locally!", "success");
+      toast(`${goalSingular} updated locally!`, "success");
     } else {
       const goalWithId = {
         ...payload,
@@ -326,7 +335,7 @@ export default function GoalsPage() {
       };
       currentGoals.push(goalWithId);
       localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
-      toast("Goal saved locally!", "success");
+      toast(`${goalSingular} saved locally!`, "success");
     }
 
     loadDataAndGoals();
@@ -335,9 +344,10 @@ export default function GoalsPage() {
   };
 
   const handleClearGoal = () => {
-    if (confirm("Are you sure you want to end this active goal?")) {
+    const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
+    if (confirm(`Are you sure you want to end this active ${goalSingular.toLowerCase()}?`)) {
       setActiveGoal(null);
-      toast("Active goal ended.", "error");
+      toast(`Active ${goalSingular.toLowerCase()} ended.`, "error");
     }
   };
 
@@ -712,24 +722,30 @@ export default function GoalsPage() {
     return matchesSearch && matchesStatus && matchesType && matchesPeriod;
   });
 
+  const goalsTitle = getModuleProp('Goals', 'displayName') || 'Goals & Progress';
+  const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
+  const salesPlural = getModuleProp('Sales', 'displayName') || 'Units';
+  const inventorySingular = getModuleProp('Inventory', 'singularDisplayName') || 'Product';
+  const inventoryPlural = getModuleProp('Inventory', 'displayName') || 'Products';
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Goals & Progress</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{goalsTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Focus on monthly growth outcomes in a stress-free environment.
+            {getModuleProp('Goals', 'description') || 'Focus on monthly growth outcomes in a stress-free environment.'}
           </p>
         </div>
         <div className="flex items-center gap-3">
           {activeGoal && (
             <Button variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={handleClearGoal}>
-              End Active Goal
+              End Active {goalSingular}
             </Button>
           )}
           <Button className="gap-2" onClick={handleOpenAdd}>
-            <Plus className="w-4 h-4" /> Setup Goal
+            <Plus className="w-4 h-4" /> Setup {goalSingular}
           </Button>
         </div>
       </div>
@@ -783,12 +799,12 @@ export default function GoalsPage() {
           <div className="w-16 h-16 bg-[#2E8C13]/10 text-[#2E8C13] rounded-full flex items-center justify-center mb-4">
             <Target className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">No goals set</h3>
+          <h3 className="text-lg font-bold text-gray-900">No {goalsTitle.toLowerCase()} set</h3>
           <p className="text-sm text-gray-500 max-w-sm mt-1.5 leading-relaxed">
-            Configure a monthly, weekly, or category target to help focus Inba Essentials growth without daily target stress.
+            {getModuleProp('Goals', 'emptyStateText') || `Configure a monthly, weekly, or category target to help focus growth without daily target stress.`}
           </p>
           <Button className="mt-5 gap-2" onClick={handleOpenAdd}>
-            <Plus className="w-4 h-4" /> Configure First Goal
+            <Plus className="w-4 h-4" /> Configure First {goalSingular}
           </Button>
         </Card>
       ) : (
@@ -809,14 +825,14 @@ export default function GoalsPage() {
                     <h3 className="text-2xl font-semibold tracking-tight text-[#2E8C13]">
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(achievedValue)
-                        : `${achievedValue} units`}
+                        : `${achievedValue} ${salesPlural.toLowerCase()}`}
                     </h3>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 border ${pacingBadgeColor}`}>
                       {pacingStatus}
                     </span>
                   </div>
                   <p className="text-[10px] text-gray-400 font-semibold mt-1">
-                    Target: {focusGoal.type === "revenue" || focusGoal.type === "category" ? formatCurrency(targetValue) : `${targetValue} units`}
+                    Target: {focusGoal.type === "revenue" || focusGoal.type === "category" ? formatCurrency(targetValue) : `${targetValue} ${salesPlural.toLowerCase()}`}
                   </p>
                   <div className="w-full h-1 bg-gray-100 rounded-full mt-2 overflow-hidden">
                     <div className="h-full bg-[#2E8C13] rounded-full transition-all duration-300" style={{ width: `${Math.min(100, achievementPercentage)}%` }} />
@@ -837,12 +853,12 @@ export default function GoalsPage() {
                     <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(dailyPacingNeeded)
-                        : `${Math.ceil(dailyPacingNeeded)} units`}
+                        : `${Math.ceil(dailyPacingNeeded)} ${salesPlural.toLowerCase()}`}
                     </h3>
                   </div>
                   <p className="text-[10px] text-gray-400 font-semibold mt-1">
                     {isPastGoal ? (
-                      <span className="text-gray-400">Target period has completed</span>
+                      <span className="text-gray-400 font-semibold">Target period has completed</span>
                     ) : (
                       <>For next <strong className="text-gray-700">{daysRemaining} days</strong></>
                     )}
@@ -863,7 +879,7 @@ export default function GoalsPage() {
                     <h3 className={`text-2xl font-semibold tracking-tight ${forecastPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}`}>
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(forecastedOutcome)
-                        : `${Math.round(forecastedOutcome)} units`}
+                        : `${Math.round(forecastedOutcome)} ${salesPlural.toLowerCase()}`}
                     </h3>
                   </div>
                   <p className="text-[10px] font-semibold mt-1">
@@ -953,7 +969,7 @@ export default function GoalsPage() {
                     />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
                     <Area type="monotone" dataKey="Ideal Pace" stroke="#d1d5db" strokeWidth={2} fill="none" strokeDasharray="5 5" name="Ideal Pacing Line" />
-                    <Area type="monotone" dataKey="Actual Achieved" stroke="#2E8C13" strokeWidth={2.5} fillOpacity={1} fill="url(#achievedColor)" name="Actual Cumulative Sales" />
+                    <Area type="monotone" dataKey="Actual Achieved" stroke="#2E8C13" strokeWidth={2.5} fillOpacity={1} fill="url(#achievedColor)" name={`Actual Cumulative ${salesPlural}`} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -976,7 +992,7 @@ export default function GoalsPage() {
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
                         <span className="font-semibold text-gray-800 block truncate">{c.name}</span>
-                        <span className="text-[10px] text-gray-400 font-medium">{c.qty} units sold</span>
+                        <span className="text-[10px] text-gray-400 font-medium">{c.qty} {salesPlural.toLowerCase()} sold</span>
                       </div>
                       <span className="font-bold text-gray-900 shrink-0">{formatCurrency(c.revenue)}</span>
                     </div>
@@ -991,9 +1007,9 @@ export default function GoalsPage() {
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                  <Coins className="w-4 h-4 text-indigo-500" /> Overstock Cash Blocks
+                  <Coins className="w-4 h-4 text-indigo-500" /> {platform === "online-course" ? "Inactive Course Costs" : platform === "wholesale" ? "Pallet Stock Cash Ties" : "Overstock Cash Blocks"}
                 </CardTitle>
-                <p className="text-[11px] text-gray-500 mt-0.5">Slow products with high cash locked up</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{platform === "online-course" ? "Slow courses with significant production cost" : "Slow products with high cash locked up"}</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
                 {cashBlocks.length > 0 ? (
@@ -1001,7 +1017,7 @@ export default function GoalsPage() {
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
                         <span className="font-semibold text-gray-800 block truncate">{c.name}</span>
-                        <span className="text-[10px] text-gray-400 font-medium">Stock: {c.stock} units (velocity: {c.velocity})</span>
+                        <span className="text-[10px] text-gray-400 font-medium">Stock: {c.stock} {salesPlural.toLowerCase()} (velocity: {c.velocity})</span>
                       </div>
                       <span className="font-bold text-indigo-600 shrink-0">{formatCurrency(c.cashVal)}</span>
                     </div>
@@ -1016,9 +1032,9 @@ export default function GoalsPage() {
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-rose-500" /> Stockout Risks (Top Movers)
+                  <ShieldAlert className="w-4 h-4 text-rose-500" /> {platform === "online-course" ? "Capacity Limit Risks" : "Stockout Risks (Top Movers)"}
                 </CardTitle>
-                <p className="text-[11px] text-gray-500 mt-0.5">High velocity products nearing depletion</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{platform === "online-course" ? "High velocity courses needing instructor attention" : "High velocity products nearing depletion"}</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
                 {stockoutWarnings.length > 0 ? (
@@ -1026,9 +1042,9 @@ export default function GoalsPage() {
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
                         <span className="font-semibold text-gray-800 block truncate">{c.name}</span>
-                        <span className="text-[10px] text-rose-600 font-bold">Only {c.stock} units left!</span>
+                        <span className="text-[10px] text-rose-600 font-bold">Only {c.stock} {salesPlural.toLowerCase()} left!</span>
                       </div>
-                      <span className="font-semibold text-gray-400 shrink-0">Velocity: {c.velocity} units</span>
+                      <span className="font-semibold text-gray-400 shrink-0">Velocity: {c.velocity} {salesPlural.toLowerCase()}</span>
                     </div>
                   ))
                 ) : (
@@ -1045,7 +1061,7 @@ export default function GoalsPage() {
         <div className="p-5 border-b border-gray-50 bg-gray-50/20">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Target Management Ledger</h3>
+              <h3 className="text-sm font-bold text-gray-900">{goalSingular} Management Ledger</h3>
               <p className="text-[11px] text-gray-500 mt-0.5">Manage and track all business target setups, progress status, and outcomes</p>
             </div>
           </div>
@@ -1054,7 +1070,7 @@ export default function GoalsPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-4 border-t border-gray-100">
             <div className="bg-gray-50/50 p-2.5 rounded-lg border border-gray-100 text-center">
               <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">Total Setups</span>
-              <span className="text-lg font-bold text-gray-800 block mt-1">{totalSetups} Goals</span>
+              <span className="text-lg font-bold text-gray-800 block mt-1">{totalSetups} {goalsTitle}</span>
             </div>
             <div className="bg-emerald-50/20 p-2.5 rounded-lg border border-emerald-100/50 text-center">
               <span className="text-[10px] text-emerald-700/60 font-semibold uppercase tracking-wider block">Achieved Targets</span>
@@ -1076,7 +1092,7 @@ export default function GoalsPage() {
           <div className="w-full md:w-72">
             <input
               type="text"
-              placeholder="Search goals by name or type..."
+              placeholder={`Search ${goalsTitle.toLowerCase()} by name or type...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none bg-gray-50/30 focus:border-[#2E8C13] focus:ring-1 focus:ring-[#2E8C13]/20 font-medium"
@@ -1107,10 +1123,10 @@ export default function GoalsPage() {
               >
                 <option value="all">All Types</option>
                 <option value="revenue">Gross Revenue</option>
-                <option value="units">Units Sold</option>
+                <option value="units">{salesPlural}</option>
                 <option value="category">Category-wise</option>
-                <option value="product">Product-specific</option>
-                <option value="stock_reduction">Stock Reduction</option>
+                <option value="product">{inventorySingular}-specific</option>
+                <option value="stock_reduction">{platform === "online-course" ? "Engagement Boost" : "Stock Reduction"}</option>
               </select>
             </div>
 
@@ -1134,9 +1150,9 @@ export default function GoalsPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50/30 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
               <tr>
-                <th className="p-3 pl-6">Goal Name</th>
+                <th className="p-3 pl-6">{goalSingular} Name</th>
                 <th className="p-3">Period Range</th>
-                <th className="p-3">Goal Type</th>
+                <th className="p-3">{goalSingular} Type</th>
                 <th className="p-3">Target Amount</th>
                 <th className="p-3">Achieved Progress</th>
                 <th className="p-3">Status</th>
@@ -1158,10 +1174,10 @@ export default function GoalsPage() {
                       <td className="p-3 text-gray-500 font-semibold">{histStart} — {histEnd}</td>
                       <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">{g.type.replace("_", " ")}</td>
                       <td className="p-3 font-semibold text-gray-900">
-                        {g.type === "revenue" || g.type === "category" ? formatCurrency(g.target_amount) : `${g.target_amount} units`}
+                        {g.type === "revenue" || g.type === "category" ? formatCurrency(g.target_amount) : `${g.target_amount} ${salesPlural.toLowerCase()}`}
                       </td>
                       <td className="p-3 font-semibold text-gray-700">
-                        {g.type === "revenue" || g.type === "category" ? formatCurrency(achieved) : `${achieved} units`}
+                        {g.type === "revenue" || g.type === "category" ? formatCurrency(achieved) : `${achieved} ${salesPlural.toLowerCase()}`}
                         <span className="text-gray-400 font-normal ml-1">({progressPct}%)</span>
                       </td>
                       <td className="p-3">
@@ -1193,7 +1209,7 @@ export default function GoalsPage() {
               ) : (
                 <tr>
                   <td colSpan={7} className="text-center p-8 text-sm text-gray-400 font-medium">
-                    No goal setups found. Click "Setup Goal" above to configure.
+                    No {goalSingular.toLowerCase()} setups found. Click "Setup {goalSingular}" above to configure.
                   </td>
                 </tr>
               )}
@@ -1206,16 +1222,16 @@ export default function GoalsPage() {
       <Drawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
-        title={editingGoal ? "Edit Business Goal" : "Setup Business Goal"}
+        title={editingGoal ? `Edit Business ${goalSingular}` : `Setup Business ${goalSingular}`}
       >
         <form className="space-y-4" onSubmit={handleSaveGoal}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Goal Label / Title</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{goalSingular} Label / Title</label>
               <input 
                 type="text" 
                 required 
-                placeholder="e.g. May Wellness Booster"
+                placeholder={`e.g. May ${goalSingular} Booster`}
                 value={goalName}
                 onChange={(e) => setGoalName(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-sm text-gray-800 font-medium"
@@ -1223,7 +1239,7 @@ export default function GoalsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Goal Type</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{goalSingular} Type</label>
               <select 
                 value={goalType}
                 onChange={(e) => {
@@ -1234,37 +1250,37 @@ export default function GoalsPage() {
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-sm text-gray-800 font-semibold bg-white"
               >
                 <option value="revenue">Gross Revenue Target (₹)</option>
-                <option value="units">Units Sold Target (Qty)</option>
+                <option value="units">{salesPlural} Target (Qty)</option>
                 <option value="category">Category-wise Sales Target (₹)</option>
-                <option value="product">Product-specific Sales Target (Qty)</option>
-                <option value="stock_reduction">Slow-moving Stock Reduction (Qty)</option>
+                <option value="product">{inventorySingular}-specific Sales Target (Qty)</option>
+                <option value="stock_reduction">{platform === "online-course" ? "Engagement Boost" : "Stock Reduction"} Target (Qty)</option>
               </select>
+
+              {/* Dynamic Dropdown Select based on Goal Type */}
+              {goalType === "category" && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Target Category Link</label>
+                  <Select 
+                    options={defaultCategoriesList}
+                    value={linkedValue}
+                    onChange={setLinkedValue}
+                    placeholder="Select category..."
+                  />
+                </div>
+              )}
+
+              {(goalType === "product" || goalType === "stock_reduction") && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Linked Target {inventorySingular}</label>
+                  <Select 
+                    options={defaultProductsList}
+                    value={linkedValue}
+                    onChange={setLinkedValue}
+                    placeholder={`Select ${inventorySingular.toLowerCase()}...`}
+                  />
+                </div>
+              )}
             </div>
-
-            {/* Dynamic Dropdown Select based on Goal Type */}
-            {goalType === "category" && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Target Category Link</label>
-                <Select 
-                  options={defaultCategoriesList}
-                  value={linkedValue}
-                  onChange={setLinkedValue}
-                  placeholder="Select category..."
-                />
-              </div>
-            )}
-
-            {(goalType === "product" || goalType === "stock_reduction") && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Linked Target Product</label>
-                <Select 
-                  options={defaultProductsList}
-                  value={linkedValue}
-                  onChange={setLinkedValue}
-                  placeholder="Select product SKU..."
-                />
-              </div>
-            )}
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -1318,7 +1334,7 @@ export default function GoalsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Goal Priority</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{goalSingular} Priority</label>
                 <select 
                   value={goalPriority}
                   onChange={(e) => setGoalPriority(e.target.value as Goal["priority"])}
@@ -1334,7 +1350,7 @@ export default function GoalsPage() {
 
           <div className="pt-4 flex justify-end gap-3 mt-6">
             <Button type="button" variant="ghost" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">{editingGoal ? "Save Changes" : "Activate Goal"}</Button>
+            <Button type="submit" variant="primary">{editingGoal ? "Save Changes" : `Activate ${goalSingular}`}</Button>
           </div>
         </form>
       </Drawer>

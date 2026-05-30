@@ -10,8 +10,14 @@ import {
 import ReportCharts from "@/components/ReportCharts";
 import { supabase } from "@/lib/supabase";
 import PulseIntelligence from "@/components/PulseIntelligence";
+import { usePlatform } from "@/lib/PlatformContext";
 
 export default function ReportsPage() {
+  const { platform, config } = usePlatform();
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
+
   const [activeReportTab, setActiveReportTab] = useState<"financial" | "pulse">("financial");
   const [timeframe, setTimeframe] = useState("Last 30 Days");
   const [stats, setStats] = useState({
@@ -196,6 +202,12 @@ export default function ReportsPage() {
     }).format(value);
   };
 
+  const salesTitle = getModuleProp('Sales', 'displayName') || 'Orders';
+  const salesSingular = getModuleProp('Sales', 'singularDisplayName') || 'Order';
+  const expensesTitle = getModuleProp('Expenses', 'displayName') || 'Operating Expenses';
+  const inventoryTitle = getModuleProp('Inventory', 'displayName') || 'Products';
+  const inventorySingular = getModuleProp('Inventory', 'singularDisplayName') || 'Product';
+
   const performanceKpis = [
     {
       title: "Total Revenue",
@@ -216,8 +228,8 @@ export default function ReportsPage() {
       color: "from-emerald-500/10 to-green-500/5 text-[#2E8C13]"
     },
     {
-      title: "Total Orders",
-      value: `${stats.totalOrders} ${stats.totalOrders === 1 ? "Order" : "Orders"}`,
+      title: `Total ${salesTitle}`,
+      value: `${stats.totalOrders} ${stats.totalOrders === 1 ? salesSingular : salesTitle}`,
       change: stats.totalOrders > 0 ? "+22.5%" : "0%",
       isPositive: true,
       subtitle: `Average value: ${formatCurrency(stats.avgOrderValue)}`,
@@ -225,11 +237,11 @@ export default function ReportsPage() {
       color: "from-gray-500/10 to-gray-500/5 text-gray-700"
     },
     {
-      title: "Operating Expenses",
+      title: expensesTitle,
       value: formatCurrency(stats.operatingExpenses),
       change: stats.operatingExpenses > 0 ? "-4.2%" : "0%",
       isPositive: true,
-      subtitle: "Outbound logistics & packing",
+      subtitle: platform === "online-course" ? "Video hosting & dev costs" : platform === "wholesale" ? "Freight & warehouse rent" : "Courier & packaging costs",
       icon: TrendingDown,
       color: "from-red-500/10 to-red-500/5 text-red-600"
     }
@@ -286,7 +298,7 @@ export default function ReportsPage() {
               : "border-transparent text-gray-500 hover:text-gray-900"
           }`}
         >
-          <span>🧠</span> Inba Pulse Intelligence
+          <span>🧠</span> {(platform === "inba" ? "Inba" : platform === "fashion" ? "Fashion" : platform === "online-course" ? "Course" : platform === "wholesale" ? "Wholesale" : "Business")} Pulse Intelligence
         </button>
       </div>
 
@@ -337,7 +349,7 @@ export default function ReportsPage() {
             <div className="p-6 border-b border-gray-50 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Category-Wise Performance Analysis</h3>
-                <p className="text-xs text-gray-500 mt-1">In-depth calculation of sales, quantities, exact profits, and margins by product category.</p>
+                <p className="text-xs text-gray-500 mt-1">In-depth calculation of {salesTitle.toLowerCase()}, quantities, exact profits, and margins by category.</p>
               </div>
               {categoryPerformance.length > 0 && (
                 <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportReport("Category Performance")}>
@@ -351,22 +363,24 @@ export default function ReportsPage() {
                   <thead className="bg-gray-50/50 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
                     <tr>
                       <th className="p-4 pl-6">Category</th>
-                      <th className="p-4">Units Sold</th>
+                      <th className="p-4">{salesTitle} Sold</th>
                       <th className="p-4">Gross Revenue</th>
                       <th className="p-4">Exact Net Profit</th>
                       <th className="p-4">Profit Margin</th>
-                      <th className="p-4 pr-6">Sales Share (%)</th>
+                      <th className="p-4 pr-6">{salesTitle} Share (%)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {categoryPerformance.map((cat, index) => (
-                      <tr key={index} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="p-4 pl-6">
-                          <span className="font-semibold text-gray-800">{cat.name}</span>
-                        </td>
-                        <td className="p-4 text-xs font-medium text-gray-500">
-                          {cat.units} units
-                        </td>
+                    {categoryPerformance.map((cat, index) => {
+                      const salesPlural = getModuleProp('Sales', 'displayName') || 'Units';
+                      return (
+                        <tr key={index} className="hover:bg-gray-50/30 transition-colors">
+                          <td className="p-4 pl-6">
+                            <span className="font-semibold text-gray-800">{cat.name}</span>
+                          </td>
+                          <td className="p-4 text-xs font-medium text-gray-500">
+                            {cat.units} {salesPlural.toLowerCase()}
+                          </td>
                         <td className="p-4 text-sm font-semibold text-gray-800">
                           {cat.revenueFormatted}
                         </td>
@@ -388,7 +402,8 @@ export default function ReportsPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               ) : (
@@ -405,11 +420,11 @@ export default function ReportsPage() {
             <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
               <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Top Performing Products</h3>
-                  <p className="text-xs text-gray-500 mt-1">Products driving the highest sales volume and gross revenue</p>
+                  <h3 className="text-base font-bold text-gray-900">Top Performing {inventoryTitle}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{inventoryTitle} driving the highest sales volume and gross revenue</p>
                 </div>
                 {topProducts.length > 0 && (
-                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportReport("Top Selling Products")}>
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => exportReport(`Top Selling ${inventoryTitle}`)}>
                     <Download className="w-3.5 h-3.5" /> Export List
                   </Button>
                 )}
@@ -420,26 +435,28 @@ export default function ReportsPage() {
                     <thead className="bg-gray-50/50 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
                       <tr>
                         <th className="p-4 pl-6">Rank</th>
-                        <th className="p-4">Product Info</th>
-                        <th className="p-4">Units Sold</th>
+                        <th className="p-4">{inventorySingular} Info</th>
+                        <th className="p-4">{salesTitle} Sold</th>
                         <th className="p-4">Gross Revenue</th>
                         <th className="p-4">Growth</th>
                         <th className="p-4 pr-6">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {topProducts.map((prod) => (
-                        <tr key={prod.rank} className="hover:bg-gray-50/30 transition-colors">
-                          <td className="p-4 pl-6 font-semibold text-gray-400">#{prod.rank}</td>
-                          <td className="p-4">
-                            <div className="font-semibold text-gray-800">{prod.name}</div>
-                            <div className="text-xs text-gray-400 mt-0.5">{prod.sku}</div>
-                          </td>
-                          <td className="p-4 text-xs font-medium text-gray-500">{prod.units} units</td>
-                          <td className="p-4 text-sm font-semibold text-gray-800">{prod.revenue}</td>
-                          <td className="p-4 text-emerald-600 font-bold flex items-center gap-0.5 mt-2">
-                            <ArrowUpRight className="w-3 h-3" /> {prod.growth}
-                          </td>
+                      {topProducts.map((prod) => {
+                        const salesPlural = getModuleProp('Sales', 'displayName') || 'Units';
+                        return (
+                          <tr key={prod.rank} className="hover:bg-gray-50/30 transition-colors">
+                            <td className="p-4 pl-6 font-semibold text-gray-400">#{prod.rank}</td>
+                            <td className="p-4">
+                              <div className="font-semibold text-gray-800">{prod.name}</div>
+                              <div className="text-xs text-gray-400 mt-0.5">{prod.sku}</div>
+                            </td>
+                            <td className="p-4 text-xs font-medium text-gray-500">{prod.units} {salesPlural.toLowerCase()}</td>
+                            <td className="p-4 text-sm font-semibold text-gray-800">{prod.revenue}</td>
+                            <td className="p-4 text-emerald-600 font-bold flex items-center gap-0.5 mt-2">
+                              <ArrowUpRight className="w-3 h-3" /> {prod.growth}
+                            </td>
                           <td className="p-4 pr-6">
                             <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
                               prod.status === "Best Seller" ? "bg-emerald-50 text-[#2E8C13]" :
@@ -450,7 +467,8 @@ export default function ReportsPage() {
                             </span>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 ) : (
@@ -464,7 +482,7 @@ export default function ReportsPage() {
             {/* Right: Operating Cost Distribution */}
             <Card className="overflow-hidden border border-gray-100 shadow-sm flex flex-col justify-between">
               <div className="p-6 border-b border-gray-50">
-                <h3 className="text-base font-bold text-gray-900">Operating Cost Split</h3>
+                <h3 className="text-base font-bold text-gray-900">{expensesTitle} Split</h3>
                 <p className="text-xs text-gray-500 mt-1">Breakdown of outbound cost distributions this month</p>
               </div>
               <div className="p-6 space-y-5 flex-1">
@@ -487,11 +505,11 @@ export default function ReportsPage() {
                 )}
               </div>
               <div className="p-6 border-t border-gray-50 bg-gray-50/30 flex gap-4">
-                <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport("Sales Ledger")}>
-                  <Download className="w-3.5 h-3.5" /> Sales CSV
+                <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport(`${salesTitle} Ledger`)}>
+                  <Download className="w-3.5 h-3.5" /> {salesTitle} CSV
                 </Button>
-                <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport("Inventory Assets")}>
-                  <Download className="w-3.5 h-3.5" /> Inventory CSV
+                <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport(`${inventoryTitle} Assets`)}>
+                  <Download className="w-3.5 h-3.5" /> {inventoryTitle} CSV
                 </Button>
               </div>
             </Card>

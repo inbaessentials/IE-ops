@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMemo } from "react";
+import { usePlatform } from "@/lib/PlatformContext";
 import { 
   LayoutDashboard, 
   Package, 
@@ -31,6 +33,15 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { config } = usePlatform();
+
+  const labelMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    config.sidebar.forEach((item) => {
+      map[item.name] = item.label;
+    });
+    return map;
+  }, [config.sidebar]);
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed top-0 left-0">
@@ -38,7 +49,7 @@ export default function Sidebar() {
         <Link href="/" className="flex items-center">
           <img 
             src="/logo.png" 
-            alt="Inba Essentials" 
+            alt="Logo" 
             className="h-12 w-auto object-contain hover:opacity-90 transition-opacity" 
           />
         </Link>
@@ -48,6 +59,7 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
           const Icon = item.icon;
+          const displayName = labelMap[item.name] || item.name;
 
           return (
             <Link
@@ -60,7 +72,7 @@ export default function Sidebar() {
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? "text-[#2E8C13]" : "text-gray-400"}`} />
-              {item.name}
+              {displayName}
             </Link>
           );
         })}
@@ -73,10 +85,11 @@ export default function Sidebar() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-secondary">Admin User</span>
-            <span className="text-xs text-gray-500">admin@inba.com</span>
+            <span className="text-xs text-gray-500">neemtreeapps@gmail.com</span>
           </div>
         </div>
       </div>
     </aside>
   );
 }
+

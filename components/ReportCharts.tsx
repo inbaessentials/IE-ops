@@ -8,8 +8,14 @@ import {
 import { supabase } from "@/lib/supabase";
 
 const COLORS = ["#2E8C13", "#45B823", "#1F590D", "#8AE66B", "#9ca3af"];
+import { usePlatform } from "@/lib/PlatformContext";
 
 export default function ReportCharts() {
+  const { platform, config } = usePlatform();
+  const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
+    return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
+  };
+
   const [activeTab, setActiveTab] = useState<"sales" | "orders">("sales");
   const [monthlyTrend, setMonthlyTrend] = useState<any[]>([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState<any[]>([]);
@@ -112,6 +118,9 @@ export default function ReportCharts() {
   const hasSalesData = monthlyTrend.some(m => m.sales > 0);
   const hasCategoryData = categoryBreakdown.length > 0;
 
+  const salesTitle = getModuleProp('Sales', 'displayName') || 'Sales';
+  const salesSingular = getModuleProp('Sales', 'singularDisplayName') || 'Order';
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Sales vs Profit Trend Chart */}
@@ -136,7 +145,7 @@ export default function ReportCharts() {
                 activeTab === "orders" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
               }`}
             >
-              Order Count
+              {salesSingular} Count
             </button>
           </div>
         </CardHeader>
@@ -177,7 +186,7 @@ export default function ReportCharts() {
                     <Tooltip 
                       contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.05)" }}
                     />
-                    <Bar dataKey="orders" fill="#2E8C13" radius={[4, 4, 0, 0]} name="Orders Processed" maxBarSize={45} />
+                    <Bar dataKey="orders" fill="#2E8C13" radius={[4, 4, 0, 0]} name={`${salesTitle} Processed`} maxBarSize={45} />
                   </BarChart>
                 </ResponsiveContainer>
               )
@@ -197,7 +206,7 @@ export default function ReportCharts() {
       <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="border-b border-gray-50 pb-4">
           <CardTitle className="text-base font-bold text-gray-900">Category Share</CardTitle>
-          <p className="text-xs text-gray-500 mt-1">Product category distribution of total sales</p>
+          <p className="text-xs text-gray-500 mt-1">Category distribution of total {salesTitle.toLowerCase()}</p>
         </CardHeader>
         <CardContent className="p-6 flex flex-col justify-between h-[368px]">
           {hasCategoryData ? (
@@ -228,7 +237,7 @@ export default function ReportCharts() {
                   <span className="text-xl font-semibold tracking-tight text-gray-800">
                     {totalSalesSum >= 1000 ? `₹${(totalSalesSum / 1000).toFixed(1)}k` : `₹${totalSalesSum}`}
                   </span>
-                  <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Total Sales</span>
+                  <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Total {salesTitle}</span>
                 </div>
               </div>
               

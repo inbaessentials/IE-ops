@@ -4,19 +4,43 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Save, Building2, Printer, UploadCloud, Tags, Users, Plus, Trash2, Edit2, MoveRight, Truck } from "lucide-react";
+import { Save, Building2, Printer, UploadCloud, Tags, Users, Plus, Trash2, Edit2, MoveRight, Truck, Sliders } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { Select } from "@/components/ui/Select";
 
 import { useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
+import { BusinessPlatform } from "@/config";
 
 export default function SettingsPage() {
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState("company");
   const [loading, setLoading] = useState(false);
+
+  const { platform, setPlatform } = usePlatform();
+  const [tempPlatform, setTempPlatform] = useState<BusinessPlatform>(platform);
+  const [loadingPlatform, setLoadingPlatform] = useState(false);
+
+  useEffect(() => {
+    setTempPlatform(platform);
+  }, [platform]);
+
+  const handleUpdatePlatform = async () => {
+    setLoadingPlatform(true);
+    const success = await setPlatform(tempPlatform);
+    setLoadingPlatform(false);
+    if (success) {
+      toast("Platform Updated Successfully!", "success");
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    } else {
+      toast("Failed to update platform setting.", "error");
+    }
+  };
 
   // Store/Company Settings States
   const [companyName, setCompanyName] = useState("Inba Essentials");
@@ -478,6 +502,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "company", label: "Company Info", icon: Building2 },
+    { id: "platform", label: "Platform Settings", icon: Sliders },
     { id: "print", label: "Print Templates", icon: Printer },
     { id: "categories", label: "Categories", icon: Tags },
     { id: "suppliers", label: "Suppliers", icon: Truck },
@@ -521,6 +546,43 @@ export default function SettingsPage() {
 
         {/* Tab Content */}
         <div className="flex-1 min-w-0">
+          {activeTab === "platform" && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <Card>
+                <div className="p-6 border-b border-gray-100">
+                  <h2 className="text-lg font-semibold text-gray-900">Platform Settings</h2>
+                  <p className="text-sm text-gray-500 mt-1">Configure the core business mode of your Operations System.</p>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Platform</label>
+                    <select
+                      value={tempPlatform}
+                      onChange={(e) => setTempPlatform(e.target.value as BusinessPlatform)}
+                      className="w-full max-w-md px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium cursor-pointer"
+                    >
+                      <option value="inba">Inba Essentials</option>
+                      <option value="fashion">Fashion</option>
+                      <option value="online-course">Online Course</option>
+                      <option value="wholesale">Wholesale</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div className="pt-2">
+                    <Button 
+                      onClick={handleUpdatePlatform} 
+                      disabled={loadingPlatform} 
+                      className="gap-2"
+                    >
+                      <Save className="w-4 h-4" />
+                      {loadingPlatform ? "Updating Platform..." : "Update Platform"}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+
           {activeTab === "company" && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <Card>
