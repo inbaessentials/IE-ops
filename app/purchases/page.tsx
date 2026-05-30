@@ -46,6 +46,27 @@ export default function PurchasesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  // Coupon Offer Management States (Module 6)
+  interface Coupon {
+    id: string;
+    code: string;
+    type: "Percentage" | "Fixed Amount";
+    value: number;
+    expiry: string;
+    usageCount: number;
+    revenueGenerated: number;
+  }
+
+  const [activeSubTab, setActiveSubTab] = useState<"campaigns" | "coupons">("campaigns");
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isAddCouponOpen, setIsAddCouponOpen] = useState(false);
+
+  // Coupon form states
+  const [formCouponCode, setFormCouponCode] = useState("");
+  const [formDiscountType, setFormDiscountType] = useState<"Percentage" | "Fixed Amount">("Percentage");
+  const [formDiscountValue, setFormDiscountValue] = useState("");
+  const [formExpiryDate, setFormExpiryDate] = useState("");
+
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
     return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
   };
@@ -57,13 +78,104 @@ export default function PurchasesPage() {
   const [poStatus, setPoStatus] = useState<"Ordered" | "Pending" | "Received">("Ordered");
   const [editingPo, setEditingPo] = useState<PurchaseOrder | null>(null);
 
+  const loadCoupons = () => {
+    const saved = localStorage.getItem("inba_coupons");
+    if (saved) {
+      setCoupons(JSON.parse(saved));
+    } else {
+      const defaultCoupons: Coupon[] = [
+        {
+          id: "coupon-1",
+          code: "ACADEMY50",
+          type: "Percentage",
+          value: 50,
+          expiry: "2026-06-30",
+          usageCount: 12,
+          revenueGenerated: 23994
+        },
+        {
+          id: "coupon-2",
+          code: "FREESHIP",
+          type: "Fixed Amount",
+          value: 500,
+          expiry: "2026-07-15",
+          usageCount: 8,
+          revenueGenerated: 27992
+        },
+        {
+          id: "coupon-3",
+          code: "FIRST10",
+          type: "Percentage",
+          value: 10,
+          expiry: "2026-12-31",
+          usageCount: 35,
+          revenueGenerated: 125968
+        }
+      ];
+      localStorage.setItem("inba_coupons", JSON.stringify(defaultCoupons));
+      setCoupons(defaultCoupons);
+    }
+  };
+
+  const handleCreateCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formCouponCode.trim() || !formDiscountValue) {
+      toast("Please specify a valid code and value.", "error");
+      return;
+    }
+
+    const newCoupon: Coupon = {
+      id: `coupon-${Date.now()}`,
+      code: formCouponCode.trim().toUpperCase(),
+      type: formDiscountType,
+      value: Number(formDiscountValue),
+      expiry: formExpiryDate || new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split("T")[0],
+      usageCount: 0,
+      revenueGenerated: 0
+    };
+
+    const updated = [...coupons, newCoupon];
+    localStorage.setItem("inba_coupons", JSON.stringify(updated));
+    setCoupons(updated);
+
+    // Reset Form
+    setFormCouponCode("");
+    setFormDiscountType("Percentage");
+    setFormDiscountValue("");
+    setFormExpiryDate("");
+    setIsAddCouponOpen(false);
+
+    toast("Coupon Created Successfully!", "success");
+  };
+
+  const handleDeleteCoupon = (id: string, code: string) => {
+    if (window.confirm(`Are you sure you want to remove coupon ${code}?`)) {
+      const updated = coupons.filter(c => c.id !== id);
+      localStorage.setItem("inba_coupons", JSON.stringify(updated));
+      setCoupons(updated);
+      toast(`Coupon ${code} removed.`, "error");
+    }
+  };
+
   // Load suppliers and purchase orders
   useEffect(() => {
     loadSuppliers();
     loadPurchaseOrders();
-  }, []);
+    loadCoupons();
+  }, [platform]); // Reload on platform change!
 
   const loadSuppliers = () => {
+    if (platform === "online-course") {
+      const coursePlatforms = [
+        { id: 1, name: "Meta Ads", mobile: "N/A", gst_number: "N/A" },
+        { id: 2, name: "Google Ads", mobile: "N/A", gst_number: "N/A" },
+        { id: 3, name: "YouTube Ads", mobile: "N/A", gst_number: "N/A" },
+        { id: 4, name: "Influencer", mobile: "N/A", gst_number: "N/A" }
+      ];
+      setSuppliers(coursePlatforms);
+      return;
+    }
+
     const saved = localStorage.getItem("inba_suppliers");
     if (saved) {
       setSuppliers(JSON.parse(saved));
@@ -80,6 +192,46 @@ export default function PurchasesPage() {
 
   const loadPurchaseOrders = () => {
     const saved = localStorage.getItem("inba_purchases");
+    if (platform === "online-course") {
+      const initialCampaigns: PurchaseOrder[] = [
+        {
+          id: "po-1",
+          po_number: "PO-0001",
+          supplier: "Meta Ads",
+          notes: "Summer Cohort Acquisition Campaign",
+          amount: 15000,
+          status: "Received",
+          date: "2026-05-20"
+        },
+        {
+          id: "po-2",
+          po_number: "PO-0002",
+          supplier: "Google Ads",
+          notes: "AI Masterclass Launch Search Campaign",
+          amount: 12000,
+          status: "Ordered",
+          date: "2026-05-22"
+        },
+        {
+          id: "po-3",
+          po_number: "PO-0003",
+          supplier: "YouTube Ads",
+          notes: "UI/UX Bootcamp Video Banner",
+          amount: 8000,
+          status: "Received",
+          date: "2026-05-24"
+        }
+      ];
+      // Seed if not loaded or if not containing platform specific suppliers
+      if (!saved || !JSON.parse(saved).some((p: any) => p.supplier === "Meta Ads" || p.supplier === "Google Ads")) {
+        localStorage.setItem("inba_purchases", JSON.stringify(initialCampaigns));
+        setPurchaseOrders(initialCampaigns);
+      } else {
+        setPurchaseOrders(JSON.parse(saved));
+      }
+      return;
+    }
+
     if (saved) {
       setPurchaseOrders(JSON.parse(saved));
     } else {
@@ -244,306 +396,538 @@ export default function PurchasesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Dynamic Header Titles */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Purchases', 'displayName')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{getModuleProp('Purchases', 'description')}</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {platform === "online-course" 
+              ? (activeSubTab === "campaigns" ? "Marketing Campaigns" : "Coupon & Offer Management") 
+              : getModuleProp('Purchases', 'displayName')}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {platform === "online-course"
+              ? (activeSubTab === "campaigns" ? "Track digital marketing spend, campaigns, and acquisition costs." : "Configure coupons, discount rules, and track promo offers performance.")
+              : getModuleProp('Purchases', 'description')}
+          </p>
         </div>
-        <Button className="gap-2 shrink-0" onClick={() => {
-          setSelectedSupplier(suppliers[0]?.name || "");
-          setPoNotes("");
-          setPoAmount("");
-          setPoStatus("Ordered");
-          setIsAddDrawerOpen(true);
-        }}>
-          <Plus className="w-4 h-4" />
-          Create {getModuleProp('Purchases', 'singularDisplayName')}
-        </Button>
-      </div>
-
-      {/* Dynamic Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Purchases', 'displayName')}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
-          </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <FileText className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">
-              ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString()}
-            </h3>
-          </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <DollarSign className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Actions</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
-              {purchaseOrders.filter(o => o.status !== "Received").length}
-            </h3>
-          </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <Clock className="w-5 h-5" />
-          </div>
-        </Card>
-      </div>
-
-      {/* Main Listing Section */}
-      <Card>
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative flex-1 w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search by PO number, supplier, or items..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-            />
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-            <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Ordered">Ordered</option>
-              <option value="Pending">Pending</option>
-              <option value="Received">Received</option>
-            </select>
-          </div>
-        </div>
-
-        {filteredOrders.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">PO Number</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Supplier</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Items Description</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map((po) => (
-                  <tr key={po.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="p-4 pl-6 font-semibold text-gray-900">{po.po_number}</td>
-                    <td className="p-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                        {po.date}
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">
-                      <div className="flex items-center gap-1.5">
-                        <Truck className="w-4 h-4 text-gray-400" />
-                        {po.supplier}
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-gray-600 max-w-xs truncate" title={po.notes}>
-                      {po.notes || <span className="text-gray-300 italic">No description</span>}
-                    </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">₹{po.amount.toLocaleString()}</td>
-                    <td className="p-4">
-                      <select
-                        value={po.status}
-                        onChange={(e) => handleUpdateStatus(po.id, e.target.value as any)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-bold border-0 outline-none cursor-pointer ${
-                          po.status === "Received" ? "bg-green-50 text-green-700 hover:bg-green-100" :
-                          po.status === "Pending" ? "bg-orange-50 text-orange-700 hover:bg-orange-100" :
-                          "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                        }`}
-                      >
-                        <option value="Ordered">Ordered</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Received">Received</option>
-                      </select>
-                    </td>
-                    <td className="p-4 text-right pr-6">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleOpenEditDrawer(po)}
-                          className="text-gray-400 hover:text-primary p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                          title="Edit PO Details"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeletePo(po.id, po.po_number)}
-                          className="text-gray-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"
-                          title="Delete PO"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        
+        {platform === "online-course" && activeSubTab === "coupons" ? (
+          <Button className="gap-2 shrink-0 font-semibold" onClick={() => {
+            setFormCouponCode("");
+            setFormDiscountType("Percentage");
+            setFormDiscountValue("");
+            setFormExpiryDate("");
+            setIsAddCouponOpen(true);
+          }}>
+            <Plus className="w-4 h-4" />
+            Create Coupon Code
+          </Button>
         ) : (
-          <div className="p-12 text-center text-gray-500 min-h-[220px] flex flex-col items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-gray-300 mb-2" />
-            <p className="text-sm font-medium">No purchase orders found matching your search filters.</p>
-          </div>
+          <Button className="gap-2 shrink-0 font-semibold" onClick={() => {
+            setSelectedSupplier(suppliers[0]?.name || "");
+            setPoNotes("");
+            setPoAmount("");
+            setPoStatus("Ordered");
+            setIsAddDrawerOpen(true);
+          }}>
+            <Plus className="w-4 h-4" />
+            Create {getModuleProp('Purchases', 'singularDisplayName')}
+          </Button>
         )}
-      </Card>
+      </div>
 
-      {/* Create Purchase Order Drawer */}
-      <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Purchase Order">
-        <form className="space-y-4" onSubmit={handleCreatePo}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Supplier</label>
-              {suppliers.length > 0 ? (
-                <select 
-                  value={selectedSupplier}
-                  onChange={(e) => setSelectedSupplier(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
-                >
-                  {suppliers.map(s => (
-                    <option key={s.id} value={s.name}>{s.name}</option>
-                  ))}
-                </select>
-              ) : (
-                <div className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>No suppliers configured. Go to Settings &gt; Suppliers to add one!</span>
-                </div>
-              )}
-            </div>
+      {/* Dynamic Sub-tab Switcher (Module 6) */}
+      {platform === "online-course" && (
+        <div className="flex border-b border-gray-200 gap-2 mb-4">
+          <button
+            onClick={() => setActiveSubTab("campaigns")}
+            className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+              activeSubTab === "campaigns"
+                ? "border-[#2E8C13] text-[#2E8C13]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            📢 Marketing Campaigns
+          </button>
+          <button
+            onClick={() => setActiveSubTab("coupons")}
+            className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+              activeSubTab === "coupons"
+                ? "border-[#2E8C13] text-[#2E8C13]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            🏷️ Coupon & Offer Manager
+          </button>
+        </div>
+      )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Items Description / Raw Materials Notes</label>
-              <textarea 
-                rows={4}
-                value={poNotes}
-                onChange={(e) => setPoNotes(e.target.value)}
-                placeholder="List purchased materials, packaging units, restock details..."
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Total Cost (₹)</label>
-              <input 
-                required 
-                type="number" 
-                step="0.01"
-                value={poAmount}
-                onChange={(e) => setPoAmount(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-semibold" 
-                placeholder="0.00" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Initial Status</label>
-              <select 
-                value={poStatus}
-                onChange={(e) => setPoStatus(e.target.value as any)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-955 bg-white font-medium"
-              >
-                <option value="Ordered">Ordered</option>
-                <option value="Pending">Pending</option>
-                <option value="Received">Received</option>
-              </select>
-            </div>
-          </div>
-          <div className="pt-4 flex justify-end gap-3 mt-6">
-            <Button type="button" variant="ghost" onClick={() => setIsAddDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" disabled={suppliers.length === 0}>Create PO</Button>
-          </div>
-        </form>
-      </Drawer>
-
-      {/* Edit Purchase Order Drawer */}
-      <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingPo(null); }} title="Edit Purchase Order">
-        <form className="space-y-4" onSubmit={handleUpdatePo}>
-          {editingPo && (
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+      {platform === "online-course" && activeSubTab === "coupons" ? (
+        <>
+          {/* Coupon metrics cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">PO Number</label>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Promo Offers</p>
+                <h3 className="text-2xl font-bold tracking-tight text-gray-900">{coupons.length} coupons</h3>
+              </div>
+              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                <FileText className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Coupon Redemptions</p>
+                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">
+                  {coupons.reduce((sum, c) => sum + c.usageCount, 0)} times
+                </h3>
+              </div>
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Clock className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross Revenue Driven</p>
+                <h3 className="text-2xl font-bold tracking-tight text-emerald-600">
+                  ₹{coupons.reduce((sum, c) => sum + c.revenueGenerated, 0).toLocaleString()}
+                </h3>
+              </div>
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <DollarSign className="w-5 h-5" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Coupon directory list */}
+          <Card>
+            <div className="p-4 border-b border-gray-100">
+              <h3 className="text-sm font-bold text-gray-900">Active Coupons Directory</h3>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Coupon Code</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Discount Type</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Discount Value</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Expiry Date</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Redemptions</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Revenue Generated</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {coupons.map(c => (
+                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4 pl-6 font-mono font-bold text-gray-900 tracking-wide text-sm">{c.code}</td>
+                      <td className="p-4 text-xs font-semibold text-gray-500">
+                        <span className={`px-2 py-0.5 rounded-md border ${
+                          c.type === "Percentage" ? "bg-purple-50 text-purple-700 border-purple-100" : "bg-blue-50 text-blue-700 border-blue-100"
+                        }`}>
+                          {c.type}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm font-bold text-gray-900">
+                        {c.type === "Percentage" ? `${c.value}%` : `₹${c.value}`}
+                      </td>
+                      <td className="p-4 text-xs text-gray-500 font-semibold">{c.expiry}</td>
+                      <td className="p-4 text-xs font-bold text-gray-700">{c.usageCount} times</td>
+                      <td className="p-4 text-sm font-bold text-emerald-600">₹{c.revenueGenerated.toLocaleString()}</td>
+                      <td className="p-4 text-right pr-6">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCoupon(c.id, c.code)}
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                          title="Delete Coupon"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Add Coupon Drawer */}
+          <Drawer isOpen={isAddCouponOpen} onClose={() => setIsAddCouponOpen(false)} title="Create New Coupon Offer">
+            <form className="space-y-4" onSubmit={handleCreateCoupon}>
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Coupon Code (Uppercase)</label>
+                  <input 
+                    required
+                    type="text"
+                    value={formCouponCode}
+                    onChange={e => setFormCouponCode(e.target.value)}
+                    placeholder="e.g. SUMMER30"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-bold text-gray-900"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Discount Type</label>
+                    <select
+                      value={formDiscountType}
+                      onChange={e => setFormDiscountType(e.target.value as any)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-gray-900 font-semibold"
+                    >
+                      <option value="Percentage">Percentage (%)</option>
+                      <option value="Fixed Amount">Fixed Amount (₹)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Discount Value</label>
+                    <input 
+                      required
+                      type="number"
+                      value={formDiscountValue}
+                      onChange={e => setFormDiscountValue(e.target.value)}
+                      placeholder="e.g. 15"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Date</label>
+                  <input 
+                    type="date"
+                    value={formExpiryDate}
+                    onChange={e => setFormExpiryDate(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900"
+                  />
+                </div>
+              </div>
+              <div className="pt-4 flex justify-end gap-3 mt-6">
+                <Button type="button" variant="ghost" onClick={() => setIsAddCouponOpen(false)}>Cancel</Button>
+                <Button type="submit" variant="primary">Create Offer</Button>
+              </div>
+            </form>
+          </Drawer>
+        </>
+      ) : (
+        <>
+          {/* Dynamic Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Purchases', 'displayName')}</p>
+                <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
+              </div>
+              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                <FileText className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
+                <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">
+                  ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString()}
+                </h3>
+              </div>
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <DollarSign className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Actions</p>
+                <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
+                  {purchaseOrders.filter(o => o.status !== "Received").length}
+                </h3>
+              </div>
+              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                <Clock className="w-5 h-5" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Main Listing Section */}
+          <Card>
+            <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="relative flex-1 w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
                   type="text" 
-                  disabled 
-                  value={editingPo.po_number}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-gray-50 text-gray-500 font-semibold" 
+                  placeholder="Search by PO number, platform, or platforms..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Supplier</label>
-                <select 
-                  value={selectedSupplier}
-                  onChange={(e) => setSelectedSupplier(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+                <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
                 >
-                  {suppliers.map(s => (
-                    <option key={s.id} value={s.name}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Items Description / Raw Materials Notes</label>
-                <textarea 
-                  rows={4}
-                  value={poNotes}
-                  onChange={(e) => setPoNotes(e.target.value)}
-                  placeholder="List purchased materials, packaging units, restock details..."
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Total Cost (₹)</label>
-                <input 
-                  required 
-                  type="number" 
-                  step="0.01"
-                  value={poAmount}
-                  onChange={(e) => setPoAmount(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-semibold" 
-                  placeholder="0.00" 
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-                <select 
-                  value={poStatus}
-                  onChange={(e) => setPoStatus(e.target.value as any)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-955 bg-white font-medium"
-                >
+                  <option value="All">All Statuses</option>
                   <option value="Ordered">Ordered</option>
                   <option value="Pending">Pending</option>
                   <option value="Received">Received</option>
                 </select>
               </div>
             </div>
-          )}
-          <div className="pt-4 flex justify-end gap-3 mt-6">
-            <Button type="button" variant="ghost" onClick={() => { setIsEditDrawerOpen(false); setEditingPo(null); }}>Cancel</Button>
-            <Button type="submit" variant="primary">Save Changes</Button>
-          </div>
-        </form>
-      </Drawer>
+
+            {filteredOrders.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/70 border-b border-gray-100">
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">
+                        {platform === "online-course" ? "Campaign ID" : "PO Number"}
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        {platform === "online-course" ? "Platform" : "Supplier"}
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        {platform === "online-course" ? "Campaign Name" : "Items Description"}
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                      {platform === "online-course" ? (
+                        <>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Leads Generated</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cost Per Lead</th>
+                        </>
+                      ) : (
+                        <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                      )}
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredOrders.map((po) => {
+                      const cleanAmount = Number(po.amount || 0);
+                      // Dynamic cost per lead logic
+                      const costFactor = 85 + (cleanAmount % 45); 
+                      const leads = Math.floor(cleanAmount / costFactor);
+                      const cpl = leads > 0 ? (cleanAmount / leads) : 0;
+
+                      return (
+                        <tr key={po.id} className="hover:bg-gray-50/50 transition-colors group">
+                          <td className="p-4 pl-6 font-semibold text-gray-900">
+                            {platform === "online-course" ? po.po_number.replace("PO-", "CAMP-") : po.po_number}
+                          </td>
+                          <td className="p-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                              {po.date}
+                            </div>
+                          </td>
+                          <td className="p-4 text-sm font-semibold text-gray-900">
+                            <div className="flex items-center gap-1.5">
+                              <Truck className="w-4 h-4 text-gray-400" />
+                              {po.supplier}
+                            </div>
+                          </td>
+                          <td className="p-4 text-sm text-gray-600 max-w-xs truncate" title={po.notes}>
+                            {po.notes || <span className="text-gray-300 italic">No description</span>}
+                          </td>
+                          <td className="p-4 text-sm font-semibold text-gray-900">₹{po.amount.toLocaleString()}</td>
+                          {platform === "online-course" ? (
+                            <>
+                              <td className="p-4 text-sm text-gray-900 font-bold">{leads} leads</td>
+                              <td className="p-4 text-sm text-green-700 font-bold">₹{cpl.toFixed(2)}</td>
+                            </>
+                          ) : (
+                            <td className="p-4">
+                              <select
+                                value={po.status}
+                                onChange={(e) => handleUpdateStatus(po.id, e.target.value as any)}
+                                className={`px-2.5 py-1 rounded-full text-xs font-bold border-0 outline-none cursor-pointer ${
+                                  po.status === "Received" ? "bg-green-50 text-green-700 hover:bg-green-100" :
+                                  po.status === "Pending" ? "bg-orange-50 text-orange-700 hover:bg-orange-100" :
+                                  "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                }`}
+                              >
+                                <option value="Ordered">Ordered</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Received">Received</option>
+                              </select>
+                            </td>
+                          )}
+                          <td className="p-4 text-right pr-6">
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                type="button"
+                                onClick={() => handleOpenEditDrawer(po)}
+                                className="text-gray-400 hover:text-primary p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                                title={platform === "online-course" ? "Edit Campaign Details" : "Edit PO Details"}
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                type="button"
+                                onClick={() => handleDeletePo(po.id, po.po_number)}
+                                className="text-gray-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"
+                                title={platform === "online-course" ? "Delete Campaign" : "Delete PO"}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-12 text-center text-gray-500 min-h-[220px] flex flex-col items-center justify-center">
+                <AlertCircle className="w-8 h-8 text-gray-300 mb-2" />
+                <p className="text-sm font-medium">No purchase orders found matching your search filters.</p>
+              </div>
+            )}
+          </Card>
+
+          {/* Create Purchase Order Drawer */}
+          <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Purchase Order">
+            <form className="space-y-4" onSubmit={handleCreatePo}>
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Supplier</label>
+                  {suppliers.length > 0 ? (
+                    <select 
+                      value={selectedSupplier}
+                      onChange={(e) => setSelectedSupplier(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+                    >
+                      {suppliers.map(s => (
+                        <option key={s.id} value={s.name}>{s.name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-sm text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>No suppliers configured. Go to Settings &gt; Suppliers to add one!</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Items Description / Raw Materials Notes</label>
+                  <textarea 
+                    rows={4}
+                    value={poNotes}
+                    onChange={(e) => setPoNotes(e.target.value)}
+                    placeholder="List purchased materials, packaging units, restock details..."
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Total Cost (₹)</label>
+                  <input 
+                    required 
+                    type="number" 
+                    step="0.01"
+                    value={poAmount}
+                    onChange={(e) => setPoAmount(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-semibold" 
+                    placeholder="0.00" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Initial Status</label>
+                  <select 
+                    value={poStatus}
+                    onChange={(e) => setPoStatus(e.target.value as any)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-955 bg-white font-medium"
+                  >
+                    <option value="Ordered">Ordered</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Received">Received</option>
+                  </select>
+                </div>
+              </div>
+              <div className="pt-4 flex justify-end gap-3 mt-6">
+                <Button type="button" variant="ghost" onClick={() => setIsAddDrawerOpen(false)}>Cancel</Button>
+                <Button type="submit" variant="primary" disabled={suppliers.length === 0}>Create PO</Button>
+              </div>
+            </form>
+          </Drawer>
+
+          {/* Edit Purchase Order Drawer */}
+          <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingPo(null); }} title="Edit Purchase Order">
+            <form className="space-y-4" onSubmit={handleUpdatePo}>
+              {editingPo && (
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">PO Number</label>
+                    <input 
+                      type="text" 
+                      disabled 
+                      value={editingPo.po_number}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-gray-50 text-gray-500 font-semibold" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Supplier</label>
+                    <select 
+                      value={selectedSupplier}
+                      onChange={(e) => setSelectedSupplier(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+                    >
+                      {suppliers.map(s => (
+                        <option key={s.id} value={s.name}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Items Description / Raw Materials Notes</label>
+                    <textarea 
+                      rows={4}
+                      value={poNotes}
+                      onChange={(e) => setPoNotes(e.target.value)}
+                      placeholder="List purchased materials, packaging units, restock details..."
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Total Cost (₹)</label>
+                    <input 
+                      required 
+                      type="number" 
+                      step="0.01"
+                      value={poAmount}
+                      onChange={(e) => setPoAmount(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-semibold" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                    <select 
+                      value={poStatus}
+                      onChange={(e) => setPoStatus(e.target.value as any)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-955 bg-white font-medium"
+                    >
+                      <option value="Ordered">Ordered</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Received">Received</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+              <div className="pt-4 flex justify-end gap-3 mt-6">
+                <Button type="button" variant="ghost" onClick={() => { setIsEditDrawerOpen(false); setEditingPo(null); }}>Cancel</Button>
+                <Button type="submit" variant="primary">Save Changes</Button>
+              </div>
+            </form>
+          </Drawer>
+        </>
+      )}
     </div>
   );
 }

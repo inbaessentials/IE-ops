@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { 
   Search, Filter, Download, Plus, Star, ShoppingBag, 
   MapPin, Calendar, CheckCircle2, Package, Truck, ChevronDown, ChevronUp,
-  Users, Award, TrendingUp, Trophy, Coins
+  Users, Award, TrendingUp, Trophy, Coins, Activity, AlertCircle, MessageSquare
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -24,6 +24,60 @@ export default function CustomersPage() {
   const [viewingCustomer, setViewingCustomer] = useState<any>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [downloadingCert, setDownloadingCert] = useState<any>(null);
+
+  const loadCertificates = () => {
+    const saved = localStorage.getItem("inba_student_certificates");
+    if (saved) {
+      setCertificates(JSON.parse(saved));
+    } else {
+      const defaultCerts = [
+        {
+          studentId: "CUST-DB-4",
+          studentName: "Sneha Reddy",
+          course: "Spoken English Program",
+          issueDate: "2026-05-28",
+          certificateId: "CERT-2026-8910",
+          status: "Issued"
+        }
+      ];
+      localStorage.setItem("inba_student_certificates", JSON.stringify(defaultCerts));
+      setCertificates(defaultCerts);
+    }
+  };
+
+  const handleGenerateCertificate = (studentId: string, studentName: string, course: string) => {
+    const randomCode = Math.floor(1000 + Math.random() * 9000);
+    const newCert = {
+      studentId,
+      studentName,
+      course,
+      issueDate: new Date().toISOString().split("T")[0],
+      certificateId: `CERT-2026-${randomCode}`,
+      status: "Issued"
+    };
+    const updated = [...certificates, newCert];
+    localStorage.setItem("inba_student_certificates", JSON.stringify(updated));
+    setCertificates(updated);
+    toast("Certificate Generated Successfully!", "success");
+  };
+
+  const handleReissueCertificate = (studentId: string) => {
+    const updated = certificates.map(c => {
+      if (c.studentId === studentId) {
+        return {
+          ...c,
+          issueDate: new Date().toISOString().split("T")[0],
+          status: "Reissued"
+        };
+      }
+      return c;
+    });
+    localStorage.setItem("inba_student_certificates", JSON.stringify(updated));
+    setCertificates(updated);
+    toast("Certificate Reissued Successfully!", "success");
+  };
 
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
     return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
@@ -61,6 +115,11 @@ export default function CustomersPage() {
         .select("*")
         .order("created_at", { ascending: false });
 
+      // Fetch Order Items too!
+      const { data: orderItems } = await supabase
+        .from("order_items")
+        .select("order_id, name");
+
       // 2. Fetch custom customers from LocalStorage
       let customCustomers = [];
       const savedCustom = localStorage.getItem("inba_custom_customers");
@@ -88,6 +147,8 @@ export default function CustomersPage() {
         const amt = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
         const validAmt = isNaN(amt) ? 0 : amt;
 
+        const oItems = orderItems?.filter(item => item.order_id === o.id) || [];
+
         if (!customerMap[key]) {
           customerMap[key] = {
             id: `CUST-DB-${Object.keys(customerMap).length + 1}`,
@@ -99,7 +160,8 @@ export default function CustomersPage() {
             lastOrderDate: o.created_at || o.date || "N/A",
             address: o.address || "No address provided",
             isRepeat: false,
-            ordersList: []
+            ordersList: [],
+            coursesList: []
           };
         }
 
@@ -107,6 +169,12 @@ export default function CustomersPage() {
         cust.ordersCount += 1;
         cust.totalSpent += validAmt;
         cust.ordersList.push(o);
+
+        oItems.forEach(item => {
+          if (item.name && !cust.coursesList.includes(item.name)) {
+            cust.coursesList.push(item.name);
+          }
+        });
 
         if (cust.ordersCount > 1) {
           cust.isRepeat = true;
@@ -133,6 +201,9 @@ export default function CustomersPage() {
           allCustomers[matchIndex] = {
             ...dbCust,
             ...customCust,
+            coursesList: (dbCust.coursesList && dbCust.coursesList.length > 0) 
+              ? dbCust.coursesList 
+              : (customCust.coursesList && customCust.coursesList.length > 0 ? customCust.coursesList : []),
             // Prioritize custom edited fields over defaults
             email: customCust.email && !customCust.email.includes("@example.com")
               ? customCust.email
@@ -150,15 +221,44 @@ export default function CustomersPage() {
         }
       });
 
-      // Format currency
-      const formatted = allCustomers.map((cust: any) => ({
-        ...cust,
-        totalSpentFormatted: new Intl.NumberFormat("en-IN", {
-          style: "currency",
-          currency: "INR",
-          maximumFractionDigits: 0
-        }).format(cust.totalSpent)
-      }));
+      // Format currency and load progress details (Module 4)
+      const savedProgress = localStorage.getItem("inba_student_progress");
+      const progressMap = savedProgress ? JSON.parse(savedProgress) : {};
+
+      const formatted = allCustomers.map((cust: any) => {
+        const key = cust.id;
+        
+        // Default deterministic mock progress if not set
+        if (!progressMap[key]) {
+          const nameHash = cust.name.length;
+          const prog = (nameHash * 7 + 13) % 101; 
+          const status = prog === 0 ? "Not Started" : prog === 100 ? "Completed" : "In Progress";
+          const dateCreated = cust.lastOrderDate !== "N/A" ? cust.lastOrderDate : new Date().toISOString().split("T")[0];
+          const completionDate = status === "Completed" ? new Date(new Date(dateCreated).getTime() + 15 * 24 * 3600 * 1000).toISOString().split("T")[0] : "";
+          
+          progressMap[key] = {
+            progress: prog,
+            completionStatus: status,
+            lastActiveDate: cust.lastOrderDate !== "N/A" ? new Date(new Date(cust.lastOrderDate).getTime() + 3 * 24 * 3600 * 1000).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+            completionDate: completionDate
+          };
+        }
+
+        const progData = progressMap[key];
+
+        return {
+          ...cust,
+          ...progData,
+          coursesList: cust.coursesList && cust.coursesList.length > 0 ? cust.coursesList : ["UI/UX Bootcamp"],
+          totalSpentFormatted: new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0
+          }).format(cust.totalSpent)
+        };
+      });
+
+      localStorage.setItem("inba_student_progress", JSON.stringify(progressMap));
 
       setCustomers(formatted);
       setFilteredCustomers(formatted);
@@ -171,6 +271,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     loadCustomers();
+    loadCertificates();
   }, []);
 
   // Filter and Search logic
@@ -365,6 +466,12 @@ export default function CustomersPage() {
     topSpenderCustomer = [...filteredCustomers].sort((a, b) => b.totalSpent - a.totalSpent)[0];
   }
 
+  // Student progress statistics (Module 4)
+  const activeStudents = filteredCustomers.filter(c => c.progress > 0 && c.completionStatus === "In Progress").length;
+  const completedStudents = filteredCustomers.filter(c => c.completionStatus === "Completed").length;
+  const inactiveStudents = filteredCustomers.filter(c => c.progress === 0 || c.completionStatus === "Not Started").length;
+  const completionRate = filteredCustomers.length > 0 ? ((completedStudents / filteredCustomers.length) * 100).toFixed(0) : "0";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -385,68 +492,109 @@ export default function CustomersPage() {
       </div>
 
       {/* Dynamic Customers Metrics Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Customers', 'displayName')}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
-          </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
-            <Users className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Loyal {getModuleProp('Customers', 'displayName')}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
-          </div>
-          <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
-            <Award className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Avg LTV / Spent</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-emerald-600">
-              ₹{avgSpentPerCustomer.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-            </h3>
-          </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200">
-            <TrendingUp className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Spender</p>
-            {topSpenderCustomer && topSpenderCustomer.totalSpent > 0 ? (
-              <div className="min-w-0">
-                <h3 className="text-sm font-bold text-indigo-700 truncate max-w-[130px] leading-tight">
-                  {topSpenderCustomer.name}
-                </h3>
-                <p className="text-xs text-gray-400 font-semibold mt-0.5">
-                  ₹{topSpenderCustomer.totalSpent.toLocaleString("en-IN")} LTV
-                </p>
-              </div>
-            ) : (
-              <h3 className="text-2xl font-semibold tracking-tight text-gray-400">N/A</h3>
-            )}
-          </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-in zoom-in duration-200">
-            <Trophy className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total LTV Value</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-purple-600">
-              ₹{totalSpentAll.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-            </h3>
-          </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200">
-            <Coins className="w-5 h-5" />
-          </div>
-        </Card>
-      </div>
+      {platform === "online-course" ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Students</p>
+              <h3 className="text-2xl font-bold tracking-tight text-gray-900">{totalCustomersCount}</h3>
+            </div>
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <Users className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Students</p>
+              <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{activeStudents}</h3>
+            </div>
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-pulse">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Completion Rate</p>
+              <h3 className="text-2xl font-bold tracking-tight text-emerald-600">{completionRate}%</h3>
+            </div>
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Trophy className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Inactive Students</p>
+              <h3 className="text-2xl font-bold tracking-tight text-amber-600">{inactiveStudents}</h3>
+            </div>
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Customers', 'displayName')}</p>
+              <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
+            </div>
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
+              <Users className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Loyal {getModuleProp('Customers', 'displayName')}</p>
+              <h3 className="text-2xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
+            </div>
+            <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
+              <Award className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Avg LTV / Spent</p>
+              <h3 className="text-2xl font-semibold tracking-tight text-emerald-600">
+                ₹{avgSpentPerCustomer.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+              </h3>
+            </div>
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Spender</p>
+              {topSpenderCustomer && topSpenderCustomer.totalSpent > 0 ? (
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-indigo-700 truncate max-w-[130px] leading-tight">
+                    {topSpenderCustomer.name}
+                  </h3>
+                  <p className="text-xs text-gray-400 font-semibold mt-0.5">
+                    ₹{topSpenderCustomer.totalSpent.toLocaleString("en-IN")} LTV
+                  </p>
+                </div>
+              ) : (
+                <h3 className="text-2xl font-semibold tracking-tight text-gray-400">N/A</h3>
+              )}
+            </div>
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-in zoom-in duration-200">
+              <Trophy className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total LTV Value</p>
+              <h3 className="text-2xl font-semibold tracking-tight text-purple-600">
+                ₹{totalSpentAll.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+              </h3>
+            </div>
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200">
+              <Coins className="w-5 h-5" />
+            </div>
+          </Card>
+        </div>
+      )}
 
       <Card>
         <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
@@ -475,10 +623,21 @@ export default function CustomersPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Name</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Spent</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Student Name" : "Customer Name"}
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Contact Info" : "Contact"}
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Course(s)" : "Orders"}
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Enrollment Date" : "Total Spent"}
+                  </th>
+                  {platform === "online-course" && (
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  )}
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
@@ -495,7 +654,7 @@ export default function CustomersPage() {
                         </div>
                         <div>
                           <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
-                          {customer.isRepeat && (
+                          {customer.isRepeat && platform !== "online-course" && (
                             <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">
                               <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                               Loyal
@@ -509,11 +668,49 @@ export default function CustomersPage() {
                       <p className="text-xs text-gray-500">{customer.phone}</p>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {customer.ordersCount} {customer.ordersCount === 1 ? "order" : "orders"}
+                      {platform === "online-course" ? (
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {(customer.coursesList || ["UI/UX Bootcamp"]).map((c: string, idx: number) => (
+                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        `${customer.ordersCount} ${customer.ordersCount === 1 ? "order" : "orders"}`
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {customer.totalSpentFormatted}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      {platform === "online-course" ? (
+                        customer.lastOrderDate !== "N/A" 
+                          ? new Date(customer.lastOrderDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) 
+                          : "N/A"
+                      ) : (
+                        customer.totalSpentFormatted
+                      )}
                     </td>
+                    {platform === "online-course" && (
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1 w-28">
+                          <div className="flex items-center justify-between text-[10px] font-bold">
+                            <span className="text-gray-800">{customer.progress}%</span>
+                            <span className={
+                              customer.completionStatus === "Completed" ? "text-green-600" :
+                              customer.completionStatus === "In Progress" ? "text-blue-600" : "text-gray-400"
+                            }>{customer.completionStatus}</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                customer.completionStatus === "Completed" ? "bg-green-500" :
+                                customer.completionStatus === "In Progress" ? "bg-blue-500" : "bg-gray-300"
+                              }`} 
+                              style={{ width: `${customer.progress}%` }} 
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <DropdownMenu items={getDropdownItems(customer)} />
                     </td>
@@ -650,7 +847,7 @@ export default function CustomersPage() {
       </Drawer>
 
       {/* View Customer Profile Drawer */}
-      <Drawer isOpen={!!viewingCustomer} onClose={() => setViewingCustomer(null)} title="Customer Profile">
+      <Drawer isOpen={!!viewingCustomer} onClose={() => setViewingCustomer(null)} title={platform === "online-course" ? "Student Profile" : "Customer Profile"}>
         {viewingCustomer && (
           <div className="space-y-6 pb-12">
             <div className="flex items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
@@ -661,7 +858,7 @@ export default function CustomersPage() {
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     {viewingCustomer.name}
-                    {viewingCustomer.isRepeat && (
+                    {viewingCustomer.isRepeat && platform !== "online-course" && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                         <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                         Loyal
@@ -685,15 +882,24 @@ export default function CustomersPage() {
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <div className="flex items-center gap-2 text-gray-500 mb-1">
                   <ShoppingBag className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Total Spent</span>
+                  <span className="text-xs font-medium uppercase tracking-wider">
+                    {platform === "online-course" ? "Tuition Paid" : "Total Spent"}
+                  </span>
                 </div>
                 <p className="text-xl font-bold text-gray-900">{viewingCustomer.totalSpentFormatted}</p>
-                <p className="text-xs text-gray-500 mt-1">Across {viewingCustomer.ordersCount} {viewingCustomer.ordersCount === 1 ? "order" : "orders"}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {platform === "online-course" 
+                    ? `Enrolled in ${viewingCustomer.ordersCount} ${viewingCustomer.ordersCount === 1 ? "course" : "courses"}`
+                    : `Across ${viewingCustomer.ordersCount} ${viewingCustomer.ordersCount === 1 ? "order" : "orders"}`
+                  }
+                </p>
               </div>
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <div className="flex items-center gap-2 text-gray-500 mb-1">
                   <Calendar className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Last Order</span>
+                  <span className="text-xs font-medium uppercase tracking-wider">
+                    {platform === "online-course" ? "Last Enrollment" : "Last Order"}
+                  </span>
                 </div>
                 <p className="text-xl font-bold text-gray-900">
                   {viewingCustomer.lastOrderDate !== "N/A" 
@@ -704,19 +910,146 @@ export default function CustomersPage() {
               </div>
             </div>
 
+            {platform === "online-course" && (
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3.5">
+                <div className="flex items-center gap-2 border-b border-gray-50 pb-2">
+                  <Activity className="w-4 h-4 text-[#2E8C13]" />
+                  <h4 className="font-bold text-sm text-gray-900">Learning Progress & Active Metrics</h4>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-gray-500">Course Progress</span>
+                    <span className="text-[#2E8C13]">{viewingCustomer.progress}% ({viewingCustomer.completionStatus})</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        viewingCustomer.completionStatus === "Completed" ? "bg-green-500" :
+                        viewingCustomer.completionStatus === "In Progress" ? "bg-blue-500" : "bg-gray-300"
+                      }`} 
+                      style={{ width: `${viewingCustomer.progress}%` }} 
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-2 text-xs">
+                    <div>
+                      <span className="text-gray-400 font-semibold uppercase block text-[10px]">Last Active Date</span>
+                      <span className="font-bold text-gray-900 mt-1 block">{viewingCustomer.lastActiveDate}</span>
+                    </div>
+                    {viewingCustomer.completionDate && (
+                      <div>
+                        <span className="text-gray-400 font-semibold uppercase block text-[10px]">Completion Date</span>
+                        <span className="font-bold text-green-600 mt-1 block">{viewingCustomer.completionDate}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {platform === "online-course" && (() => {
+              const cert = certificates.find(c => c.studentId === viewingCustomer.id);
+              return (
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3.5">
+                  <div className="flex items-center gap-2 border-b border-gray-50 pb-2">
+                    <Award className="w-4 h-4 text-yellow-600" />
+                    <h4 className="font-bold text-sm text-gray-900">Certificate Status</h4>
+                  </div>
+                  {cert ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <span className="text-gray-400 font-semibold uppercase block text-[10px]">Certificate ID</span>
+                          <span className="font-mono font-bold text-gray-900 mt-1 block">{cert.certificateId}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 font-semibold uppercase block text-[10px]">Status Resolution</span>
+                          <span className="font-bold mt-1 block text-green-600">
+                            {cert.status} ({cert.issueDate})
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          type="button" 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1 font-bold text-xs gap-1"
+                          onClick={() => setDownloadingCert(cert)}
+                        >
+                          Download Credential
+                        </Button>
+                        <Button 
+                          type="button" 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1 font-bold text-xs gap-1 border-amber-200 text-amber-700 bg-amber-50/10 hover:bg-amber-50"
+                          onClick={() => handleReissueCertificate(viewingCustomer.id)}
+                        >
+                          Reissue
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                      <p className="text-xs text-gray-500 font-medium">No certificate generated yet for this student.</p>
+                      {viewingCustomer.completionStatus === "Completed" ? (
+                        <Button 
+                          type="button" 
+                          size="sm" 
+                          variant="primary" 
+                          className="mt-3 text-xs font-semibold"
+                          onClick={() => handleGenerateCertificate(viewingCustomer.id, viewingCustomer.name, viewingCustomer.coursesList[0])}
+                        >
+                          Generate Certificate
+                        </Button>
+                      ) : (
+                        <p className="text-[10px] text-amber-600 font-semibold mt-2">
+                          ⚠️ Requires 100% course progress completion to generate.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {platform === "online-course" && (
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2">
+                <div className="flex items-center gap-2 border-b border-gray-50 pb-2">
+                  <MessageSquare className="w-4 h-4 text-green-600" />
+                  <h4 className="font-bold text-sm text-gray-900">WhatsApp Communications Log</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-gray-400 font-semibold uppercase block text-[10px]">Acquisition Source</span>
+                    <span className="font-bold text-gray-900 mt-1 block">{viewingCustomer.source || "Organic Registration"}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400 font-semibold uppercase block text-[10px]">Response Status</span>
+                    <Badge variant="success">Responded / Active</Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h4 className="font-semibold text-gray-900">Contact & Shipping</h4>
+              <h4 className="font-semibold text-gray-900">
+                {platform === "online-course" ? "Contact & Details" : "Contact & Shipping"}
+              </h4>
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-gray-500">Email Address</p>
                   <p className="text-sm font-medium text-gray-900">{viewingCustomer.email}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Phone Number</p>
+                  <p className="text-xs text-gray-500">Phone / Mobile Number</p>
                   <p className="text-sm font-medium text-gray-900">{viewingCustomer.phone}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> Shipping Address</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> 
+                    {platform === "online-course" ? "Billing / Postal Address" : "Shipping Address"}
+                  </p>
                   <p className="text-sm font-medium text-gray-900 mt-1">{viewingCustomer.address}</p>
                 </div>
               </div>
@@ -782,6 +1115,89 @@ export default function CustomersPage() {
           </div>
         )}
       </Drawer>
+
+      {/* Module 5: Printable Certificate Mockup Modal */}
+      {downloadingCert && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-2xl w-full overflow-hidden p-8 space-y-6 relative animate-in zoom-in-95 duration-200">
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setDownloadingCert(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 text-lg font-bold p-2"
+            >
+              ✕
+            </button>
+
+            {/* Fictional Academy Premium Frame */}
+            <div className="border-[12px] border-amber-800/80 p-8 rounded-xl bg-amber-50/10 relative text-center space-y-6 select-none print:border-amber-800">
+              {/* Inner Double Gold Border */}
+              <div className="absolute inset-2 border border-amber-600/30 rounded-lg pointer-events-none" />
+              
+              {/* Gold Crest */}
+              <div className="mx-auto w-14 h-14 flex items-center justify-center text-amber-700 bg-amber-50 rounded-full border border-amber-300">
+                <Award className="w-8 h-8 stroke-[1.5]" />
+              </div>
+
+              <div className="space-y-1">
+                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">Certificate of Completion</h2>
+                <p className="text-[10px] text-gray-400 italic">This credential certifies that</p>
+              </div>
+
+              <div className="space-y-1">
+                <h1 className="text-xl font-serif font-bold text-gray-900 border-b border-gray-100 pb-2 max-w-md mx-auto">
+                  {downloadingCert.studentName}
+                </h1>
+                <p className="text-[10px] text-gray-500 mt-2">
+                  has successfully mastered all core industry competencies of the professional cohort:
+                </p>
+              </div>
+
+              <h3 className="text-base font-bold text-indigo-900 tracking-wide">
+                {downloadingCert.course}
+              </h3>
+
+              <p className="text-[10px] text-gray-400 max-w-sm mx-auto leading-relaxed">
+                Awarded for outstanding curriculum execution, practical projects reviews, and active learning cohort participation.
+              </p>
+
+              {/* Signatures & Hash */}
+              <div className="flex items-end justify-between pt-6 max-w-md mx-auto text-[9px]">
+                <div className="text-center w-24">
+                  <div className="h-5 font-serif text-gray-600 italic">Antigravity Dev</div>
+                  <div className="border-t border-gray-200 pt-1 font-semibold text-gray-500">Program Director</div>
+                </div>
+                <div className="text-center">
+                  <span className="font-mono text-[8px] text-amber-800 font-bold block">VERIFIABLE CREDENTIAL ID</span>
+                  <span className="font-mono text-[8px] text-gray-400 block mt-0.5">{downloadingCert.certificateId}</span>
+                </div>
+                <div className="text-center w-24">
+                  <div className="h-5 font-serif text-gray-600 italic">{downloadingCert.issueDate}</div>
+                  <div className="border-t border-gray-200 pt-1 font-semibold text-gray-500">Date Issued</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="ghost" onClick={() => setDownloadingCert(null)}>
+                Close Preview
+              </Button>
+              <Button 
+                type="button" 
+                variant="primary" 
+                className="gap-1.5 font-bold"
+                onClick={() => {
+                  window.print();
+                }}
+              >
+                <Download className="w-4 h-4" />
+                Print Certificate / PDF
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

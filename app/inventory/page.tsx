@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, ImagePlus, X, Package, Layers, AlertTriangle, AlertCircle, TrendingDown, Coins, UploadCloud, Sliders, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Filter, ImagePlus, X, Package, Layers, AlertTriangle, AlertCircle, TrendingDown, Coins, UploadCloud, Sliders, Trash2, Loader2, CheckCircle2, List, LayoutGrid } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -21,6 +21,7 @@ export default function InventoryPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
 
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
     return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
@@ -670,23 +671,57 @@ export default function InventoryPage() {
     }
   };
 
-  const getDropdownItems = (product: any) => [
-    { label: "Edit Details", onClick: () => handleOpenEdit(product) },
-    { label: "Stock Log & Timeline", onClick: () => {
-      setEditingProduct(product);
-      setUploadedImage(product.image_url || null);
-      setActiveTab("timeline");
-      fetchTimelineEvents(product);
-      setIsDrawerOpen(true);
-    }},
-    { label: "Delete Product", onClick: async () => {
-      const { error } = await supabase.from('products').delete().eq('id', product.id);
-      if (!error) {
-        toast(`Deleted ${product.name}`, "error");
-        fetchProducts();
-      }
-    }, destructive: true },
-  ];
+  const getDropdownItems = (product: any) => {
+    if (platform === "online-course") {
+      return [
+        { label: "Edit Details", onClick: () => handleOpenEdit(product) },
+        { 
+          label: product.status === "Inactive" ? "Restore Course" : "Archive Course", 
+          onClick: async () => {
+            const newStatus = product.status === "Inactive" ? "Active" : "Inactive";
+            const { error } = await supabase.from('products').update({ status: newStatus }).eq('id', product.id);
+            if (!error) {
+              toast(product.status === "Inactive" ? "Course Restored!" : "Course Archived!", "success");
+              fetchProducts();
+            } else {
+              toast("Failed to update course status", "error");
+            }
+          }
+        },
+        { 
+          label: "Delete Course", 
+          onClick: async () => {
+            const confirmDel = window.confirm(`Are you sure you want to delete "${product.name}"?`);
+            if (!confirmDel) return;
+            const { error } = await supabase.from('products').delete().eq('id', product.id);
+            if (!error) {
+              toast(`Deleted ${product.name}`, "error");
+              fetchProducts();
+            }
+          }, 
+          destructive: true 
+        },
+      ];
+    }
+
+    return [
+      { label: "Edit Details", onClick: () => handleOpenEdit(product) },
+      { label: "Stock Log & Timeline", onClick: () => {
+        setEditingProduct(product);
+        setUploadedImage(product.image_url || null);
+        setActiveTab("timeline");
+        fetchTimelineEvents(product);
+        setIsDrawerOpen(true);
+      }},
+      { label: "Delete Product", onClick: async () => {
+        const { error } = await supabase.from('products').delete().eq('id', product.id);
+        if (!error) {
+          toast(`Deleted ${product.name}`, "error");
+          fetchProducts();
+        }
+      }, destructive: true },
+    ];
+  };
 
   // Dynamic filtering of products list based on search term and category filter!
   const filteredProducts = products.filter(product => {
@@ -807,91 +842,214 @@ export default function InventoryPage() {
             </div>
           </div>
 
-          {/* Clear Filters Button */}
-          {(searchTerm || categoryFilter !== "All") && (
-            <Button 
-              variant="ghost" 
-              className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
-              onClick={() => {
-                setSearchTerm("");
-                setCategoryFilter("All");
-              }}
-            >
-              Clear Filters
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* View Mode Toggle (Table / Grid) for Course platform */}
+            {platform === "online-course" && (
+              <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0 mr-2">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("table")}
+                  className={`p-1.5 rounded-md transition-all ${
+                    viewMode === "table"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                  title="Table View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("cards")}
+                  className={`p-1.5 rounded-md transition-all ${
+                    viewMode === "cards"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                  title="Course Summary Cards"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Clear Filters Button */}
+            {(searchTerm || categoryFilter !== "All") && (
+              <Button 
+                variant="ghost" 
+                className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategoryFilter("All");
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product Info</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <button 
-                        type="button"
-                        onClick={() => handleOpenEdit(product)}
-                        className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80 transition-opacity"
-                      >
+        {platform === "online-course" && viewMode === "cards" ? (
+          /* Course Summary Cards Grid View */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/30">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product) => (
+                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-150 flex flex-col justify-between bg-white">
+                  <div className="p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="w-14 h-14 bg-green-50 rounded-xl border border-green-100 flex items-center justify-center overflow-hidden shrink-0">
                         {product.image_url ? (
                           <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-gray-400 text-xs">Img</span>
+                          <Package className="w-6 h-6 text-green-600" />
                         )}
-                      </button>
-                      <div className="text-left">
+                      </div>
+                      <Badge 
+                        variant={
+                          product.status === 'Active' ? 'success' : 
+                          product.status === 'Low Stock' ? 'warning' :
+                          product.status === 'Inactive' ? 'default' : 'error'
+                        }
+                      >
+                        {product.status === 'Inactive' ? 'Archived' : product.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 hover:text-green-700 hover:underline cursor-pointer transition-all" onClick={() => handleOpenEdit(product)}>
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1 font-semibold">SKU: {product.sku}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Price</p>
+                        <p className="text-sm font-bold text-gray-900 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
+                      </div>
+                      <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Students</p>
+                        <p className="text-sm font-bold text-gray-900 mt-0.5">{product.stock} enrolled</p>
+                      </div>
+                    </div>
+                    <div className="bg-[#2E8C13]/5 border border-[#2E8C13]/10 p-3 rounded-lg flex justify-between items-center">
+                      <span className="text-xs font-bold text-[#2E8C13] uppercase tracking-wider">Total Revenue</span>
+                      <span className="text-sm font-extrabold text-gray-950">₹{(product.stock * product.price).toLocaleString("en-IN")}</span>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50/50 px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" className="text-xs font-semibold" onClick={() => handleOpenEdit(product)}>
+                      Edit Details
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700" 
+                      onClick={async () => {
+                        const newStatus = product.status === "Inactive" ? "Active" : "Inactive";
+                        const { error } = await supabase.from('products').update({ status: newStatus }).eq('id', product.id);
+                        if (!error) {
+                          toast(product.status === "Inactive" ? "Course Restored!" : "Course Archived!", "success");
+                          fetchProducts();
+                        } else {
+                          toast("Failed to update course status", "error");
+                        }
+                      }}
+                    >
+                      {product.status === "Inactive" ? "Restore" : "Archive Course"}
+                    </Button>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full py-16 text-center text-gray-400 font-medium bg-white rounded-xl border border-dashed border-gray-200">
+                No courses match the active search and filters.
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Table View Mode (Courses / standard Inba Products list) */
+          <div className="overflow-x-auto min-h-[400px]">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Course Name" : "Product Info"}
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Students Enrolled" : "Stock"}
+                  </th>
+                  {platform === "online-course" && (
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue Generated</th>
+                  )}
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
                         <button 
                           type="button"
                           onClick={() => handleOpenEdit(product)}
-                          className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left block"
+                          className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80 transition-opacity"
                         >
-                          {product.name}
+                          {product.image_url ? (
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-gray-400 text-xs">Img</span>
+                          )}
                         </button>
-                        <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                        <div className="text-left">
+                          <button 
+                            type="button"
+                            onClick={() => handleOpenEdit(product)}
+                            className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left block"
+                          >
+                            {product.name}
+                          </button>
+                          <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {product.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                    ₹{product.price}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                      {product.stock} units
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge 
-                      variant={
-                        product.status === 'Active' ? 'success' : 
-                        product.status === 'Low Stock' ? 'warning' :
-                        product.status === 'Inactive' ? 'default' : 'error'
-                      }
-                    >
-                      {product.status}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <DropdownMenu items={getDropdownItems(product)} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {product.category}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      ₹{product.price}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                        {product.stock} {platform === "online-course" ? "students" : "units"}
+                      </span>
+                    </td>
+                    {platform === "online-course" && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                        ₹{(product.stock * product.price).toLocaleString("en-IN")}
+                      </td>
+                    )}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge 
+                        variant={
+                          product.status === 'Active' ? 'success' : 
+                          product.status === 'Low Stock' ? 'warning' :
+                          product.status === 'Inactive' ? 'default' : 'error'
+                        }
+                      >
+                        {product.status === 'Inactive' && platform === 'online-course' ? 'Archived' : product.status}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <DropdownMenu items={getDropdownItems(product)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Product Drawer */}

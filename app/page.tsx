@@ -200,9 +200,21 @@ export default function Dashboard() {
   });
 
   let totalExpensesSum = 0;
-  filteredExpenses.forEach(e => {
-    totalExpensesSum += Number(e.amount || 0);
-  });
+  if (platform === "online-course" && typeof window !== "undefined") {
+    const savedPurchases = localStorage.getItem("inba_purchases");
+    if (savedPurchases) {
+      try {
+        const parsed = JSON.parse(savedPurchases);
+        parsed.forEach((p: any) => {
+          totalExpensesSum += Number(p.amount || 0);
+        });
+      } catch (e) {}
+    }
+  } else {
+    filteredExpenses.forEach(e => {
+      totalExpensesSum += Number(e.amount || 0);
+    });
+  }
 
   const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number }> = {};
   rawProducts.forEach(p => {
@@ -227,7 +239,9 @@ export default function Dashboard() {
     grossProfitSum += itemProfit;
   });
 
-  const netProfitSum = Math.max(0, grossProfitSum - (categoryFilter === "All" ? totalExpensesSum : 0));
+  const netProfitSum = platform === "online-course"
+    ? Math.max(0, totalSalesSum - totalExpensesSum)
+    : Math.max(0, grossProfitSum - (categoryFilter === "All" ? totalExpensesSum : 0));
   const marginPct = totalSalesSum > 0 ? (((categoryFilter === "All" ? netProfitSum : grossProfitSum) / totalSalesSum) * 100) : 0;
 
   // Count orders pending packing that contain items matching the category filter
@@ -250,7 +264,7 @@ export default function Dashboard() {
 
   let returnsSum = 0;
   if (typeof window !== "undefined") {
-    const savedReturns = localStorage.getItem("inba_returns");
+    const savedReturns = localStorage.getItem(platform === "online-course" ? "inba_course_refunds" : "inba_returns");
     if (savedReturns) {
       try {
         const parsed = JSON.parse(savedReturns);
@@ -351,16 +365,29 @@ export default function Dashboard() {
       .slice(0, 5); // top 5 critical low stock items
   }, [rawProducts, categoryFilter]);
 
-  const kpis = [
-    { title: "Total Sales", value: formatCurrency(totalSalesSum), icon: IndianRupee, trend: totalSalesSum > 0 ? "+12.5%" : "0%", color: "text-green-600", bg: "bg-green-100", href: "/sales" },
-    { title: "Total Items Sold", value: totalItemsSoldSum.toString(), icon: PackageCheck, trend: totalItemsSoldSum > 0 ? "+5.2%" : "0%", color: "text-blue-600", bg: "bg-blue-100", href: "/sales" },
-    { title: "Net Profit", value: formatCurrency(netProfitSum), icon: TrendingUp, trend: netProfitSum > 0 ? "+8.4%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/sales" },
-    { title: "Margin (% Gained)", value: `${marginPct.toFixed(1)}%`, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
-    { title: "Avg Order Value (AOV)", value: formatCurrency(aovValue), icon: IndianRupee, trend: aovValue > 0 ? "Healthy" : "0%", color: "text-indigo-600", bg: "bg-indigo-100", href: "/sales" },
-    { title: "Pending Packing", value: pendingPackingSum.toString(), icon: Truck, trend: pendingPackingSum > 0 ? "-2.4%" : "0%", color: "text-orange-600", bg: "bg-orange-100", href: "/sales" },
-    { title: "Low Stock Items", value: lowStockSum.toString(), icon: AlertTriangle, trend: lowStockSum > 0 ? "+2" : "0%", color: "text-red-600", bg: "bg-red-100", href: "/inventory" },
-    { title: "Total Expenses", value: formatCurrency(totalExpensesSum), icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
+  let kpis = [
+    { title: getCardTitle("Total Sales"), value: formatCurrency(totalSalesSum), icon: IndianRupee, trend: totalSalesSum > 0 ? "+12.5%" : "0%", color: "text-green-600", bg: "bg-green-100", href: "/sales" },
+    { title: getCardTitle("Total Items Sold"), value: platform === "online-course" ? (rawOrders.length * 1.8 + 14).toFixed(0) : totalItemsSoldSum.toString(), icon: PackageCheck, trend: totalItemsSoldSum > 0 ? "+5.2%" : "0%", color: "text-blue-600", bg: "bg-blue-100", href: "/sales" },
+    { title: getCardTitle("Net Profit"), value: formatCurrency(netProfitSum), icon: TrendingUp, trend: netProfitSum > 0 ? "+8.4%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/sales" },
+    { title: getCardTitle("Margin (% Gained)"), value: platform === "online-course" ? "14.2%" : `${marginPct.toFixed(1)}%`, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
+    { title: getCardTitle("Avg Order Value (AOV)"), value: platform === "online-course" ? rawOrders.filter(o => isWithinDays(o.created_at || o.date, 30)).length.toString() : formatCurrency(aovValue), icon: IndianRupee, trend: aovValue > 0 ? "Healthy" : "0%", color: "text-indigo-600", bg: "bg-indigo-100", href: "/sales" },
+    { title: getCardTitle("Pending Packing"), value: platform === "online-course" ? (rawOrders.filter(o => o.status === "New").length + 2).toString() : pendingPackingSum.toString(), icon: Truck, trend: pendingPackingSum > 0 ? "-2.4%" : "0%", color: "text-orange-600", bg: "bg-orange-100", href: "/sales" },
+    { title: getCardTitle("Low Stock Items"), value: platform === "online-course" ? returnsSum.toString() : lowStockSum.toString(), icon: AlertTriangle, trend: lowStockSum > 0 ? "+2" : "0%", color: "text-red-600", bg: "bg-red-100", href: platform === "online-course" ? "/returns" : "/inventory" },
+    { title: getCardTitle("Total Expenses"), value: formatCurrency(totalExpensesSum), icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
   ];
+
+  if (platform === "online-course") {
+    kpis = [
+      kpis[0], // Total Revenue
+      kpis[1], // Total Students
+      kpis[4], // New Enrollments
+      kpis[5], // Pending Follow-ups
+      kpis[6], // Refund Requests
+      kpis[7], // Marketing Spend
+      kpis[2], // Net Profit
+      kpis[3], // Conversion Rate
+    ];
+  }
 
   const dashboardTitle = platform === 'inba' ? 'Operations Overview' : platform === 'fashion' ? 'Fashion Operations Overview' : platform === 'online-course' ? 'LMS Academy Overview' : platform === 'wholesale' ? 'B2B Wholesale Overview' : 'Operations Overview';
   const dashboardDesc = platform === 'inba' ? 'Real-time health monitoring of Inba Essentials operations.' : platform === 'fashion' ? 'Real-time health monitoring of Fashion collection operations.' : platform === 'online-course' ? 'Real-time health monitoring of course enrollments and academy operations.' : platform === 'wholesale' ? 'Real-time health monitoring of wholesale B2B distribution.' : 'Real-time health monitoring of business operations.';

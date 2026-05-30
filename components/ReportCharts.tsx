@@ -3,11 +3,52 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { 
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell,
+  LineChart, Line
 } from "recharts";
 import { supabase } from "@/lib/supabase";
 
 const COLORS = ["#2E8C13", "#45B823", "#1F590D", "#8AE66B", "#9ca3af"];
+
+const COURSE_REVENUE = [
+  { name: "UI/UX Bootcamp", revenue: 749850 },
+  { name: "AI Masterclass", revenue: 351912 },
+  { name: "Digital Mktg", revenue: 479760 },
+  { name: "English Program", revenue: 10392 }
+];
+
+const MONTHLY_REVENUE = [
+  { name: "Jan", revenue: 180000 },
+  { name: "Feb", revenue: 240000 },
+  { name: "Mar", revenue: 320000 },
+  { name: "Apr", revenue: 410000 },
+  { name: "May", revenue: 450000 }
+];
+
+const LEAD_SOURCES = [
+  { name: "Meta Ads", value: 675, color: "#2E8C13" },
+  { name: "Google Ads", value: 375, color: "#45B823" },
+  { name: "Instagram", value: 225, color: "#1F590D" },
+  { name: "Referrals", value: 150, color: "#8AE66B" },
+  { name: "YouTube Ads", value: 75, color: "#9ca3af" }
+];
+
+const REFUND_TRENDS = [
+  { name: "Jan", amount: 8000 },
+  { name: "Feb", amount: 12000 },
+  { name: "Mar", amount: 9000 },
+  { name: "Apr", amount: 15000 },
+  { name: "May", amount: 19996 }
+];
+
+const CONVERSION_FUNNEL = [
+  { name: "Total Leads", count: 1500, pct: 100, color: "bg-blue-500" },
+  { name: "Contacted Leads", count: 980, pct: 65.3, color: "bg-indigo-500" },
+  { name: "Interested Candidates", count: 640, pct: 42.7, color: "bg-purple-500" },
+  { name: "Webinar Demos Booked", count: 420, pct: 28.0, color: "bg-cyan-500" },
+  { name: "Successfully Enrolled", count: 210, pct: 14.0, color: "bg-green-500" }
+];
+
 import { usePlatform } from "@/lib/PlatformContext";
 
 export default function ReportCharts() {
@@ -120,6 +161,166 @@ export default function ReportCharts() {
 
   const salesTitle = getModuleProp('Sales', 'displayName') || 'Sales';
   const salesSingular = getModuleProp('Sales', 'singularDisplayName') || 'Order';
+
+  if (platform === "online-course") {
+    return (
+      <div className="space-y-6">
+        {/* Row 1: Revenue by Course & Revenue by Month */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="overflow-hidden border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-50 pb-4">
+              <CardTitle className="text-base font-bold text-gray-900">Revenue by Course</CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Academics earnings distribution across dynamic courses catalog</p>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={COURSE_REVENUE} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => `₹${Number(v)/1000}k`} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                      formatter={(v) => [`₹${Number(v).toLocaleString("en-IN")}`, "Gross Revenue"]}
+                    />
+                    <Bar dataKey="revenue" fill="#2E8C13" radius={[4, 4, 0, 0]} maxBarSize={45} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-50 pb-4">
+              <CardTitle className="text-base font-bold text-gray-900">Revenue by Month</CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Acquisition and tuition billing progression since cohort launch</p>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-[280px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={MONTHLY_REVENUE} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="courseSalesGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2E8C13" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#2E8C13" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => `₹${Number(v)/1000}k`} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                      formatter={(v) => [`₹${Number(v).toLocaleString("en-IN")}`, "Tuition Income"]}
+                    />
+                    <Area type="monotone" dataKey="revenue" stroke="#2E8C13" strokeWidth={2.5} fillOpacity={1} fill="url(#courseSalesGrad)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Row 2: Conversion Funnel & Lead Source Performance */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-50 pb-4">
+              <CardTitle className="text-base font-bold text-gray-900">Leads Acquisition Conversion Funnel</CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Percentage ratios from initial Meta/Google outreach down to active student enrollment</p>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {CONVERSION_FUNNEL.map(item => (
+                <div key={item.name} className="space-y-1">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-gray-700">{item.name}</span>
+                    <span className="text-gray-900">{item.count} candidates <span className="text-gray-400">({item.pct}%)</span></span>
+                  </div>
+                  <div className="w-full h-3.5 bg-gray-100 rounded-lg overflow-hidden relative">
+                    <div 
+                      className={`h-full rounded-lg ${
+                        item.name.includes("Enrolled") ? "bg-[#2E8C13]" : "bg-indigo-600/80"
+                      }`}
+                      style={{ width: `${item.pct}%` }} 
+                    />
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden border border-gray-100 shadow-sm flex flex-col justify-between">
+            <CardHeader className="border-b border-gray-50 pb-4">
+              <CardTitle className="text-base font-bold text-gray-900">Lead Source Performance</CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Share percentage split of outreach channels</p>
+            </CardHeader>
+            <CardContent className="p-6 flex flex-col justify-between h-[280px]">
+              <div className="h-[140px] w-full relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={LEAD_SOURCES}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {LEAD_SOURCES.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute flex flex-col items-center justify-center">
+                  <span className="text-lg font-bold tracking-tight text-gray-800">1,500</span>
+                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Outreach Leads</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50 text-[10px] font-bold">
+                {LEAD_SOURCES.map((cat) => (
+                  <div key={cat.name} className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                    <div className="min-w-0">
+                      <p className="text-gray-700 truncate">{cat.name}</p>
+                      <p className="text-[8px] text-gray-400">{cat.value} leads</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Row 3: Refund Trends */}
+        <Card className="overflow-hidden border border-gray-100 shadow-sm">
+          <CardHeader className="border-b border-gray-50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900">Refund Claims & Resolution Trends</CardTitle>
+            <p className="text-xs text-gray-500 mt-1">Monthly claims valuation progression relative to satisfaction guarantees</p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={REFUND_TRENDS} margin={{ top: 10, right: 15, left: 15, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickFormatter={(v) => `₹${Number(v)}`} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                    formatter={(v) => [`₹${Number(v).toLocaleString("en-IN")}`, "Refunded Value"]}
+                  />
+                  <Line type="monotone" dataKey="amount" stroke="#dc2626" strokeWidth={3} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

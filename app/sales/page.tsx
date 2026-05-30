@@ -969,70 +969,110 @@ export default function SalesPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Order ID & Date</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Items</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Enrollment ID & Date" : "Order ID & Date"}
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Student" : "Customer"}
+                  </th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Course(s)" : "Items"}
+                  </th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {platform === "online-course" ? "Payment Status" : "Payment"}
+                  </th>
+                  {platform !== "online-course" && (
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  )}
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
+                {filteredOrders.map((order) => {
+                  // Determine dynamic course payment status
+                  let coursePaymentStatus = order.payment;
+                  if (order.status === "Cancelled") {
+                    coursePaymentStatus = "Failed";
+                  } else if (order.payment === "COD" || order.payment === "Unpaid") {
+                    coursePaymentStatus = "Pending";
+                  }
+                  
+                  if (order.status === "Returned" || order.status === "Refunded") {
+                    coursePaymentStatus = "Refunded";
+                  }
+
+                  return (
+                    <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <button 
+                            type="button"
+                            onClick={() => setViewingOrder(order)}
+                            className="text-sm font-semibold text-primary hover:text-[#257310] hover:underline transition-all text-left"
+                          >
+                            {order.id}
+                          </button>
+                          <span className="text-xs text-gray-500 mt-0.5">{order.date}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                         <button 
-                          onClick={() => setViewingOrder(order)}
-                          className="text-sm font-semibold text-primary hover:text-[#257310] hover:underline transition-all text-left"
+                          type="button"
+                          onClick={() => setViewingCustomerName(order.customer)}
+                          className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left"
                         >
-                          {order.id}
+                          {order.customer}
                         </button>
-                        <span className="text-xs text-gray-500 mt-0.5">{order.date}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      <button 
-                        onClick={() => setViewingCustomerName(order.customer)}
-                        className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left"
-                      >
-                        {order.customer}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col gap-1 max-w-[200px] truncate">
-                        {order.items.map((item: any, i: number) => (
-                          <span key={i} className="text-xs text-gray-600 font-medium truncate">
-                            {item.qty}x {item.name}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {order.amount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge 
-                        variant={
-                          order.payment === 'Paid' ? 'success' : 
-                          order.payment === 'COD' ? 'warning' : 'error'
-                        }
-                      >
-                        {order.payment}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusDropdown 
-                        value={order.status}
-                        onChange={(val) => handleStatusChange(order.id, val)}
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <DropdownMenu items={getDropdownItems(order)} />
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1 max-w-[200px] truncate">
+                          {order.items.map((item: any, i: number) => (
+                            <span key={i} className="text-xs text-gray-600 font-medium truncate">
+                              {item.qty}x {item.name}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        {order.amount}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {platform === "online-course" ? (
+                          <Badge 
+                            variant={
+                              coursePaymentStatus === 'Paid' ? 'success' : 
+                              coursePaymentStatus === 'Pending' ? 'warning' :
+                              coursePaymentStatus === 'Refunded' ? 'default' : 'error'
+                            }
+                          >
+                            {coursePaymentStatus}
+                          </Badge>
+                        ) : (
+                          <Badge 
+                            variant={
+                              order.payment === 'Paid' ? 'success' : 
+                              order.payment === 'COD' ? 'warning' : 'error'
+                            }
+                          >
+                            {order.payment}
+                          </Badge>
+                        )}
+                      </td>
+                      {platform !== "online-course" && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <StatusDropdown 
+                            value={order.status}
+                            onChange={(val) => handleStatusChange(order.id, val)}
+                          />
+                        </td>
+                      )}
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <DropdownMenu items={getDropdownItems(order)} />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -1172,7 +1172,11 @@ export default function GoalsPage() {
                     <tr key={g.id || idx} className="hover:bg-gray-50/30 transition-colors">
                       <td className="p-3 pl-6 font-semibold text-gray-800">{g.name}</td>
                       <td className="p-3 text-gray-500 font-semibold">{histStart} — {histEnd}</td>
-                      <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">{g.type.replace("_", " ")}</td>
+                      <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">
+                        {platform === "online-course" 
+                          ? (g.type === "revenue" ? "Revenue Goal" : g.type === "units" ? "Enrollment Goal" : "Acquisition Goal") 
+                          : g.type.replace("_", " ")}
+                      </td>
                       <td className="p-3 font-semibold text-gray-900">
                         {g.type === "revenue" || g.type === "category" ? formatCurrency(g.target_amount) : `${g.target_amount} ${salesPlural.toLowerCase()}`}
                       </td>
@@ -1249,11 +1253,21 @@ export default function GoalsPage() {
                 }}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-sm text-gray-800 font-semibold bg-white"
               >
-                <option value="revenue">Gross Revenue Target (₹)</option>
-                <option value="units">{salesPlural} Target (Qty)</option>
-                <option value="category">Category-wise Sales Target (₹)</option>
-                <option value="product">{inventorySingular}-specific Sales Target (Qty)</option>
-                <option value="stock_reduction">{platform === "online-course" ? "Engagement Boost" : "Stock Reduction"} Target (Qty)</option>
+                {platform === "online-course" ? (
+                  <>
+                    <option value="revenue">Monthly Revenue Goal (₹)</option>
+                    <option value="units">Enrollment Goal (Qty)</option>
+                    <option value="stock_reduction">Student Acquisition Goal (Qty)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="revenue">Gross Revenue Target (₹)</option>
+                    <option value="units">{salesPlural} Target (Qty)</option>
+                    <option value="category">Category-wise Sales Target (₹)</option>
+                    <option value="product">{inventorySingular}-specific Sales Target (Qty)</option>
+                    <option value="stock_reduction">Stock Reduction Target (Qty)</option>
+                  </>
+                )}
               </select>
 
               {/* Dynamic Dropdown Select based on Goal Type */}

@@ -15,7 +15,10 @@ import {
   Wallet, 
   BarChart3, 
   Settings,
-  Target
+  Target,
+  Filter,
+  CalendarCheck,
+  ShieldCheck
 } from "lucide-react";
 
 const navItems = [
@@ -33,7 +36,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { config } = usePlatform();
+  const { platform, config } = usePlatform();
 
   const labelMap = useMemo(() => {
     const map: Record<string, string> = {};
@@ -42,6 +45,23 @@ export default function Sidebar() {
     });
     return map;
   }, [config.sidebar]);
+
+  const menuItems = useMemo(() => {
+    const list = [...navItems];
+    if (platform === "online-course") {
+      // Insert Leads & Followups after Sales (index 3)
+      list.splice(3, 0, 
+        { name: "Leads", href: "/leads", icon: Filter },
+        { name: "Followups", href: "/followups", icon: CalendarCheck }
+      );
+      // Insert Team after Customers (find index of Customers first)
+      const custIndex = list.findIndex(item => item.href === "/customers");
+      if (custIndex !== -1) {
+        list.splice(custIndex + 1, 0, { name: "Team", href: "/team", icon: ShieldCheck });
+      }
+    }
+    return list;
+  }, [platform]);
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed top-0 left-0">
@@ -56,7 +76,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {navItems.map((item) => {
+        {menuItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
           const Icon = item.icon;
           const displayName = labelMap[item.name] || item.name;
