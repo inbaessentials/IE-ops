@@ -449,11 +449,22 @@ export default function CustomersPage() {
     }
   };
 
-  const getDropdownItems = (customer: any) => [
-    { label: "View Profile", onClick: () => setViewingCustomer(customer) },
-    { label: "Edit Details", onClick: () => startEditing(customer) },
-    { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer), destructive: true },
-  ];
+  const getDropdownItems = (customer: any) => {
+    if (platform === "online-course") {
+      return [
+        { label: "View Profile", onClick: () => setViewingCustomer(customer) },
+        { label: "Edit Details", onClick: () => startEditing(customer) },
+        { label: "Message Student", onClick: () => toast(`Dispatched SMS/WhatsApp counseling message to ${customer.name}!`, "success") },
+        { label: "Student Notes", onClick: () => { setViewingCustomer(customer); toast("Opening Profile Notes ledger...", "info"); } }
+      ];
+    }
+
+    return [
+      { label: "View Profile", onClick: () => setViewingCustomer(customer) },
+      { label: "Edit Details", onClick: () => startEditing(customer) },
+      { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer), destructive: true },
+    ];
+  };
 
   // Dynamic metrics calculation for widgets based on currently filtered customers subset
   const totalCustomersCount = filteredCustomers.length;
@@ -631,20 +642,23 @@ export default function CustomersPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {platform === "online-course" ? "Student Name" : "Customer Name"}
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {platform === "online-course" ? "Contact Info" : "Contact"}
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {platform === "online-course" ? "Course(s)" : "Orders"}
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {platform === "online-course" ? "Enrollment Date" : "Total Spent"}
-                  </th>
-                  {platform === "online-course" && (
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  {platform === "online-course" ? (
+                    <>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student Name</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Enrollment Date</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Active</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Name</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Spent</th>
+                    </>
                   )}
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -652,72 +666,95 @@ export default function CustomersPage() {
               <tbody className="divide-y divide-gray-100">
                 {filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div 
-                        className="flex items-center gap-3 cursor-pointer group"
-                        onClick={() => setViewingCustomer(customer)}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                          {customer.name.charAt(0)}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
-                          {customer.isRepeat && platform !== "online-course" && (
-                            <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">
-                              <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                              Loyal
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="text-sm text-gray-900">{customer.email}</p>
-                      <p className="text-xs text-gray-500">{customer.phone}</p>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {platform === "online-course" ? (
-                        <div className="flex flex-wrap gap-1 max-w-[200px]">
-                          {(customer.coursesList || ["UI/UX Bootcamp"]).map((c: string, idx: number) => (
-                            <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                              {c}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        `${customer.ordersCount} ${customer.ordersCount === 1 ? "order" : "orders"}`
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {platform === "online-course" ? (
-                        customer.lastOrderDate !== "N/A" 
-                          ? new Date(customer.lastOrderDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) 
-                          : "N/A"
-                      ) : (
-                        customer.totalSpentFormatted
-                      )}
-                    </td>
-                    {platform === "online-course" && (
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="space-y-1 w-28">
-                          <div className="flex items-center justify-between text-[10px] font-bold">
-                            <span className="text-gray-800">{customer.progress}%</span>
-                            <span className={
-                              customer.completionStatus === "Completed" ? "text-green-600" :
-                              customer.completionStatus === "In Progress" ? "text-blue-600" : "text-gray-400"
-                            }>{customer.completionStatus}</span>
+                    {platform === "online-course" ? (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer group"
+                            onClick={() => setViewingCustomer(customer)}
+                          >
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                              {customer.name.charAt(0)}
+                            </div>
+                            <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
                           </div>
-                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full rounded-full ${
-                                customer.completionStatus === "Completed" ? "bg-green-500" :
-                                customer.completionStatus === "In Progress" ? "bg-blue-500" : "bg-gray-300"
-                              }`} 
-                              style={{ width: `${customer.progress}%` }} 
-                            />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {customer.phone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {customer.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <div className="flex flex-wrap gap-1 max-w-[200px]">
+                            {(customer.coursesList || ["UI/UX Bootcamp"]).map((c: string, idx: number) => (
+                              <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                                {c}
+                              </span>
+                            ))}
                           </div>
-                        </div>
-                      </td>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                          {customer.lastOrderDate !== "N/A" 
+                            ? new Date(customer.lastOrderDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) 
+                            : "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-bold">
+                          {customer.lastActive || ["2 hours ago", "Today", "Yesterday", "3 days ago"][customer.name.length % 4]}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="space-y-1 w-28">
+                            <div className="flex items-center justify-between text-[10px] font-bold">
+                              <span className="text-gray-800">{customer.progress || 40}%</span>
+                              <span className={
+                                customer.completionStatus === "Completed" ? "text-green-600" :
+                                customer.completionStatus === "In Progress" ? "text-blue-600" : "text-gray-400"
+                              }>{customer.completionStatus || "In Progress"}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full ${
+                                  customer.completionStatus === "Completed" ? "bg-green-500" :
+                                  customer.completionStatus === "In Progress" ? "bg-blue-500" : "bg-gray-300"
+                                }`} 
+                                style={{ width: `${customer.progress || 40}%` }} 
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer group"
+                            onClick={() => setViewingCustomer(customer)}
+                          >
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                              {customer.name.charAt(0)}
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
+                              {customer.isRepeat && (
+                                <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">
+                                  <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                                  Loyal
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <p className="text-sm text-gray-900">{customer.email}</p>
+                          <p className="text-xs text-gray-500">{customer.phone}</p>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {`${customer.ordersCount} ${customer.ordersCount === 1 ? "order" : "orders"}`}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          {customer.totalSpentFormatted}
+                        </td>
+                      </>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <DropdownMenu items={getDropdownItems(customer)} />

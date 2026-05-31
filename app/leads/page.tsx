@@ -21,7 +21,7 @@ interface Lead {
   course: string;
   source: string;
   assignedTo: string;
-  stage: "New Lead" | "Contacted" | "Interested" | "Demo Booked" | "Follow-up Required" | "Enrolled" | "Lost";
+  stage: "New" | "Contacted" | "Interested" | "Demo Booked" | "Payment Pending" | "Enrolled" | "Lost";
   nextFollowUp: string;
   notes: string;
   dateCreated: string;
@@ -76,7 +76,7 @@ const DEFAULT_LEADS: Lead[] = [
     course: "Digital Marketing Masterclass",
     source: "Instagram",
     assignedTo: "Kabir Gupta",
-    stage: "New Lead",
+    stage: "New",
     nextFollowUp: "2026-06-02",
     notes: "Downloaded the brochure from a post, needs basic counseling.",
     dateCreated: "2026-05-30",
@@ -122,21 +122,21 @@ const DEFAULT_LEADS: Lead[] = [
 ];
 
 const STAGES: Lead["stage"][] = [
-  "New Lead",
+  "New",
   "Contacted",
   "Interested",
   "Demo Booked",
-  "Follow-up Required",
+  "Payment Pending",
   "Enrolled",
   "Lost"
 ];
 
 const STAGE_COLORS: Record<Lead["stage"], string> = {
-  "New Lead": "bg-blue-50 text-blue-700 border-blue-100",
+  "New": "bg-blue-50 text-blue-700 border-blue-100",
   "Contacted": "bg-indigo-50 text-indigo-700 border-indigo-100",
   "Interested": "bg-purple-50 text-purple-700 border-purple-100",
   "Demo Booked": "bg-cyan-50 text-cyan-700 border-cyan-100",
-  "Follow-up Required": "bg-amber-50 text-amber-700 border-amber-100",
+  "Payment Pending": "bg-amber-50 text-amber-700 border-amber-100",
   "Enrolled": "bg-green-50 text-green-700 border-green-100",
   "Lost": "bg-rose-50 text-rose-700 border-rose-100"
 };
@@ -163,7 +163,7 @@ export default function LeadCRM() {
   const [formCourse, setFormCourse] = useState("UI/UX Bootcamp");
   const [formSource, setFormSource] = useState("Meta Ads");
   const [formAssignedTo, setFormAssignedTo] = useState("Kabir Gupta");
-  const [formStage, setFormStage] = useState<Lead["stage"]>("New Lead");
+  const [formStage, setFormStage] = useState<Lead["stage"]>("New");
   const [formNextFollowUp, setFormNextFollowUp] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
@@ -295,7 +295,7 @@ export default function LeadCRM() {
     setFormCourse("UI/UX Bootcamp");
     setFormSource("Meta Ads");
     setFormAssignedTo("Kabir Gupta");
-    setFormStage("New Lead");
+    setFormStage("New");
     setFormNextFollowUp("");
     setFormNotes("");
     setIsAddDrawerOpen(false);
@@ -524,7 +524,7 @@ export default function LeadCRM() {
             setFormCourse("UI/UX Bootcamp");
             setFormSource("Meta Ads");
             setFormAssignedTo("Kabir Gupta");
-            setFormStage("New Lead");
+            setFormStage("New");
             setFormNextFollowUp("");
             setFormNotes("");
             setIsAddDrawerOpen(true);
@@ -699,12 +699,13 @@ export default function LeadCRM() {
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
                   <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Lead Name</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Course of Interest</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Mobile</th>
                   <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Source</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Rep</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Lead Stage</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Next Action</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Interested Course</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Stage</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Last Contact</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Next Follow-Up</th>
                   <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
@@ -725,17 +726,13 @@ export default function LeadCRM() {
                         {lead.name}
                       </button>
                     </td>
-                    <td className="p-4 text-xs text-gray-500">
-                      <div className="flex flex-col">
-                        <span>{lead.phone}</span>
-                        <span>{lead.email}</span>
-                      </div>
+                    <td className="p-4 text-sm font-semibold text-gray-800">
+                      {lead.phone}
                     </td>
-                    <td className="p-4 text-xs font-semibold text-gray-700">{lead.course}</td>
                     <td className="p-4 text-xs">
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-semibold text-[10px]">{lead.source}</span>
                     </td>
-                    <td className="p-4 text-xs text-gray-600">{lead.assignedTo}</td>
+                    <td className="p-4 text-xs font-semibold text-gray-700">{lead.course}</td>
                     <td className="p-4">
                       <select
                         value={lead.stage}
@@ -747,6 +744,8 @@ export default function LeadCRM() {
                         ))}
                       </select>
                     </td>
+                    <td className="p-4 text-xs font-semibold text-gray-600">{lead.assignedTo}</td>
+                    <td className="p-4 text-xs text-gray-500 font-semibold">{lead.whatsappLastContact || lead.dateCreated}</td>
                     <td className="p-4 text-xs font-semibold text-amber-600">{lead.nextFollowUp || "Not set"}</td>
                     <td className="p-4 text-right pr-6">
                       <div className="flex items-center justify-end gap-1.5">

@@ -5,7 +5,14 @@ import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, ImagePlus, X, Package, Layers, AlertTriangle, AlertCircle, TrendingDown, Coins, UploadCloud, Sliders, Trash2, Loader2, CheckCircle2, List, LayoutGrid, ShoppingBag, Award } from "lucide-react";
+import { 
+  Plus, Search, Filter, ImagePlus, X, Package, Layers, AlertTriangle, 
+  AlertCircle, TrendingDown, Coins, UploadCloud, Sliders, Trash2, 
+  Loader2, CheckCircle2, List, LayoutGrid, ShoppingBag, Award,
+  BookOpen, Users, Wallet, IndianRupee, CalendarCheck, DollarSign, 
+  ExternalLink, MessageSquare, Share2, Copy, Globe, Calendar, ArrowUpRight,
+  TrendingUp, Edit, ShieldAlert, Sparkles, Activity
+} from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -13,6 +20,11 @@ import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 import { Modal } from "@/components/ui/Modal";
 import { usePlatform } from "@/lib/PlatformContext";
+import { 
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+  Tooltip, BarChart, Bar, Legend, LineChart, Line, PieChart, Pie, Cell 
+} from "recharts";
+
 
 export default function InventoryPage() {
   const { platform, config } = usePlatform();
@@ -672,7 +684,7 @@ export default function InventoryPage() {
   };
 
   const getDropdownItems = (product: any) => {
-    if (platform === "online-course") {
+    if ((platform as string) === "online-course") {
       return [
         { label: "Edit Details", onClick: () => handleOpenEdit(product) },
         { 
@@ -751,6 +763,13 @@ export default function InventoryPage() {
     return <GymMembershipsView />;
   }
 
+  // ==========================================
+  // ONLINE COURSE PLATFORM MANAGEMENT REDESIGN
+  // ==========================================
+  if ((platform as string) === "online-course") {
+    return <CourseManagementView />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -787,8 +806,8 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {platform === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">{platform === 'online-course' ? 'slots' : 'units'}</span></h3>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {(platform as string) === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
+            <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">{(platform as string) === 'online-course' ? 'slots' : 'units'}</span></h3>
           </div>
           <div className="p-3 bg-green-50 text-green-600 rounded-xl">
             <Layers className="w-5 h-5" />
@@ -796,7 +815,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{platform === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
@@ -805,7 +824,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{platform === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -814,7 +833,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{platform === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
             <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -851,7 +870,7 @@ export default function InventoryPage() {
 
           <div className="flex items-center gap-3">
             {/* View Mode Toggle (Table / Grid) for Course platform */}
-            {platform === "online-course" && (
+            {(platform as string) === "online-course" && (
               <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0 mr-2">
                 <button
                   type="button"
@@ -896,7 +915,7 @@ export default function InventoryPage() {
           </div>
         </div>
 
-        {platform === "online-course" && viewMode === "cards" ? (
+        {(platform as string) === "online-course" && viewMode === "cards" ? (
           /* Course Summary Cards Grid View */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/30">
             {filteredProducts.length > 0 ? (
@@ -979,14 +998,14 @@ export default function InventoryPage() {
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {platform === "online-course" ? "Course Name" : "Product Info"}
+                    {(platform as string) === "online-course" ? "Course Name" : "Product Info"}
                   </th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {platform === "online-course" ? "Students Enrolled" : "Stock"}
+                    {(platform as string) === "online-course" ? "Students Enrolled" : "Stock"}
                   </th>
-                  {platform === "online-course" && (
+                  {(platform as string) === "online-course" && (
                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue Generated</th>
                   )}
                   <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -1029,10 +1048,10 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                        {product.stock} {platform === "online-course" ? "students" : "units"}
+                        {product.stock} {(platform as string) === "online-course" ? "students" : "units"}
                       </span>
                     </td>
-                    {platform === "online-course" && (
+                    {(platform as string) === "online-course" && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
                         ₹{(product.stock * product.price).toLocaleString("en-IN")}
                       </td>
@@ -1045,7 +1064,7 @@ export default function InventoryPage() {
                           product.status === 'Inactive' ? 'default' : 'error'
                         }
                       >
-                        {product.status === 'Inactive' && platform === 'online-course' ? 'Archived' : product.status}
+                        {product.status === 'Inactive' && (platform as string) === 'online-course' ? 'Archived' : product.status}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -2199,3 +2218,972 @@ function GymMembershipsView() {
     </div>
   );
 }
+
+// ==========================================
+// COURSE MANAGEMENT PLATFORM VIEW
+// ==========================================
+
+interface Course {
+  id: string;
+  display_id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  duration: string;
+  courseType: "Live Cohort" | "Recorded Course" | "Hybrid Program" | "Coaching Program";
+  landingPageUrl: string;
+  whatsappCtaLink: string;
+  status: "Draft" | "Live" | "Paused" | "Archived";
+  tags: string[];
+  leads: number;
+  students: number;
+}
+
+const seedCourses = (): Course[] => [
+  {
+    id: "c-1",
+    display_id: "CRS-101",
+    name: "Digital Marketing Masterclass",
+    category: "Marketing",
+    price: 4999,
+    description: "Master digital marketing campaigns, SEO optimization, and outreach conversions.",
+    duration: "8 Weeks",
+    courseType: "Live Cohort",
+    landingPageUrl: "https://academy.inba.com/marketing",
+    whatsappCtaLink: "https://wa.me/919876543210?text=Interested%20in%20Marketing",
+    status: "Live",
+    tags: ["SEO", "Meta Ads", "Outreach"],
+    leads: 120,
+    students: 42
+  },
+  {
+    id: "c-2",
+    display_id: "CRS-102",
+    name: "UI/UX Bootcamp",
+    category: "Design",
+    price: 7999,
+    description: "Go from beginner to advanced UI/UX designer with portfolio-grade mobile and web projects.",
+    duration: "12 Weeks",
+    courseType: "Hybrid Program",
+    landingPageUrl: "https://academy.inba.com/design",
+    whatsappCtaLink: "https://wa.me/919876543210?text=Interested%20in%20UIUX",
+    status: "Live",
+    tags: ["Figma", "Mobile App", "Portfolio"],
+    leads: 80,
+    students: 25
+  },
+  {
+    id: "c-3",
+    display_id: "CRS-103",
+    name: "AI For Business",
+    category: "AI",
+    price: 5999,
+    description: "Leverage large language models and automation to scale business growth and operations.",
+    duration: "6 Weeks",
+    courseType: "Recorded Course",
+    landingPageUrl: "https://academy.inba.com/ai",
+    whatsappCtaLink: "https://wa.me/919876543210?text=Interested%20in%20AI",
+    status: "Draft",
+    tags: ["AI Tools", "ChatGPT", "Automation"],
+    leads: 45,
+    students: 10
+  }
+];
+
+function CourseManagementView() {
+  const toast = useToast();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  // Form & Drawer visibility
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+
+  // Selected Course details drawer
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "enrollments" | "leads" | "payments" | "insights">("overview");
+
+  // Form parameters
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("Marketing");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [duration, setDuration] = useState("8 Weeks");
+  const [courseType, setCourseType] = useState<Course["courseType"]>("Live Cohort");
+  const [landingPageUrl, setLandingPageUrl] = useState("");
+  const [whatsappCtaLink, setWhatsappCtaLink] = useState("");
+  const [status, setStatus] = useState<Course["status"]>("Draft");
+  const [tags, setTags] = useState("");
+
+  const loadData = () => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("inba_courses");
+    if (saved) {
+      setCourses(JSON.parse(saved));
+    } else {
+      const seeded = seedCourses();
+      localStorage.setItem("inba_courses", JSON.stringify(seeded));
+      setCourses(seeded);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const saveCourses = (updated: Course[]) => {
+    localStorage.setItem("inba_courses", JSON.stringify(updated));
+    setCourses(updated);
+  };
+
+  // Handlers
+  const handleOpenAdd = () => {
+    setEditingCourse(null);
+    setName("");
+    setCategory("Marketing");
+    setDescription("");
+    setPrice("");
+    setDuration("8 Weeks");
+    setCourseType("Live Cohort");
+    setLandingPageUrl("");
+    setWhatsappCtaLink("");
+    setStatus("Draft");
+    setTags("");
+    setIsAddOpen(true);
+  };
+
+  const handleOpenEdit = (course: Course) => {
+    setEditingCourse(course);
+    setName(course.name);
+    setCategory(course.category);
+    setDescription(course.description);
+    setPrice(course.price.toString());
+    setDuration(course.duration);
+    setCourseType(course.courseType);
+    setLandingPageUrl(course.landingPageUrl);
+    setWhatsappCtaLink(course.whatsappCtaLink);
+    setStatus(course.status);
+    setTags(course.tags.join(", "));
+    setIsAddOpen(true);
+  };
+
+  const handleDuplicate = (course: Course) => {
+    const duplicated: Course = {
+      ...course,
+      id: `c-${Date.now()}`,
+      display_id: `CRS-${Math.floor(Math.random() * 900) + 100}`,
+      name: `${course.name} (Copy)`,
+      status: "Draft",
+      leads: 0,
+      students: 0
+    };
+    const updated = [...courses, duplicated];
+    saveCourses(updated);
+    toast("Course duplicated successfully!", "success");
+  };
+
+  const handleSoftDelete = (course: Course) => {
+    const confirmArch = window.confirm(`Are you sure you want to delete "${course.name}"? This will archive the course.`);
+    if (!confirmArch) return;
+
+    const updated = courses.map(c => c.id === course.id ? { ...c, status: "Archived" as const } : c);
+    saveCourses(updated);
+    toast("Course archived successfully!", "error");
+  };
+
+  const handleSaveCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !price || parseFloat(price) < 0) {
+      toast("Please fill out all required fields with valid inputs.", "error");
+      return;
+    }
+
+    const cleanTags = tags.split(",").map(t => t.trim()).filter(Boolean);
+
+    if (editingCourse) {
+      const updated = courses.map(c => {
+        if (c.id === editingCourse.id) {
+          return {
+            ...c,
+            name: name.trim(),
+            category: category.trim(),
+            description: description.trim(),
+            price: parseFloat(price),
+            duration: duration.trim(),
+            courseType,
+            landingPageUrl: landingPageUrl.trim(),
+            whatsappCtaLink: whatsappCtaLink.trim(),
+            status,
+            tags: cleanTags
+          };
+        }
+        return c;
+      });
+      saveCourses(updated);
+      toast("Course details updated!", "success");
+    } else {
+      const newCourse: Course = {
+        id: `c-${Date.now()}`,
+        display_id: `CRS-${Math.floor(Math.random() * 900) + 100}`,
+        name: name.trim(),
+        category: category.trim(),
+        description: description.trim(),
+        price: parseFloat(price),
+        duration: duration.trim(),
+        courseType,
+        landingPageUrl: landingPageUrl.trim(),
+        whatsappCtaLink: whatsappCtaLink.trim(),
+        status,
+        tags: cleanTags,
+        leads: 0,
+        students: 0
+      };
+      const updated = [...courses, newCourse];
+      saveCourses(updated);
+      toast("Course published successfully!", "success");
+    }
+    setIsAddOpen(false);
+  };
+
+  // Filtered dataset
+  const filteredCourses = useMemo(() => {
+    return courses.filter(c => {
+      const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.category.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.display_id.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = categoryFilter === "All" || c.category === categoryFilter;
+      const matchesStatus = statusFilter === "All" || c.status === statusFilter;
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [courses, searchTerm, categoryFilter, statusFilter]);
+
+  // Statistics calculation
+  const stats = useMemo(() => {
+    const total = courses.filter(c => c.status !== "Archived").length;
+    const leadsSum = courses.reduce((sum, c) => sum + (c.leads || 0), 0);
+    const studentsSum = courses.reduce((sum, c) => sum + (c.students || 0), 0);
+    const activeStudents = courses.reduce((sum, c) => c.status === "Live" ? sum + (c.students || 0) : sum, 0);
+    const revenueSum = courses.reduce((sum, c) => sum + ((c.price || 0) * (c.students || 0)), 0);
+    const conversion = leadsSum > 0 ? ((studentsSum / leadsSum) * 100).toFixed(0) : "0";
+
+    return {
+      total,
+      leads: leadsSum,
+      students: studentsSum,
+      active: activeStudents,
+      revenue: revenueSum,
+      conv: conversion
+    };
+  }, [courses]);
+
+  // Dynamic Course Details datasets
+  const getDynamicDrawerData = (course: Course | null) => {
+    if (!course) return { enrollments: [], leadsList: [], payments: [], trends: [] };
+
+    // Standard list of enrollments
+    const enrollments = [
+      { student: "Aditya Sen", date: "2026-05-28", amount: course.price, status: "Paid" },
+      { student: "Kavya Iyer", date: "2026-05-29", amount: course.price, status: "Paid" },
+      { student: "Nikhil Joshi", date: "2026-05-30", amount: course.price, status: "Paid" },
+      { student: "Tara Sharma", date: "2026-05-31", amount: course.price, status: "Pending" }
+    ];
+
+    // Standard interested leads
+    const leadsList = [
+      { name: "Rohan Mehra", source: "Meta Ads", stage: "Interested", contact: "2026-05-30" },
+      { name: "Shreya Ghoshal", source: "Google Ads", stage: "Demo Booked", contact: "2026-05-31" },
+      { name: "Rishabh Pant", source: "YouTube Ads", stage: "New", contact: "2026-05-31" },
+      { name: "Divya Teja", source: "Referral", stage: "Payment Pending", contact: "2026-05-29" }
+    ];
+
+    // Payments invoicing
+    const payments = [
+      { invoice: `INV-${course.display_id}-001`, amount: course.price, status: "Paid", date: "2026-05-28" },
+      { invoice: `INV-${course.display_id}-002`, amount: course.price, status: "Paid", date: "2026-05-29" },
+      { invoice: `INV-${course.display_id}-003`, amount: course.price, status: "Paid", date: "2026-05-30" }
+    ];
+
+    // Trends data for charts
+    const trends = [
+      { name: "Jan", revenue: course.price * 2, enrollments: 2, leads: 10, refunds: 0 },
+      { name: "Feb", revenue: course.price * 5, enrollments: 5, leads: 22, refunds: 0 },
+      { name: "Mar", revenue: course.price * 9, enrollments: 9, leads: 45, refunds: 1 },
+      { name: "Apr", revenue: course.price * 15, enrollments: 15, leads: 70, refunds: 0 },
+      { name: "May", revenue: course.price * (course.students || 1), enrollments: course.students || 1, leads: course.leads || 1, refunds: 1 }
+    ];
+
+    return { enrollments, leadsList, payments, trends };
+  };
+
+  const { enrollments, leadsList, payments, trends } = getDynamicDrawerData(selectedCourse);
+
+  return (
+    <div className="space-y-6">
+      {/* Top Banner Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Courses Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your courses, enrollments, revenue and performance.</p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="ghost" className="gap-2 border border-gray-200 font-semibold" onClick={() => alert("Mock Bulk Course CSV upload activated!")}>
+            <UploadCloud className="w-4 h-4" />
+            Bulk Upload
+          </Button>
+          <Button variant="ghost" className="gap-2 border border-gray-200 text-[#2E8C13] hover:text-[#257310] hover:bg-green-50 font-semibold" onClick={handleOpenAdd}>
+            <Sliders className="w-4 h-4" />
+            Bulk Edit
+          </Button>
+          <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
+            <Plus className="w-4 h-4" />
+            Add Course
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Stats Ribbon */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Courses</p>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.total}</h3>
+          </div>
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <BookOpen className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Leads</p>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.leads}</h3>
+          </div>
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <Users className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Enrollments</p>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.students}</h3>
+          </div>
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <CalendarCheck className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Students</p>
+            <h3 className="text-xl font-bold text-[#2E8C13] mt-1">{stats.active}</h3>
+          </div>
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl animate-pulse">
+            <Award className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Revenue Generated</p>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">₹{stats.revenue.toLocaleString("en-IN")}</h3>
+          </div>
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+            <IndianRupee className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Conversion Rate</p>
+            <h3 className="text-xl font-bold text-purple-600 mt-1">{stats.conv}%</h3>
+          </div>
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <TrendingUp className="w-4 h-4" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Course Management Filter toolbar */}
+      <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div className="relative flex-1 w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Search by course ID, title or category..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Category:</span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-700 outline-none"
+            >
+              <option value="All">All Categories</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Design">Design</option>
+              <option value="AI">AI</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-700 outline-none"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Live">Live</option>
+              <option value="Draft">Draft</option>
+              <option value="Paused">Paused</option>
+              <option value="Archived">Archived</option>
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      {/* Main Course Table Directory */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          {filteredCourses.length > 0 ? (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="p-4 pl-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Course Name</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Price</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Leads</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Enrolled Students</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Conversion %</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Revenue Generated</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredCourses.map(course => {
+                  const convPct = course.leads > 0 ? ((course.students / course.leads) * 100).toFixed(0) : "0";
+                  const grossRev = course.price * course.students;
+
+                  return (
+                    <tr key={course.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="p-4 pl-6 font-semibold text-gray-900">
+                        <button 
+                          onClick={() => {
+                            setSelectedCourse(course);
+                            setActiveTab("overview");
+                          }}
+                          className="font-bold text-gray-900 hover:text-primary transition-all text-left outline-none"
+                        >
+                          <p className="text-sm font-bold">{course.name}</p>
+                          <span className="text-[10px] font-mono text-gray-400">{course.display_id} • {course.courseType}</span>
+                        </button>
+                      </td>
+                      <td className="p-4">
+                        <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-md font-bold text-[10px]">
+                          {course.category}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm font-bold text-gray-900">
+                        ₹{course.price.toLocaleString("en-IN")}
+                      </td>
+                      <td className="p-4 text-center text-sm font-semibold text-gray-500">
+                        {course.leads}
+                      </td>
+                      <td className="p-4 text-center text-sm font-bold text-gray-700">
+                        {course.students}
+                      </td>
+                      <td className="p-4 text-center text-sm font-bold text-purple-600">
+                        {convPct}%
+                      </td>
+                      <td className="p-4 text-right text-sm font-bold text-emerald-600">
+                        ₹{grossRev.toLocaleString("en-IN")}
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
+                          course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
+                          course.status === "Draft" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                          course.status === "Paused" ? "bg-gray-100 text-gray-700 border-gray-200" :
+                          "bg-rose-50 text-rose-700 border-rose-200"
+                        }`}>
+                          {course.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right pr-6">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button 
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setActiveTab("overview");
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded"
+                            title="View Course Profile"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleOpenEdit(course)}
+                            className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded"
+                            title="Edit Details"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleDuplicate(course)}
+                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                            title="Duplicate Course"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleSoftDelete(course)}
+                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                            title="Archive / Delete Course"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center">
+              <ShieldAlert className="w-8 h-8 text-gray-300 mb-2" />
+              <p className="text-sm font-semibold">No courses found matching filters.</p>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Sliding Detail Drawer */}
+      <Drawer 
+        isOpen={!!selectedCourse} 
+        onClose={() => setSelectedCourse(null)} 
+        title={selectedCourse ? `${selectedCourse.name} Details` : "Course Profile"}
+      >
+        {selectedCourse && (
+          <div className="space-y-6">
+            {/* Navigation tabs inside the drawer */}
+            <div className="flex border-b border-gray-100 gap-2 shrink-0">
+              <button 
+                onClick={() => setActiveTab("overview")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
+                  activeTab === "overview" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                }`}
+              >
+                Overview
+              </button>
+              <button 
+                onClick={() => setActiveTab("enrollments")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
+                  activeTab === "enrollments" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                }`}
+              >
+                Enrollments
+              </button>
+              <button 
+                onClick={() => setActiveTab("leads")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
+                  activeTab === "leads" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                }`}
+              >
+                Leads
+              </button>
+              <button 
+                onClick={() => setActiveTab("payments")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
+                  activeTab === "payments" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                }`}
+              >
+                Payments
+              </button>
+              <button 
+                onClick={() => setActiveTab("insights")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
+                  activeTab === "insights" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                }`}
+              >
+                Insights
+              </button>
+            </div>
+
+            {/* TAB CONTENT: Overview */}
+            {activeTab === "overview" && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 border border-gray-200/50 rounded-2xl">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Course Syllabus Description</span>
+                  <p className="text-sm font-semibold text-gray-800 mt-1 leading-relaxed">{selectedCourse.description}</p>
+                  
+                  {selectedCourse.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {selectedCourse.tags.map((tag, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold rounded-full">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Course Revenue</span>
+                    <span className="text-xl font-bold text-emerald-600">₹{(selectedCourse.price * selectedCourse.students).toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="p-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Conversion Rate</span>
+                    <span className="text-xl font-bold text-purple-600">
+                      {selectedCourse.leads > 0 ? ((selectedCourse.students / selectedCourse.leads) * 100).toFixed(0) : "0"}%
+                    </span>
+                  </div>
+                  <div className="p-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Total Leads Logged</span>
+                    <span className="text-xl font-bold text-gray-800">{selectedCourse.leads} candidates</span>
+                  </div>
+                  <div className="p-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Enrolled Students</span>
+                    <span className="text-xl font-bold text-[#2E8C13]">{selectedCourse.students} active</span>
+                  </div>
+                  <div className="p-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Course Duration</span>
+                    <span className="text-sm font-bold text-gray-800 flex items-center gap-1 mt-1">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      {selectedCourse.duration}
+                    </span>
+                  </div>
+                  <div className="p-4 bg-white border border-gray-100 shadow-sm rounded-xl">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Satisfaction Refunds</span>
+                    <span className="text-xl font-bold text-rose-600">1 claimed</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 space-y-2.5">
+                  <a 
+                    href={selectedCourse.landingPageUrl || "#"} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-700 rounded-xl transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-blue-500" />
+                      Visit Course Landing Page URL
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
+                  </a>
+                  
+                  <a 
+                    href={selectedCourse.whatsappCtaLink || "#"} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-green-50 hover:bg-green-100 border border-green-200 text-xs font-semibold text-green-700 rounded-xl transition-all"
+                  >
+                    <span className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-green-500" />
+                      Open WhatsApp CTA Broadcast
+                    </span>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-green-400" />
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Enrollments */}
+            {activeTab === "enrollments" && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Enrollment Registry</h4>
+                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-white">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="p-3 pl-4">Student</th>
+                        <th className="p-3">Date Enrolled</th>
+                        <th className="p-3">Tuition Fee</th>
+                        <th className="p-3 text-right pr-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                      {enrollments.map((en, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50">
+                          <td className="p-3 pl-4 font-bold text-gray-900">{en.student}</td>
+                          <td className="p-3 text-gray-500">{en.date}</td>
+                          <td className="p-3 text-gray-900">₹{en.amount.toLocaleString()}</td>
+                          <td className="p-3 text-right pr-4">
+                            <span className={`px-2 py-0.5 rounded font-bold text-[9px] ${
+                              en.status === "Paid" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700 animate-pulse"
+                            }`}>
+                              {en.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Leads */}
+            {activeTab === "leads" && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Counseling Pipelines Interest</h4>
+                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-white">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="p-3 pl-4">Lead Name</th>
+                        <th className="p-3">Ad Source</th>
+                        <th className="p-3">CRM Stage</th>
+                        <th className="p-3 text-right pr-4">Last Contact</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                      {leadsList.map((le, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50">
+                          <td className="p-3 pl-4 font-bold text-gray-900">{le.name}</td>
+                          <td className="p-3 text-gray-500">{le.source}</td>
+                          <td className="p-3">
+                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 font-bold rounded text-[9px]">
+                              {le.stage}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right pr-4 text-gray-500">{le.contact}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Payments */}
+            {activeTab === "payments" && (
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Academy Invoices ledger</h4>
+                <div className="border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-white">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="p-3 pl-4">Invoice ID</th>
+                        <th className="p-3">Amount Billing</th>
+                        <th className="p-3">Invoice Date</th>
+                        <th className="p-3 text-right pr-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                      {payments.map((pa, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50">
+                          <td className="p-3 pl-4 font-mono font-bold text-gray-900">{pa.invoice}</td>
+                          <td className="p-3 text-gray-900 font-bold">₹{pa.amount.toLocaleString()}</td>
+                          <td className="p-3 text-gray-500">{pa.date}</td>
+                          <td className="p-3 text-right pr-4">
+                            <span className="px-2 py-0.5 bg-green-50 text-green-700 font-bold rounded text-[9px]">
+                              {pa.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: Insights */}
+            {activeTab === "insights" && (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-gray-700">Student Enrollments & Lead Trends</h4>
+                  <div className="h-[200px] w-full border border-gray-100 rounded-xl p-2 bg-white">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={trends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="enrollGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2E8C13" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#2E8C13" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                        <Area type="monotone" dataKey="enrollments" stroke="#2E8C13" strokeWidth={2} fillOpacity={1} fill="url(#enrollGrad)" name="Enrollments" />
+                        <Area type="monotone" dataKey="leads" stroke="#6366f1" strokeWidth={2} fill="none" name="Leads" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-gray-700">Tuition Revenue Trend (₹)</h4>
+                  <div className="h-[200px] w-full border border-gray-100 rounded-xl p-2 bg-white">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={trends} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₹${v/1000}k`} />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8 }} formatter={(v) => [`₹${v.toLocaleString()}`, "Revenue"]} />
+                        <Bar dataKey="revenue" fill="#2E8C13" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Drawer>
+
+      {/* Add Course form sliding drawer */}
+      <Drawer 
+        isOpen={isAddOpen} 
+        onClose={() => setIsAddOpen(false)} 
+        title={editingCourse ? `Edit Course: ${editingCourse.name}` : "Publish New Course Offer"}
+      >
+        <form className="space-y-4" onSubmit={handleSaveCourse}>
+          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Course Name *</label>
+              <input 
+                required 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                placeholder="e.g. Fullstack Developer Blueprint" 
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Category *</label>
+                <select 
+                  value={category} 
+                  onChange={(e) => setCategory(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-semibold text-gray-900"
+                >
+                  <option value="Marketing">Marketing</option>
+                  <option value="Design">Design</option>
+                  <option value="AI">AI</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Course Pricing (₹) *</label>
+                <input 
+                  required 
+                  type="number" 
+                  value={price} 
+                  onChange={(e) => setPrice(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                  placeholder="e.g. 5999" 
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Syllabus Description</label>
+              <textarea 
+                rows={3} 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                placeholder="Describe what students will learn, projects included, and benefits..." 
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Duration</label>
+                <input 
+                  type="text" 
+                  value={duration} 
+                  onChange={(e) => setDuration(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                  placeholder="e.g. 10 Weeks" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Course Type</label>
+                <select 
+                  value={courseType} 
+                  onChange={(e) => setCourseType(e.target.value as any)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-semibold text-gray-900"
+                >
+                  <option value="Live Cohort">Live Cohort</option>
+                  <option value="Recorded Course">Recorded Course</option>
+                  <option value="Hybrid Program">Hybrid Program</option>
+                  <option value="Coaching Program">Coaching Program</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Landing Page URL</label>
+              <input 
+                type="url" 
+                value={landingPageUrl} 
+                onChange={(e) => setLandingPageUrl(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                placeholder="https://academy.inba.com/course-slug" 
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">WhatsApp CTA Broadcast Link</label>
+              <input 
+                type="url" 
+                value={whatsappCtaLink} 
+                onChange={(e) => setWhatsappCtaLink(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                placeholder="https://wa.me/..." 
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Publish Status</label>
+                <select 
+                  value={status} 
+                  onChange={(e) => setStatus(e.target.value as any)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-semibold text-gray-900"
+                >
+                  <option value="Draft">Draft</option>
+                  <option value="Live">Live</option>
+                  <option value="Paused">Paused</option>
+                  <option value="Archived">Archived</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Meta Tags (comma separated)</label>
+                <input 
+                  type="text" 
+                  value={tags} 
+                  onChange={(e) => setTags(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                  placeholder="Figma, Portfolio, Design" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">
+              {editingCourse ? "Save Changes" : "Publish Course"}
+            </Button>
+          </div>
+        </form>
+      </Drawer>
+    </div>
+  );
+}
+

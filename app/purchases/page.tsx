@@ -680,24 +680,25 @@ export default function PurchasesPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">
-                        {platform === "online-course" ? "Campaign ID" : "PO Number"}
-                      </th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                        {platform === "online-course" ? "Platform" : "Supplier"}
-                      </th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                        {platform === "online-course" ? "Campaign Name" : "Items Description"}
-                      </th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
                       {platform === "online-course" ? (
                         <>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Leads Generated</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Campaign</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Platform</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Spend</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Leads</th>
                           <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cost Per Lead</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Enrollments</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cost Per Enrollment</th>
                         </>
                       ) : (
-                        <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                        <>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">PO Number</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Supplier</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Items Description</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                        </>
                       )}
                       <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                     </tr>
@@ -709,12 +710,61 @@ export default function PurchasesPage() {
                       const costFactor = 85 + (cleanAmount % 45); 
                       const leads = Math.floor(cleanAmount / costFactor);
                       const cpl = leads > 0 ? (cleanAmount / leads) : 0;
+                      const enrollments = Math.max(1, Math.floor(leads * 0.28));
+                      const cpe = enrollments > 0 ? (cleanAmount / enrollments) : 0;
+
+                      if (platform === "online-course") {
+                        return (
+                          <tr key={po.id} className="hover:bg-gray-50/50 transition-colors group">
+                            <td className="p-4 pl-6 font-semibold text-gray-900">
+                              <p className="text-sm font-bold text-gray-900">{po.notes || "Summer Cohort Campaign"}</p>
+                              <span className="text-[10px] font-mono text-gray-400">{po.po_number.replace("PO-", "CAMP-")} • {po.date}</span>
+                            </td>
+                            <td className="p-4 text-sm font-bold text-gray-800">
+                              {po.supplier}
+                            </td>
+                            <td className="p-4 text-sm font-bold text-gray-900">
+                              ₹{po.amount.toLocaleString()}
+                            </td>
+                            <td className="p-4 text-center text-sm font-semibold text-gray-500">
+                              {leads} leads
+                            </td>
+                            <td className="p-4 text-sm text-green-700 font-bold">
+                              ₹{cpl.toFixed(2)}
+                            </td>
+                            <td className="p-4 text-center text-sm font-bold text-gray-700">
+                              {enrollments} students
+                            </td>
+                            <td className="p-4 text-sm text-[#2E8C13] font-bold">
+                              ₹{cpe.toFixed(2)}
+                            </td>
+                            <td className="p-4 text-right pr-6">
+                              <div className="flex items-center justify-end gap-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => handleOpenEditDrawer(po)}
+                                  className="text-gray-400 hover:text-primary p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                                  title="Edit Campaign Details"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleDeletePo(po.id, po.po_number)}
+                                  className="text-gray-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"
+                                  title="Delete Campaign"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
 
                       return (
                         <tr key={po.id} className="hover:bg-gray-50/50 transition-colors group">
-                          <td className="p-4 pl-6 font-semibold text-gray-900">
-                            {platform === "online-course" ? po.po_number.replace("PO-", "CAMP-") : po.po_number}
-                          </td>
+                          <td className="p-4 pl-6 font-semibold text-gray-900">{po.po_number}</td>
                           <td className="p-4 text-sm text-gray-500">
                             <div className="flex items-center gap-1.5">
                               <Calendar className="w-3.5 h-3.5 text-gray-400" />
@@ -731,35 +781,28 @@ export default function PurchasesPage() {
                             {po.notes || <span className="text-gray-300 italic">No description</span>}
                           </td>
                           <td className="p-4 text-sm font-semibold text-gray-900">₹{po.amount.toLocaleString()}</td>
-                          {platform === "online-course" ? (
-                            <>
-                              <td className="p-4 text-sm text-gray-900 font-bold">{leads} leads</td>
-                              <td className="p-4 text-sm text-green-700 font-bold">₹{cpl.toFixed(2)}</td>
-                            </>
-                          ) : (
-                            <td className="p-4">
-                              <select
-                                value={po.status}
-                                onChange={(e) => handleUpdateStatus(po.id, e.target.value as any)}
-                                className={`px-2.5 py-1 rounded-full text-xs font-bold border-0 outline-none cursor-pointer ${
-                                  po.status === "Received" ? "bg-green-50 text-green-700 hover:bg-green-100" :
-                                  po.status === "Pending" ? "bg-orange-50 text-orange-700 hover:bg-orange-100" :
-                                  "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                                }`}
-                              >
-                                <option value="Ordered">Ordered</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Received">Received</option>
-                              </select>
-                            </td>
-                          )}
+                          <td className="p-4">
+                            <select
+                              value={po.status}
+                              onChange={(e) => handleUpdateStatus(po.id, e.target.value as any)}
+                              className={`px-2.5 py-1 rounded-full text-xs font-bold border-0 outline-none cursor-pointer ${
+                                po.status === "Received" ? "bg-green-50 text-green-700 hover:bg-green-100" :
+                                po.status === "Pending" ? "bg-orange-50 text-orange-700 hover:bg-orange-100" :
+                                "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                              }`}
+                            >
+                              <option value="Ordered">Ordered</option>
+                              <option value="Pending">Pending</option>
+                              <option value="Received">Received</option>
+                            </select>
+                          </td>
                           <td className="p-4 text-right pr-6">
                             <div className="flex items-center justify-end gap-2">
                               <button 
                                 type="button"
                                 onClick={() => handleOpenEditDrawer(po)}
                                 className="text-gray-400 hover:text-primary p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                                title={platform === "online-course" ? "Edit Campaign Details" : "Edit PO Details"}
+                                title="Edit PO Details"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
@@ -767,7 +810,7 @@ export default function PurchasesPage() {
                                 type="button"
                                 onClick={() => handleDeletePo(po.id, po.po_number)}
                                 className="text-gray-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"
-                                title={platform === "online-course" ? "Delete Campaign" : "Delete PO"}
+                                title="Delete PO"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>

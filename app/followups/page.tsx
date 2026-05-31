@@ -20,6 +20,8 @@ interface FollowUp {
   priority: "Low" | "Medium" | "High";
   status: "Pending" | "Completed" | "Missed";
   notes: string;
+  course: string;
+  owner: string;
 }
 
 interface AutomationLog {
@@ -41,7 +43,9 @@ const DEFAULT_FOLLOWUPS: FollowUp[] = [
     type: "Call",
     priority: "High",
     status: "Pending",
-    notes: "Call to confirm EMI eligibility and batch start timings."
+    notes: "Call to confirm EMI eligibility and batch start timings.",
+    course: "UI/UX Bootcamp",
+    owner: "Kabir Gupta"
   },
   {
     id: "f-2",
@@ -50,7 +54,9 @@ const DEFAULT_FOLLOWUPS: FollowUp[] = [
     type: "WhatsApp",
     priority: "Medium",
     status: "Completed",
-    notes: "Sent demo class link on WhatsApp. She has registered for the session."
+    notes: "Sent demo class link on WhatsApp. She has registered for the session.",
+    course: "AI for Business Masterclass",
+    owner: "Meera Reddy"
   },
   {
     id: "f-3",
@@ -59,7 +65,9 @@ const DEFAULT_FOLLOWUPS: FollowUp[] = [
     type: "Email",
     priority: "Low",
     status: "Missed",
-    notes: "Send onboarding introductory bootcamp syllabus."
+    notes: "Send onboarding introductory bootcamp syllabus.",
+    course: "Digital Marketing Masterclass",
+    owner: "Kabir Gupta"
   },
   {
     id: "f-4",
@@ -68,7 +76,9 @@ const DEFAULT_FOLLOWUPS: FollowUp[] = [
     type: "Demo Class",
     priority: "High",
     status: "Pending",
-    notes: "Counseling follow-up post Saturday UI/UX live demo webinar."
+    notes: "Counseling follow-up post Saturday UI/UX live demo webinar.",
+    course: "UI/UX Bootcamp",
+    owner: "Meera Reddy"
   }
 ];
 
@@ -146,6 +156,8 @@ export default function FollowupsPage() {
   const [formPriority, setFormPriority] = useState<FollowUp["priority"]>("Medium");
   const [formStatus, setFormStatus] = useState<FollowUp["status"]>("Pending");
   const [formNotes, setFormNotes] = useState("");
+  const [formCourse, setFormCourse] = useState("");
+  const [formOwner, setFormOwner] = useState("");
 
   const loadData = () => {
     // Load Followups
@@ -204,7 +216,9 @@ export default function FollowupsPage() {
       type: formType,
       priority: formPriority,
       status: formStatus,
-      notes: formNotes
+      notes: formNotes,
+      course: formCourse.trim(),
+      owner: formOwner.trim()
     };
 
     const updated = [newFollowup, ...followups];
@@ -217,6 +231,8 @@ export default function FollowupsPage() {
     setFormPriority("Medium");
     setFormStatus("Pending");
     setFormNotes("");
+    setFormCourse("");
+    setFormOwner("");
     setIsAddDrawerOpen(false);
 
     toast("Follow-up Action Registered Successfully!", "success");
@@ -420,33 +436,28 @@ export default function FollowupsPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Candidate Lead</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Scheduled Date</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Follow-up Mode</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Priority Weight</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Current Status</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Counselor Notes</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Lead</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Course</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Follow-Up Date</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Priority</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
                       <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredFollowups.map(f => {
-                      const IconComponent = TYPE_ICONS[f.type] || Phone;
                       return (
                         <tr key={f.id} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="p-4 pl-6 font-bold text-gray-900">{f.leadName}</td>
+                          <td className="p-4 text-xs font-semibold text-gray-700">{f.course || "UI/UX Bootcamp"}</td>
                           <td className="p-4 text-xs text-gray-500 font-semibold">{f.date}</td>
-                          <td className="p-4 text-xs">
-                            <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] inline-flex items-center gap-1 border ${TYPE_COLORS[f.type]}`}>
-                              <IconComponent className="w-3.5 h-3.5" />
-                              {f.type}
-                            </span>
-                          </td>
                           <td className="p-4 text-xs">
                             <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] border ${PRIORITY_COLORS[f.priority]}`}>
                               {f.priority}
                             </span>
                           </td>
+                          <td className="p-4 text-xs text-gray-600 font-semibold">{f.owner || "Kabir Gupta"}</td>
                           <td className="p-4">
                             <select
                               value={f.status}
@@ -462,7 +473,6 @@ export default function FollowupsPage() {
                               <option value="Missed">Missed</option>
                             </select>
                           </td>
-                          <td className="p-4 text-xs text-gray-500 max-w-xs truncate" title={f.notes}>{f.notes}</td>
                           <td className="p-4 text-right pr-6">
                             <div className="flex items-center justify-end gap-1.5">
                               <button 

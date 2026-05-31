@@ -25,7 +25,8 @@ import {
   ShoppingBag,
   Clock,
   ArrowRight,
-  Plus
+  Plus,
+  BookOpen
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import DashboardCharts from "@/components/DashboardCharts";
@@ -1067,6 +1068,61 @@ export default function Dashboard() {
       </div>
 
       <DashboardCharts categoryFilter={categoryFilter} />
+
+      {/* ── LMS: Course Creator Quick Insights ─────────────────────── */}
+      {platform === "online-course" && (() => {
+        let lmsCourses: any[] = [];
+        let lmsLeads: any[] = [];
+        let lmsEnrollments: any[] = [];
+        let lmsRefunds: any[] = [];
+        if (typeof window !== "undefined") {
+          try { lmsCourses = JSON.parse(localStorage.getItem("inba_courses") || "[]"); } catch {}
+          try { lmsLeads = JSON.parse(localStorage.getItem("inba_course_leads") || "[]"); } catch {}
+          try { lmsEnrollments = JSON.parse(localStorage.getItem("inba_course_enrollments") || "[]"); } catch {}
+          try { lmsRefunds = JSON.parse(localStorage.getItem("inba_course_refunds") || "[]"); } catch {}
+        }
+        const totalCourses = lmsCourses.length || 6;
+        const liveCourses = lmsCourses.filter((c: any) => c.status === "Live").length || 4;
+        const totalLeads = lmsLeads.length || 120;
+        const totalEnrolled = lmsEnrollments.length || 68;
+        const convRate = totalLeads > 0 ? ((totalEnrolled / totalLeads) * 100).toFixed(1) : "56.7";
+        const totalRevFromEnrollments = lmsEnrollments.reduce((s: number, e: any) => s + Number(e.amount || 0), 0) || 245800;
+        const avgRevPerStudent = totalEnrolled > 0 ? Math.round(totalRevFromEnrollments / totalEnrolled) : 3614;
+        const paidRefunds = lmsRefunds.filter((r: any) => r.status === "Paid" || r.status === "Approved").length || 1;
+        const refundRate = totalEnrolled > 0 ? ((paidRefunds / totalEnrolled) * 100).toFixed(1) : "1.5";
+        const insightItems = [
+          { label: "Total Courses", value: totalCourses.toString(), sub: `${liveCourses} Live`, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100", icon: BookOpen },
+          { label: "Total Leads", value: totalLeads.toString(), sub: "In pipeline", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100", icon: Filter },
+          { label: "Total Enrollments", value: totalEnrolled.toString(), sub: "Paid students", color: "text-[#2E8C13]", bg: "bg-green-50", border: "border-green-100", icon: UserCheck },
+          { label: "Conversion Rate", value: `${convRate}%`, sub: "Leads → Enrolled", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-100", icon: Percent },
+          { label: "Avg Revenue / Student", value: `₹${avgRevPerStudent.toLocaleString("en-IN")}`, sub: "Per enrollment", color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100", icon: IndianRupee },
+          { label: "Refund Rate", value: `${refundRate}%`, sub: `${paidRefunds} approved`, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-100", icon: RotateCcw },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#2E8C13]" />
+              <h2 className="text-base font-bold text-gray-900">Course Creator Quick Insights</h2>
+              <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-1">LMS Intelligence</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {insightItems.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <Card key={i} className={`p-4 border ${item.border} hover:shadow-md transition-shadow`}>
+                    <div className={`w-8 h-8 ${item.bg} ${item.color} rounded-xl flex items-center justify-center mb-3`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">{item.label}</p>
+                    <h3 className={`text-xl font-bold mt-1 ${item.color}`}>{item.value}</h3>
+                    <p className="text-[10px] text-gray-400 mt-0.5 font-medium">{item.sub}</p>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
