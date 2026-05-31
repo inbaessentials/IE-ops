@@ -495,7 +495,7 @@ export default function CustomersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Customers', 'displayName')}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{getModuleProp('Customers', 'displayName')}</h1>
           <p className="text-sm text-gray-500 mt-1">View {getModuleProp('Customers', 'singularDisplayName').toLowerCase()} history, orders, and details.</p>
         </div>
         <div className="flex gap-2">
@@ -515,38 +515,38 @@ export default function CustomersPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Students</p>
-              <h3 className="text-2xl font-bold tracking-tight text-gray-900">{totalCustomersCount}</h3>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Students</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
             </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-              <Users className="w-5 h-5" />
-            </div>
-          </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Students</p>
-              <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{activeStudents}</h3>
-            </div>
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-pulse">
-              <TrendingUp className="w-5 h-5" />
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+              <Users className="w-4 h-4" />
             </div>
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Completion Rate</p>
-              <h3 className="text-2xl font-bold tracking-tight text-emerald-600">{completionRate}%</h3>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Students</p>
+              <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{activeStudents}</h3>
             </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Trophy className="w-5 h-5" />
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl animate-pulse">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Inactive Students</p>
-              <h3 className="text-2xl font-bold tracking-tight text-amber-600">{inactiveStudents}</h3>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Completion Rate</p>
+              <h3 className="text-xl font-semibold tracking-tight text-emerald-600">{completionRate}%</h3>
             </div>
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-              <AlertCircle className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Trophy className="w-4 h-4" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Inactive Students</p>
+              <h3 className="text-xl font-semibold tracking-tight text-amber-600">{inactiveStudents}</h3>
+            </div>
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <AlertCircle className="w-4 h-4" />
             </div>
           </Card>
         </div>
@@ -554,36 +554,36 @@ export default function CustomersPage() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Customers', 'displayName')}</p>
-              <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {getModuleProp('Customers', 'displayName')}</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
             </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
-              <Users className="w-5 h-5" />
-            </div>
-          </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Loyal {getModuleProp('Customers', 'displayName')}</p>
-              <h3 className="text-2xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
-            </div>
-            <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
-              <Award className="w-5 h-5" />
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
+              <Users className="w-4 h-4" />
             </div>
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Avg LTV / Spent</p>
-              <h3 className="text-2xl font-semibold tracking-tight text-emerald-600">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Loyal {getModuleProp('Customers', 'displayName')}</p>
+              <h3 className="text-xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
+            </div>
+            <div className="p-2.5 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
+              <Award className="w-4 h-4" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Avg LTV / Spent</p>
+              <h3 className="text-xl font-semibold tracking-tight text-emerald-600">
                 ₹{avgSpentPerCustomer.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
               </h3>
             </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200">
-              <TrendingUp className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Spender</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Top Spender</p>
               {topSpenderCustomer && topSpenderCustomer.totalSpent > 0 ? (
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold text-indigo-700 truncate max-w-[130px] leading-tight">
@@ -594,22 +594,22 @@ export default function CustomersPage() {
                   </p>
                 </div>
               ) : (
-                <h3 className="text-2xl font-semibold tracking-tight text-gray-400">N/A</h3>
+                <h3 className="text-xl font-semibold tracking-tight text-gray-400">N/A</h3>
               )}
             </div>
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-in zoom-in duration-200">
-              <Trophy className="w-5 h-5" />
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl animate-in zoom-in duration-200">
+              <Trophy className="w-4 h-4" />
             </div>
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total LTV Value</p>
-              <h3 className="text-2xl font-semibold tracking-tight text-purple-600">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total LTV Value</p>
+              <h3 className="text-xl font-semibold tracking-tight text-purple-600">
                 ₹{totalSpentAll.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
               </h3>
             </div>
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200">
-              <Coins className="w-5 h-5" />
+            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200">
+              <Coins className="w-4 h-4" />
             </div>
           </Card>
         </div>
@@ -641,34 +641,34 @@ export default function CustomersPage() {
           ) : filteredCustomers.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
+                <tr className="bg-gray-50/70 border-b border-gray-100">
                   {platform === "online-course" ? (
                     <>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment Date</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment Date</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </>
                   ) : (
                     <>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Orders</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
                     </>
                   )}
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={customer.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     {platform === "online-course" ? (
                       <>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="p-4 whitespace-nowrap">
                           <div 
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => setViewingCustomer(customer)}
@@ -679,13 +679,13 @@ export default function CustomersPage() {
                             <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                           {customer.phone}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                           {customer.email}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                           <div className="flex flex-wrap gap-1 max-w-[200px]">
                             {(customer.coursesList || ["UI/UX Bootcamp"]).map((c: string, idx: number) => (
                               <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
@@ -694,15 +694,15 @@ export default function CustomersPage() {
                             ))}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
                           {customer.lastOrderDate !== "N/A" 
                             ? new Date(customer.lastOrderDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) 
                             : "N/A"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-bold">
+                        <td className="p-4 whitespace-nowrap text-xs text-gray-500 font-bold">
                           {customer.lastActive || ["2 hours ago", "Today", "Yesterday", "3 days ago"][customer.name.length % 4]}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="p-4 whitespace-nowrap">
                           <div className="space-y-1 w-28">
                             <div className="flex items-center justify-between text-[10px] font-medium">
                               <span className="text-gray-800">{customer.progress || 40}%</span>
@@ -725,7 +725,7 @@ export default function CustomersPage() {
                       </>
                     ) : (
                       <>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="p-4 whitespace-nowrap">
                           <div 
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => setViewingCustomer(customer)}
@@ -744,19 +744,19 @@ export default function CustomersPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="p-4 whitespace-nowrap">
                           <p className="text-sm text-gray-900">{customer.email}</p>
                           <p className="text-xs text-gray-500">{customer.phone}</p>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                           {`${customer.ordersCount} ${customer.ordersCount === 1 ? "order" : "orders"}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                           {customer.totalSpentFormatted}
                         </td>
                       </>
                     )}
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="p-4 whitespace-nowrap text-right">
                       <DropdownMenu items={getDropdownItems(customer)} />
                     </td>
                   </tr>
@@ -1574,7 +1574,7 @@ function GymMembersView() {
       {/* Directory Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight flex items-center gap-2">
             Members Directory
           </h1>
           <p className="text-sm text-gray-500 mt-1">Manage active members, sales leads, and upcoming renewals from a unified suite.</p>
@@ -1599,38 +1599,38 @@ function GymMembersView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
-            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{activeMembersCount}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Members</p>
+            <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">{activeMembersCount}</h3>
           </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-            <UserCheck className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+            <UserCheck className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Frozen Accounts</p>
-            <h3 className="text-2xl font-bold tracking-tight text-blue-600">{frozenCount}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Frozen Accounts</p>
+            <h3 className="text-xl font-semibold tracking-tight text-blue-600">{frozenCount}</h3>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
             <Activity className="w-5 h-5 animate-pulse" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Expired Packages</p>
-            <h3 className="text-2xl font-bold tracking-tight text-red-600">{expiredCount}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Expired Packages</p>
+            <h3 className="text-xl font-semibold tracking-tight text-red-600">{expiredCount}</h3>
           </div>
-          <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-            <AlertCircle className="w-5 h-5" />
+          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+            <AlertCircle className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Open Leads Pipeline</p>
-            <h3 className="text-2xl font-bold tracking-tight text-purple-600">{leads.filter(l => l.stage !== "Joined" && l.stage !== "Lost").length}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Open Leads Pipeline</p>
+            <h3 className="text-xl font-semibold tracking-tight text-purple-600">{leads.filter(l => l.stage !== "Joined" && l.stage !== "Lost").length}</h3>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <TrendingUp className="w-5 h-5" />
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <TrendingUp className="w-4 h-4" />
           </div>
         </Card>
       </div>
@@ -1921,7 +1921,7 @@ function GymMembersView() {
             <CardContent className="p-4 flex-1 space-y-3.5 overflow-y-auto max-h-[480px]">
               {expiringThisWeek.length > 0 ? (
                 expiringThisWeek.map((member: any, i: number) => (
-                  <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
+                  <div key={i} className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
                     <div>
                       <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">Plan: {member.membership}</p>
@@ -1969,7 +1969,7 @@ function GymMembersView() {
             <CardContent className="p-4 flex-1 space-y-3.5 overflow-y-auto max-h-[480px]">
               {expiringThisMonth.length > 0 ? (
                 expiringThisMonth.map((member: any, i: number) => (
-                  <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
+                  <div key={i} className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
                     <div>
                       <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">Plan: {member.membership}</p>
@@ -2017,7 +2017,7 @@ function GymMembersView() {
             <CardContent className="p-4 flex-1 space-y-3.5 overflow-y-auto max-h-[480px]">
               {overdueRenewals.length > 0 ? (
                 overdueRenewals.map((member: any, i: number) => (
-                  <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
+                  <div key={i} className="p-2.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
                     <div>
                       <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">Plan: {member.membership}</p>

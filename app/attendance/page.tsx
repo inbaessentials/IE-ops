@@ -414,7 +414,7 @@ export default function AttendancePage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Attendance Scans Ledger</h1>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Attendance Scans Ledger</h1>
           <p className="text-sm text-gray-500 mt-1">Track physical studio workouts, sign-ins volume, and engagement churn indicators.</p>
         </div>
         <div className="flex gap-2">
@@ -440,38 +440,38 @@ export default function AttendancePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Attendance Today</p>
-            <h3 className="text-2xl font-bold tracking-tight text-rose-600">{stats.today}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Attendance Today</p>
+            <h3 className="text-xl font-semibold tracking-tight text-rose-600">{stats.today}</h3>
           </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
+          <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
             <Flame className="w-5 h-5 animate-pulse" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Avg Weekly Visits</p>
-            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.weeklyAvg}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Avg Weekly Visits</p>
+            <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">{stats.weeklyAvg}</h3>
           </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-            <TrendingUp className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Inactive Members</p>
-            <h3 className="text-2xl font-bold tracking-tight text-amber-600">{stats.inactive}</h3>
-          </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <Users className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+            <TrendingUp className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Peak Workout Hours</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Inactive Members</p>
+            <h3 className="text-xl font-semibold tracking-tight text-amber-600">{stats.inactive}</h3>
+          </div>
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+            <Users className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Peak Workout Hours</p>
             <h3 className="text-base font-bold tracking-tight text-purple-600 mt-1">{stats.peakHour}</h3>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <Clock className="w-5 h-5" />
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <Clock className="w-4 h-4" />
           </div>
         </Card>
       </div>

@@ -117,7 +117,7 @@ export default function ProductsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Supplements & Products Catalog</h1>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Supplements & Products Catalog</h1>
           <p className="text-sm text-gray-500 mt-1">Configure retail stock, price tags, and monitor total items sold inside the gym store.</p>
         </div>
         
@@ -131,38 +131,38 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Stock</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{totalStockCount} <span className="text-xs text-gray-400 font-semibold">units</span></h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Stock</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalStockCount} <span className="text-xs text-gray-400 font-semibold">units</span></h3>
           </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <Package className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Out of Stock</p>
-            <h3 className="text-2xl font-bold tracking-tight text-red-600">{outOfStockCount} <span className="text-xs text-gray-400 font-semibold">items</span></h3>
-          </div>
-          <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-            <AlertCircle className="w-5 h-5" />
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Package className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Sales Volume</p>
-            <h3 className="text-2xl font-bold tracking-tight text-emerald-600">₹{totalStoreSalesVal.toLocaleString("en-IN")}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Out of Stock</p>
+            <h3 className="text-xl font-semibold tracking-tight text-red-600">{outOfStockCount} <span className="text-xs text-gray-400 font-semibold">items</span></h3>
           </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-            <Coins className="w-5 h-5" />
+          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+            <AlertCircle className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Distinct Products</p>
-            <h3 className="text-2xl font-bold tracking-tight text-purple-600">{supplements.length}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Sales Volume</p>
+            <h3 className="text-xl font-semibold tracking-tight text-emerald-600">₹{totalStoreSalesVal.toLocaleString("en-IN")}</h3>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <Sliders className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+            <Coins className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Distinct Products</p>
+            <h3 className="text-xl font-semibold tracking-tight text-purple-600">{supplements.length}</h3>
+          </div>
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <Sliders className="w-4 h-4" />
           </div>
         </Card>
       </div>

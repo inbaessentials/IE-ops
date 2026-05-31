@@ -782,7 +782,7 @@ export default function SalesPage() {
       <div className="space-y-6 print:hidden">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Sales', 'displayName')}</h1>
+            <h1 className="text-xl font-semibold text-gray-900">{getModuleProp('Sales', 'displayName')}</h1>
             <p className="text-sm text-gray-500 mt-1">Track and manage customer {getModuleProp('Sales', 'displayName').toLowerCase()} and invoices.</p>
           </div>
           <Button className="gap-2" onClick={() => {
@@ -816,11 +816,11 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Sales', 'displayName')}</p>
-              <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalOrdersCount}</h3>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {getModuleProp('Sales', 'displayName')}</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalOrdersCount}</h3>
             </div>
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-              <Package className="w-5 h-5" />
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+              <Package className="w-4 h-4" />
             </div>
           </Card>
           <Card 
@@ -834,13 +834,13 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                 {config.dashboardCards.find(c => c.key === 'Total Sales')?.title || 'Total Revenue'}
               </p>
-              <h3 className="text-2xl font-semibold tracking-tight text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
             </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Leaf className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <Leaf className="w-4 h-4" />
             </div>
           </Card>
           <Card 
@@ -854,11 +854,11 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Pending {getModuleProp('Sales', 'displayName')}</p>
-              <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{pendingOrdersCount}</h3>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending {getModuleProp('Sales', 'displayName')}</p>
+              <h3 className="text-xl font-semibold tracking-tight text-amber-600">{pendingOrdersCount}</h3>
             </div>
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-              <Clock className="w-5 h-5" />
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <Clock className="w-4 h-4" />
             </div>
           </Card>
           <Card 
@@ -872,24 +872,24 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                 {platform === 'online-course' ? 'Provisioned / Active' : 'Shipped / Delivered'}
               </p>
-              <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">{completedOrdersCount}</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{completedOrdersCount}</h3>
             </div>
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+              <CheckCircle2 className="w-4 h-4" />
             </div>
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/inventory'}>
             <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                 {config.dashboardCards.find(c => c.key === 'Total Items Sold')?.title || 'Total Items Sold'}
               </p>
-              <h3 className="text-2xl font-semibold tracking-tight text-purple-600">{totalItemsSold}</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-purple-600">{totalItemsSold}</h3>
             </div>
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-              <CircleDot className="w-5 h-5" />
+            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+              <CircleDot className="w-4 h-4" />
             </div>
           </Card>
         </div>
@@ -975,36 +975,36 @@ export default function SalesPage() {
           <div className="overflow-visible min-h-[500px] pb-48">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
+                <tr className="bg-gray-50/70 border-b border-gray-100">
                   {platform === "online-course" ? (
                     <>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment ID</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment ID</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
                     </>
                   ) : (
                     <>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Order ID & Date
                       </th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Customer
                       </th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Items
                       </th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Payment
                       </th>
-                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </>
                   )}
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1023,8 +1023,8 @@ export default function SalesPage() {
 
                   if (platform === "online-course") {
                     return (
-                      <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-primary">
+                      <tr key={order.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                        <td className="p-4 whitespace-nowrap text-sm font-semibold text-primary">
                           <button 
                             type="button"
                             onClick={() => setViewingOrder(order)}
@@ -1033,7 +1033,7 @@ export default function SalesPage() {
                             {order.id}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        <td className="p-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                           <button 
                             type="button"
                             onClick={() => setViewingCustomerName(order.customer)}
@@ -1042,13 +1042,13 @@ export default function SalesPage() {
                             {order.customer}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium max-w-[200px] truncate">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-600 font-medium max-w-[200px] truncate">
                           {order.items.map((item: any) => item.name).join(", ") || "Digital Marketing Masterclass"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                           ₹{Number(order.amount).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="p-4 whitespace-nowrap">
                           <Badge 
                             variant={
                               coursePaymentStatus === 'Paid' ? 'success' : 
@@ -1059,13 +1059,13 @@ export default function SalesPage() {
                             {coursePaymentStatus}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-medium">
                           {order.date || new Date(order.created_at || Date.now()).toLocaleDateString("en-IN")}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-600 font-medium">
                           {order.source || ["Meta Ads", "Google Ads", "Organic", "YouTube Ads", "Referral"][Number(order.id.replace(/\D/g, "")) % 5 || 0]}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="p-4 whitespace-nowrap text-right">
                           <DropdownMenu items={getDropdownItems(order)} />
                         </td>
                       </tr>
@@ -1073,8 +1073,8 @@ export default function SalesPage() {
                   }
 
                   return (
-                    <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={order.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                      <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <button 
                             type="button"
@@ -1086,7 +1086,7 @@ export default function SalesPage() {
                           <span className="text-xs text-gray-500 mt-0.5">{order.date}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                         <button 
                           type="button"
                           onClick={() => setViewingCustomerName(order.customer)}
@@ -1095,7 +1095,7 @@ export default function SalesPage() {
                           {order.customer}
                         </button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="p-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1 max-w-[200px] truncate">
                           {order.items.map((item: any, i: number) => (
                             <span key={i} className="text-xs text-gray-600 font-medium truncate">
@@ -1104,10 +1104,10 @@ export default function SalesPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                         {order.amount}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="p-4 whitespace-nowrap">
                         <Badge 
                           variant={
                             order.payment === 'Paid' ? 'success' : 
@@ -1117,13 +1117,13 @@ export default function SalesPage() {
                           {order.payment}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="p-4 whitespace-nowrap">
                         <StatusDropdown 
                           value={order.status}
                           onChange={(val) => handleStatusChange(order.id, val)}
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="p-4 whitespace-nowrap text-right">
                         <DropdownMenu items={getDropdownItems(order)} />
                       </td>
                     </tr>
@@ -1838,7 +1838,7 @@ export default function SalesPage() {
             <div className="space-y-6 pb-20">
               <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{viewingOrder.id}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{viewingOrder.id}</h3>
                   <p className="text-sm text-gray-500 mt-1">{viewingOrder.date}</p>
                 </div>
                 <div className="text-right space-y-2">
@@ -2501,7 +2501,7 @@ function GymRevenueView() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gym Revenue & Accounts</h1>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Gym Revenue & Accounts</h1>
           <p className="text-sm text-gray-500 mt-1">Consolidated ledger for memberships checkout, personal coaching collections, supplement sales, and operations expenses.</p>
         </div>
         
@@ -2565,29 +2565,29 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross Membership Revenue</p>
-                <h3 className="text-2xl font-bold tracking-tight text-emerald-600">₹{stats.membershipRev.toLocaleString("en-IN")}</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Gross Membership Revenue</p>
+                <h3 className="text-xl font-semibold tracking-tight text-emerald-600">₹{stats.membershipRev.toLocaleString("en-IN")}</h3>
               </div>
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <IndianRupee className="w-5 h-5" />
-              </div>
-            </Card>
-            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
-              <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Average Member Value (AMV)</p>
-                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">₹{stats.amv.toLocaleString("en-IN")}</h3>
-              </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Users className="w-5 h-5" />
+              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                <IndianRupee className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Renewal Conversion Rate</p>
-                <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.renewalRate}%</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Average Member Value (AMV)</p>
+                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">₹{stats.amv.toLocaleString("en-IN")}</h3>
               </div>
-              <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-                <TrendingUp className="w-5 h-5" />
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Users className="w-4 h-4" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Renewal Conversion Rate</p>
+                <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">{stats.renewalRate}%</h3>
+              </div>
+              <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+                <TrendingUp className="w-4 h-4" />
               </div>
             </Card>
           </div>
@@ -2644,29 +2644,29 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross PT & Coaching Revenue</p>
-                <h3 className="text-2xl font-bold tracking-tight text-purple-600">₹{stats.ptRev.toLocaleString("en-IN")}</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Gross PT & Coaching Revenue</p>
+                <h3 className="text-xl font-semibold tracking-tight text-purple-600">₹{stats.ptRev.toLocaleString("en-IN")}</h3>
               </div>
-              <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                <Award className="w-5 h-5" />
-              </div>
-            </Card>
-            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
-              <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Coaching Clients</p>
-                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.activePtClients} Members</h3>
-              </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Users className="w-5 h-5" />
+              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                <Award className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Coaching Conversion Share</p>
-                <h3 className="text-2xl font-bold tracking-tight text-emerald-600">{stats.ptConvRate}%</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Coaching Clients</p>
+                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{stats.activePtClients} Members</h3>
               </div>
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <TrendingUp className="w-5 h-5" />
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Users className="w-4 h-4" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Coaching Conversion Share</p>
+                <h3 className="text-xl font-semibold tracking-tight text-emerald-600">{stats.ptConvRate}%</h3>
+              </div>
+              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                <TrendingUp className="w-4 h-4" />
               </div>
             </Card>
           </div>
@@ -2718,29 +2718,29 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross Supplement Sales</p>
-                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">₹{stats.productRev.toLocaleString("en-IN")}</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Gross Supplement Sales</p>
+                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">₹{stats.productRev.toLocaleString("en-IN")}</h3>
               </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <ShoppingBag className="w-5 h-5" />
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <ShoppingBag className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Selling Supplement</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Top Selling Supplement</p>
                 <h3 className="text-lg font-bold tracking-tight text-gray-900 mt-1">Whey Protein (2kg)</h3>
               </div>
-              <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-                <Flame className="w-5 h-5" />
+              <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+                <Flame className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Critical Low Stock Items</p>
-                <h3 className="text-2xl font-bold tracking-tight text-red-600">{products.filter(p => p.stock <= 10).length} Items</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Critical Low Stock Items</p>
+                <h3 className="text-xl font-semibold tracking-tight text-red-600">{products.filter(p => p.stock <= 10).length} Items</h3>
               </div>
-              <div className="p-3 bg-red-50 text-red-600 rounded-xl animate-pulse">
-                <AlertCircle className="w-5 h-5" />
+              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl animate-pulse">
+                <AlertCircle className="w-4 h-4" />
               </div>
             </Card>
           </div>
@@ -2797,20 +2797,20 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Gym Monthly Expenses</p>
-                <h3 className="text-2xl font-bold tracking-tight text-red-600">₹{stats.totalExpenses.toLocaleString("en-IN")}</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Gym Monthly Expenses</p>
+                <h3 className="text-xl font-semibold tracking-tight text-red-600">₹{stats.totalExpenses.toLocaleString("en-IN")}</h3>
               </div>
-              <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-                <Wallet className="w-5 h-5" />
+              <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+                <Wallet className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Expense category</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Top Expense category</p>
                 <h3 className="text-xl font-bold tracking-tight text-gray-900 mt-1">Premises Rent (₹1,20,000)</h3>
               </div>
-              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                <AlertCircle className="w-5 h-5" />
+              <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                <AlertCircle className="w-4 h-4" />
               </div>
             </Card>
           </div>

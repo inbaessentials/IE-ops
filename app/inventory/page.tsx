@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
+import { KpiCard } from "@/components/ui/KpiCard";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/Table";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
@@ -774,7 +776,7 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{getModuleProp('Inventory', 'displayName')} Management</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{getModuleProp('Inventory', 'displayName')} Management</h1>
           <p className="text-sm text-gray-500 mt-1">{getModuleProp('Inventory', 'description')}</p>
         </div>
         <div className="flex gap-2">
@@ -797,47 +799,47 @@ export default function InventoryPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Inventory', 'displayName')}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalProductsCount}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {getModuleProp('Inventory', 'displayName')}</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalProductsCount}</h3>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <Package className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {(platform as string) === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">{(platform as string) === 'online-course' ? 'slots' : 'units'}</span></h3>
-          </div>
-          <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-            <Layers className="w-5 h-5" />
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <Package className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {(platform as string) === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
+            <h3 className="text-xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">{(platform as string) === 'online-course' ? 'slots' : 'units'}</span></h3>
           </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
-            <AlertCircle className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
-          </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <AlertTriangle className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-green-600 rounded-xl">
+            <Layers className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{(platform as string) === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
+            <h3 className="text-xl font-semibold tracking-tight text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <Coins className="w-5 h-5" />
+          <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+            <AlertCircle className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{(platform as string) === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
+            <h3 className="text-xl font-semibold tracking-tight text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
+          </div>
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{(platform as string) === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
+            <h3 className="text-xl font-semibold tracking-tight text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
+          </div>
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Coins className="w-4 h-4" />
           </div>
         </Card>
       </div>
@@ -996,26 +998,26 @@ export default function InventoryPage() {
           <div className="overflow-x-auto min-h-[400px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {(platform as string) === "online-course" ? "Course Name" : "Product Info"}
                   </th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {(platform as string) === "online-course" ? "Students Enrolled" : "Stock"}
                   </th>
                   {(platform as string) === "online-course" && (
-                    <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
                   )}
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                    <td className="p-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <button 
                           type="button"
@@ -1040,23 +1042,23 @@ export default function InventoryPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                       {product.category}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                       ₹{product.price}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="p-4 whitespace-nowrap text-sm">
                       <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
                         {product.stock} {(platform as string) === "online-course" ? "students" : "units"}
                       </span>
                     </td>
                     {(platform as string) === "online-course" && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                      <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                         ₹{(product.stock * product.price).toLocaleString("en-IN")}
                       </td>
                     )}
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="p-4 whitespace-nowrap">
                       <Badge 
                         variant={
                           product.status === 'Active' ? 'success' : 
@@ -1067,7 +1069,7 @@ export default function InventoryPage() {
                         {product.status === 'Inactive' && (platform as string) === 'online-course' ? 'Archived' : product.status}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="p-4 whitespace-nowrap text-right">
                       <DropdownMenu items={getDropdownItems(product)} />
                     </td>
                   </tr>
@@ -1290,7 +1292,7 @@ export default function InventoryPage() {
                 }}
                 className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -1570,12 +1572,12 @@ export default function InventoryPage() {
                 }}
                 className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Inner Filters Toolbar inside modal */}
-            <div className="px-6 py-4 bg-gray-50/70 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-4 flex-1">
                 {/* Modal Search Bar */}
                 <div className="relative flex-1 min-w-[240px] max-w-md">
@@ -1982,7 +1984,7 @@ function GymMembershipsView() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Membership Plans Manager</h1>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Membership Plans Manager</h1>
           <p className="text-sm text-gray-500 mt-1">Configure fitness studio subscription packages, rates, and validity policies.</p>
         </div>
         
@@ -1996,38 +1998,38 @@ function GymMembershipsView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Plans</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.filter(p => p.status === "Active").length}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Plans</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{plans.filter(p => p.status === "Active").length}</h3>
           </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Packages</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.length}</h3>
-          </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <Package className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Conversion Rate</p>
-            <h3 className="text-2xl font-bold tracking-tight text-purple-600">88.4%</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Packages</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{plans.length}</h3>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <Sliders className="w-5 h-5" />
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Package className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Tax Standard</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">18% <span className="text-xs text-gray-400 font-semibold">GST</span></h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Conversion Rate</p>
+            <h3 className="text-xl font-semibold tracking-tight text-purple-600">88.4%</h3>
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <Award className="w-5 h-5" />
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <Sliders className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Tax Standard</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">18% <span className="text-xs text-gray-400 font-semibold">GST</span></h3>
+          </div>
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+            <Award className="w-4 h-4" />
           </div>
         </Card>
       </div>
@@ -2538,7 +2540,7 @@ function CourseManagementView() {
       {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Courses Management</h1>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Courses Management</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your courses, enrollments, revenue and performance.</p>
         </div>
         <div className="flex gap-2 shrink-0">
@@ -2559,60 +2561,50 @@ function CourseManagementView() {
 
       {/* KPI Stats Ribbon */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Courses</p>
-            <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.total}</h3>
-          </div>
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-            <BookOpen className="w-4 h-4" />
-          </div>
-        </Card>
-        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Leads</p>
-            <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.leads}</h3>
-          </div>
-          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
-            <Users className="w-4 h-4" />
-          </div>
-        </Card>
-        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Enrollments</p>
-            <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.students}</h3>
-          </div>
-          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-            <CalendarCheck className="w-4 h-4" />
-          </div>
-        </Card>
-        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Students</p>
-            <h3 className="text-xl font-bold text-[#2E8C13] mt-1">{stats.active}</h3>
-          </div>
-          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl animate-pulse">
-            <Award className="w-4 h-4" />
-          </div>
-        </Card>
-        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</p>
-            <h3 className="text-xl font-bold text-gray-900 mt-1">₹{stats.revenue.toLocaleString("en-IN")}</h3>
-          </div>
-          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-            <IndianRupee className="w-4 h-4" />
-          </div>
-        </Card>
-        <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Conversion Rate</p>
-            <h3 className="text-xl font-bold text-purple-600 mt-1">{stats.conv}%</h3>
-          </div>
-          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-        </Card>
+        <KpiCard 
+          title="Total Courses" 
+          value={stats.total} 
+          icon={<BookOpen />} 
+          iconBgClass="bg-blue-50" 
+          iconTextClass="text-blue-600" 
+        />
+        <KpiCard 
+          title="Total Leads" 
+          value={stats.leads} 
+          icon={<Users />} 
+          iconBgClass="bg-purple-50" 
+          iconTextClass="text-purple-600" 
+        />
+        <KpiCard 
+          title="Total Enrollments" 
+          value={stats.students} 
+          icon={<CalendarCheck />} 
+          iconBgClass="bg-indigo-50" 
+          iconTextClass="text-indigo-600" 
+        />
+        <KpiCard 
+          title="Active Students" 
+          value={stats.active} 
+          valueClass="text-[#2E8C13]"
+          icon={<Award />} 
+          iconBgClass="bg-green-50 animate-pulse" 
+          iconTextClass="text-[#2E8C13]" 
+        />
+        <KpiCard 
+          title="Revenue Generated" 
+          value={`₹${stats.revenue.toLocaleString("en-IN")}`} 
+          icon={<IndianRupee />} 
+          iconBgClass="bg-emerald-50" 
+          iconTextClass="text-emerald-600" 
+        />
+        <KpiCard 
+          title="Conversion Rate" 
+          value={`${stats.conv}%`} 
+          valueClass="text-purple-600"
+          icon={<TrendingUp />} 
+          iconBgClass="bg-purple-50" 
+          iconTextClass="text-purple-600" 
+        />
       </div>
       {/* ── Page-level Tabs: Courses | Category ─── */}
       <div className="flex gap-0 border-b border-gray-200">

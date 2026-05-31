@@ -64,7 +64,7 @@ export default function SetupPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
       <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Database Setup ({platform.toUpperCase()})</h1>
+        <h1 className="text-xl font-semibold text-gray-900">Database Setup ({platform.toUpperCase()})</h1>
         <p className="text-gray-600 text-sm">
           Click the button below to push all your dynamic seed data for <strong>{platform.toUpperCase()}</strong> directly into your Supabase project.
         </p>

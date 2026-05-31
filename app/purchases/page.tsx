@@ -399,7 +399,7 @@ export default function PurchasesPage() {
       {/* Dynamic Header Titles */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl font-semibold text-gray-900">
             {platform === "online-course" 
               ? (activeSubTab === "campaigns" ? "Marketing Campaigns" : "Coupon & Offer Management") 
               : getModuleProp('Purchases', 'displayName')}
@@ -468,33 +468,33 @@ export default function PurchasesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Promo Offers</p>
-                <h3 className="text-2xl font-bold tracking-tight text-gray-900">{coupons.length} coupons</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Promo Offers</p>
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900">{coupons.length} coupons</h3>
               </div>
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <FileText className="w-5 h-5" />
+              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                <FileText className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Coupon Redemptions</p>
-                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Coupon Redemptions</p>
+                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">
                   {coupons.reduce((sum, c) => sum + c.usageCount, 0)} times
                 </h3>
               </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Clock className="w-5 h-5" />
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Clock className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross Revenue Driven</p>
-                <h3 className="text-2xl font-bold tracking-tight text-emerald-600">
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Gross Revenue Driven</p>
+                <h3 className="text-xl font-semibold tracking-tight text-emerald-600">
                   ₹{coupons.reduce((sum, c) => sum + c.revenueGenerated, 0).toLocaleString()}
                 </h3>
               </div>
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <DollarSign className="w-5 h-5" />
+              <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                <DollarSign className="w-4 h-4" />
               </div>
             </Card>
           </div>
@@ -520,7 +520,7 @@ export default function PurchasesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {coupons.map(c => (
-                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={c.id} className="hover:bg-gray-50/40 transition-colors group relative">
                       <td className="p-4 pl-6 font-mono font-bold text-gray-900 tracking-wide text-sm">{c.code}</td>
                       <td className="p-4 text-sm font-semibold text-gray-500">
                         <span className={`px-2 py-0.5 rounded-md border ${
@@ -616,33 +616,33 @@ export default function PurchasesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Purchases', 'displayName')}</p>
-                <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {getModuleProp('Purchases', 'displayName')}</p>
+                <h3 className="text-xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
               </div>
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <FileText className="w-5 h-5" />
+              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                <FileText className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
-                <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
+                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">
                   ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString()}
                 </h3>
               </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <DollarSign className="w-5 h-5" />
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <DollarSign className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Pending Actions</p>
-                <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending Actions</p>
+                <h3 className="text-xl font-semibold tracking-tight text-amber-600">
                   {purchaseOrders.filter(o => o.status !== "Received").length}
                 </h3>
               </div>
-              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                <Clock className="w-5 h-5" />
+              <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                <Clock className="w-4 h-4" />
               </div>
             </Card>
           </div>

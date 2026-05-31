@@ -552,7 +552,7 @@ export default function Dashboard() {
         {/* Page Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
               Gym Services Operating System
             </h1>
             <p className="text-sm text-gray-500 mt-1">Real-time revenue, retention, and enrollment statistics for Elite Fitness Studio.</p>
@@ -571,8 +571,8 @@ export default function Dashboard() {
         {/* 9 KPI Ribbon Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-              <Users className="w-5 h-5" />
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+              <Users className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Total Members</p>
@@ -581,8 +581,8 @@ export default function Dashboard() {
           </Card>
           
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-              <UserCheck className="w-5 h-5" />
+            <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+              <UserCheck className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Active Members</p>
@@ -591,8 +591,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-              <Filter className="w-5 h-5" />
+            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Filter className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">New Leads</p>
@@ -601,8 +601,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-              <CalendarCheck className="w-5 h-5" />
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <CalendarCheck className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Renewals Due</p>
@@ -611,8 +611,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <IndianRupee className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <IndianRupee className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Revenue Today</p>
@@ -621,8 +621,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-              <TrendingUp className="w-5 h-5" />
+            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+              <TrendingUp className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Revenue This Month</p>
@@ -631,8 +631,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-              <Award className="w-5 h-5" />
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <Award className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">PT Revenue</p>
@@ -641,8 +641,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-sky-50 text-sky-600 rounded-xl">
-              <PackageCheck className="w-5 h-5" />
+            <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
+              <PackageCheck className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Product Revenue</p>
@@ -651,8 +651,8 @@ export default function Dashboard() {
           </Card>
 
           <Card className="p-4 sm:col-span-2 lg:col-span-1 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
-            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl animate-pulse">
-              <Flame className="w-5 h-5" />
+            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl animate-pulse">
+              <Flame className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Attendance Today</p>
@@ -894,11 +894,11 @@ export default function Dashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Trainer Name</th>
-                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Department Specialty</th>
-                      <th className="py-3 px-6 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Clients</th>
-                      <th className="py-3 px-6 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">PT Plans Sold</th>
-                      <th className="py-3 px-6 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Trainer Name</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Department Specialty</th>
+                      <th className="p-4 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Clients</th>
+                      <th className="p-4 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">PT Plans Sold</th>
+                      <th className="p-4 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
@@ -985,7 +985,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{dashboardTitle}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{dashboardTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{dashboardDesc}</p>
         </div>
         
@@ -1049,7 +1049,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getCardTitle(kpi.title)}</p>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{kpi.value}</h3>
+                      <h3 className="text-xl font-semibold tracking-tight text-gray-900">{kpi.value}</h3>
                       {totalSalesSum > 0 && (
                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                           kpi.trend.startsWith('+') ? 'bg-green-50 text-green-700' : 
@@ -1139,11 +1139,11 @@ export default function Dashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getModuleProp('Inventory', 'singularDisplayName')}</th>
-                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                      <th className="py-3 px-6 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Units Sold</th>
-                      <th className="py-3 px-6 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                      <th className="py-3 px-6 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getModuleProp('Inventory', 'singularDisplayName')}</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="p-4 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Units Sold</th>
+                      <th className="p-4 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="p-4 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">

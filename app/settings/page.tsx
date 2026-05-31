@@ -513,7 +513,7 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
           <p className="text-sm text-gray-500 mt-1">Manage your system configurations and master data.</p>
         </div>
         <Button className="gap-2" onClick={handleSaveSettings} disabled={loading}>
@@ -910,7 +910,7 @@ export default function SettingsPage() {
                 ) : (
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <h3 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
+                      <h3 className="text-xl font-semibold text-gray-900 tracking-tight leading-tight">
                         {viewingCategory.name}
                       </h3>
                       <p className="text-sm text-gray-500">{viewingCategory.count} active products</p>
@@ -1099,7 +1099,7 @@ export default function SettingsPage() {
                   </div>
                 ) : (
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
+                    <h3 className="text-xl font-semibold text-gray-900 tracking-tight leading-tight">
                       {viewingSupplier.name}
                     </h3>
                     <button 

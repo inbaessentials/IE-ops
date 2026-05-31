@@ -904,7 +904,7 @@ export default function GoalsPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{goalsTitle}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{goalsTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">
             {getModuleProp('Goals', 'description') || 'Focus on monthly growth outcomes in a stress-free environment.'}
           </p>
@@ -986,14 +986,14 @@ export default function GoalsPage() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-[#2E8C13]/10 text-[#2E8C13]">
-                  <Target className="w-6 h-6" />
+                  <Target className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider truncate">
                     {focusGoal.name}
                   </p>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <h3 className="text-2xl font-semibold tracking-tight text-[#2E8C13]">
+                    <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(achievedValue)
                         : `${achievedValue} ${salesPlural.toLowerCase()}`}
@@ -1016,12 +1016,12 @@ export default function GoalsPage() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-purple-50 text-purple-600">
-                  <Calendar className="w-6 h-6" />
+                  <Calendar className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Daily Pace Required</p>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
+                    <h3 className="text-xl font-semibold tracking-tight text-gray-900">
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
                         ? formatCurrency(dailyPacingNeeded)
                         : `${Math.ceil(dailyPacingNeeded)} ${salesPlural.toLowerCase()}`}
@@ -1042,7 +1042,7 @@ export default function GoalsPage() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-amber-50 text-amber-600">
-                  <TrendingUp className="w-6 h-6" />
+                  <TrendingUp className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Run-Rate Forecast</p>
@@ -1072,12 +1072,12 @@ export default function GoalsPage() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-blue-50 text-blue-600">
-                  <Percent className="w-6 h-6" />
+                  <Percent className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Goal Margin Mix</p>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
+                    <h3 className="text-xl font-semibold tracking-tight text-gray-900">
                       {grossProfitMargin}%
                     </h3>
                   </div>

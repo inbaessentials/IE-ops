@@ -489,7 +489,7 @@ export default function LeadCRM() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight flex items-center gap-2">
             Lead CRM Pipeline
           </h1>
           <p className="text-sm text-gray-500 mt-1">Acquire, track, and enroll students into active course cohorts.</p>
@@ -519,37 +519,37 @@ export default function LeadCRM() {
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Leads</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{stats.total}</h3>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{stats.total}</h3>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <ClipboardList className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Acquired Today</p>
-            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.today}</h3>
-          </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl animate-pulse">
-            <Sparkles className="w-5 h-5" />
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <ClipboardList className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Leads Converted</p>
-            <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.converted}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Acquired Today</p>
+            <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">{stats.today}</h3>
           </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <CheckCircle className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl animate-pulse">
+            <Sparkles className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Acquisition Conv. Rate</p>
-            <h3 className="text-2xl font-bold tracking-tight text-purple-600">{stats.rate}%</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Leads Converted</p>
+            <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{stats.converted}</h3>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <Share2 className="w-5 h-5" />
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <CheckCircle className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Acquisition Conv. Rate</p>
+            <h3 className="text-xl font-semibold tracking-tight text-purple-600">{stats.rate}%</h3>
+          </div>
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <Share2 className="w-4 h-4" />
           </div>
         </Card>
       </div>

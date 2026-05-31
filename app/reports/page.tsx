@@ -380,7 +380,7 @@ export default function ReportsPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Reports & Analytics</h1>
           <p className="text-sm text-gray-500 mt-1">Real-time performance metrics, sales breakdowns, and cost details.</p>
         </div>
         
@@ -443,10 +443,10 @@ export default function ReportsPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{kpi.title}</p>
-                      <h3 className="text-2xl font-semibold tracking-tight text-gray-900 mt-2">{kpi.value}</h3>
+                      <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">{kpi.value}</h3>
                     </div>
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.color}`}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-4 text-xs">

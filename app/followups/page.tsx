@@ -319,7 +319,7 @@ export default function FollowupsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight flex items-center gap-2">
             Follow-up Center
           </h1>
           <p className="text-sm text-gray-500 mt-1">Nurture leads, manage demo webinars, and schedule cohort enrollment callbacks.</p>
@@ -374,29 +374,29 @@ export default function FollowupsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Follow-ups Today</p>
-                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.today} pending</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Follow-ups Today</p>
+                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{stats.today} pending</h3>
               </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Clock className="w-5 h-5" />
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Clock className="w-4 h-4" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Missed callbacks</p>
-                <h3 className="text-2xl font-bold tracking-tight text-rose-600">{stats.missed} actions</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Missed callbacks</p>
+                <h3 className="text-xl font-semibold tracking-tight text-rose-600">{stats.missed} actions</h3>
               </div>
-              <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
+              <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
                 <AlertCircle className="w-5 h-5 animate-pulse" />
               </div>
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Upcoming Follow-ups</p>
-                <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.upcoming} queued</h3>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Upcoming Follow-ups</p>
+                <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">{stats.upcoming} queued</h3>
               </div>
-              <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-                <Calendar className="w-5 h-5" />
+              <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+                <Calendar className="w-4 h-4" />
               </div>
             </Card>
           </div>
@@ -511,7 +511,7 @@ export default function FollowupsPage() {
           <Card className="p-4 bg-purple-50/30 border border-purple-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-purple-50 rounded-xl text-purple-700">
-                <BellRing className="w-5 h-5" />
+                <BellRing className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Module 9: Automation Dispatch Log</h3>
@@ -548,7 +548,7 @@ export default function FollowupsPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
                     {automations.map(log => (
-                      <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                      <tr key={log.id} className="hover:bg-gray-50/40 transition-colors group relative">
                         <td className="p-4 pl-6 text-gray-400">{log.id.toUpperCase()}</td>
                         <td className="p-4 text-gray-900 font-bold">{log.lead}</td>
                         <td className="p-4 text-gray-500">{log.phone}</td>

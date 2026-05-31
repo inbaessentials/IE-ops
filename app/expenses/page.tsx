@@ -291,7 +291,7 @@ export default function ExpensesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{expensesTitle}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{expensesTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{getModuleProp('Expenses', 'description') || 'Track operational costs like courier, packaging, and ads.'}</p>
         </div>
         <Button className="gap-2" onClick={handleOpenAdd}>
@@ -305,46 +305,46 @@ export default function ExpensesPage() {
         {/* Total Expenses Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Filtered</p>
-            <h3 className="text-2xl font-bold tracking-tight text-rose-600">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Filtered</p>
+            <h3 className="text-xl font-semibold tracking-tight text-rose-600">
               ₹{totalExpensesSum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
           </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl animate-in zoom-in duration-200">
-            <Coins className="w-5 h-5" />
+          <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl animate-in zoom-in duration-200">
+            <Coins className="w-4 h-4" />
           </div>
         </Card>
 
         {/* Monthly spent Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">This Month Spent</p>
-            <h3 className="text-2xl font-bold tracking-tight text-blue-600">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">This Month Spent</p>
+            <h3 className="text-xl font-semibold tracking-tight text-blue-600">
               ₹{thisMonthSum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
-            <Calendar className="w-5 h-5" />
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
+            <Calendar className="w-4 h-4" />
           </div>
         </Card>
 
         {/* Avg cost Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Average {expenseSingular}</p>
-            <h3 className="text-2xl font-bold tracking-tight text-amber-600">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Average {expenseSingular}</p>
+            <h3 className="text-xl font-semibold tracking-tight text-amber-600">
               ₹{averageExpense.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl animate-in zoom-in duration-200">
-            <Award className="w-5 h-5" />
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl animate-in zoom-in duration-200">
+            <Award className="w-4 h-4" />
           </div>
         </Card>
 
         {/* Top Category sum Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Category</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Top Category</p>
             {topCategorySum > 0 ? (
               <div>
                 <h3 className="text-base font-bold text-purple-700 truncate leading-tight">
@@ -355,18 +355,18 @@ export default function ExpensesPage() {
                 </p>
               </div>
             ) : (
-              <h3 className="text-2xl font-bold tracking-tight text-gray-400">N/A</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-400">N/A</h3>
             )}
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200 shrink-0">
-            <Trophy className="w-5 h-5" />
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl animate-in zoom-in duration-200 shrink-0">
+            <Trophy className="w-4 h-4" />
           </div>
         </Card>
 
         {/* Single Highest Item Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Highest Single</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Highest Single</p>
             {highestExpenseAmount > 0 ? (
               <div>
                 <h3 className="text-base font-bold text-emerald-700 truncate leading-tight">
@@ -377,11 +377,11 @@ export default function ExpensesPage() {
                 </p>
               </div>
             ) : (
-              <h3 className="text-2xl font-bold tracking-tight text-gray-400">N/A</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-400">N/A</h3>
             )}
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200 shrink-0">
-            <Wallet className="w-5 h-5" />
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl animate-in zoom-in duration-200 shrink-0">
+            <Wallet className="w-4 h-4" />
           </div>
         </Card>
       </div>
@@ -426,13 +426,13 @@ export default function ExpensesPage() {
           <div className="overflow-x-auto min-h-[300px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Notes / Details</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Notes / Details</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Amount</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -440,29 +440,29 @@ export default function ExpensesPage() {
                   const d = new Date(exp.date);
                   return (
                     <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="p-4 whitespace-nowrap">
                         <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-gray-50 border border-gray-250 text-gray-600 shadow-sm">
                           {exp.display_id || `EXP-${exp.id.substring(0, 4).toUpperCase()}`}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="p-4 whitespace-nowrap">
                         <p className="text-sm font-medium text-gray-900">
                           {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5 font-semibold">{getRelativeTime(exp.date)}</p>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="p-4 whitespace-nowrap">
                         <Badge variant="default" className={`${getCategoryBadgeStyles(exp.category)} shrink-0 px-2.5 py-0.5 font-semibold`}>
                           {exp.category || "Unassigned"}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 max-w-sm">
+                      <td className="p-4 max-w-sm">
                         <p className="text-sm text-gray-700 truncate font-medium">{exp.notes || "—"}</p>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="p-4 whitespace-nowrap text-right">
                         <span className="text-base font-bold text-gray-900">₹{exp.amount?.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="p-4 whitespace-nowrap text-right">
                         <DropdownMenu items={getDropdownItems(exp)} />
                       </td>
                     </tr>

@@ -184,7 +184,7 @@ export default function ReturnsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{returnsTitle}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{returnsTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{getModuleProp('Returns', 'description')}</p>
         </div>
         <Button className="gap-2 font-semibold" onClick={() => {
@@ -200,37 +200,37 @@ export default function ReturnsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
               Total {platform === "online-course" ? "Refund Claims" : "Returns Registered"}
             </p>
-            <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{refunds.length}</h3>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{refunds.length}</h3>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <AlertCircle className="w-5 h-5" />
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <AlertCircle className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
               {platform === "online-course" ? "Refund Value Claimed" : "Return Valuation"}
             </p>
-            <h3 className="text-2xl font-semibold tracking-tight text-[#2E8C13]">
+            <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">
               ₹{refunds.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
             </h3>
           </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-            <DollarSign className="w-5 h-5" />
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+            <DollarSign className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Pending Resolution</p>
-            <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending Resolution</p>
+            <h3 className="text-xl font-semibold tracking-tight text-amber-600">
               {refunds.filter(r => r.status === "Requested" || r.status === "Pending Approval" || r.status === "Approved").length}
             </h3>
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <Calendar className="w-5 h-5" />
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+            <Calendar className="w-4 h-4" />
           </div>
         </Card>
       </div>

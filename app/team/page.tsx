@@ -213,7 +213,7 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight flex items-center gap-2">
             Team Directory
           </h1>
           <p className="text-sm text-gray-500 mt-1">Manage academic advisors, sales representatives, trainer cohorts, and platform support personnel.</p>
@@ -237,38 +237,38 @@ export default function TeamPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Roster Size</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{aggregate.totalRep} Members</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Roster Size</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{aggregate.totalRep} Members</h3>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-            <Users className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
-          <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Leads Assigned</p>
-            <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{aggregate.leads} candidates</h3>
-          </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <Activity className="w-5 h-5" />
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <Users className="w-4 h-4" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Conversions</p>
-            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{aggregate.converted} enrollments</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Leads Assigned</p>
+            <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{aggregate.leads} candidates</h3>
           </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Activity className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Conversions</p>
+            <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">{aggregate.converted} enrollments</h3>
+          </div>
+          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
             <Award className="w-5 h-5 animate-pulse" />
           </div>
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Callbacks Converted Ratio</p>
-            <h3 className="text-2xl font-bold tracking-tight text-purple-600">{aggregate.rate}%</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Callbacks Converted Ratio</p>
+            <h3 className="text-xl font-semibold tracking-tight text-purple-600">{aggregate.rate}%</h3>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <UserCheck className="w-5 h-5" />
+          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+            <UserCheck className="w-4 h-4" />
           </div>
         </Card>
       </div>
