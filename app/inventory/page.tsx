@@ -2675,6 +2675,36 @@ function CourseManagementView() {
             </div>
           </div>
         )}
+
+        {/* Right: Add Category (Only show on Category tab) */}
+        {pageTab === "category" && (
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto lg:flex-1 lg:justify-end">
+            <input
+              type="text"
+              placeholder="New category name..."
+              value={newCatName}
+              onChange={e => setNewCatName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === "Enter" && newCatName.trim()) {
+                  setCourseCategories(prev => [...prev, newCatName.trim()]);
+                  setNewCatName("");
+                }
+              }}
+              className="w-full sm:w-[240px] px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+            <Button
+              onClick={() => {
+                if (!newCatName.trim()) return;
+                setCourseCategories(prev => [...prev, newCatName.trim()]);
+                setNewCatName("");
+              }}
+              className="w-full sm:w-auto gap-2 shrink-0 py-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              Add Category
+            </Button>
+          </div>
+        )}
       </Card>
 
       {/* ── COURSES TAB ─── */}
@@ -2715,7 +2745,7 @@ function CourseManagementView() {
                             </button>
                           </td>
                           <td className="p-4">
-                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-medium">{course.category}</span>
+                            <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-[11px] font-semibold">{course.category}</span>
                           </td>
                           <td className="p-4 text-sm font-medium text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
                           <td className="p-4 text-center text-sm font-medium text-gray-500">{course.leads}</td>
@@ -2723,7 +2753,7 @@ function CourseManagementView() {
                           <td className="p-4 text-center text-sm font-medium text-purple-600">{convPct}%</td>
                           <td className="p-4 text-right text-sm font-medium text-emerald-600">₹{grossRev.toLocaleString("en-IN")}</td>
                           <td className="p-4 text-center">
-                            <span className={`px-2 py-0.5 rounded text-[10px] border ${
+                            <span className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
                               course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
                               course.status === "Draft" ? "bg-amber-50 text-amber-700 border-amber-200" :
                               course.status === "Paused" ? "bg-gray-100 text-gray-600 border-gray-200" :
@@ -2791,36 +2821,6 @@ function CourseManagementView() {
       {/* ── CATEGORY TAB ─── */}
       {pageTab === "category" && (
         <div className="space-y-5">
-          {/* Add New Category */}
-          <Card className="p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                placeholder="New category name..."
-                value={newCatName}
-                onChange={e => setNewCatName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" && newCatName.trim()) {
-                    setCourseCategories(prev => [...prev, newCatName.trim()]);
-                    setNewCatName("");
-                  }
-                }}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-              <Button
-                onClick={() => {
-                  if (!newCatName.trim()) return;
-                  setCourseCategories(prev => [...prev, newCatName.trim()]);
-                  setNewCatName("");
-                }}
-                className="gap-2 shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                Add Category
-              </Button>
-            </div>
-          </Card>
-
           {/* Category cards with grouped courses */}
           <div className="space-y-4">
             {courseCategories.map((cat, idx) => {
@@ -2889,25 +2889,25 @@ function CourseManagementView() {
                   {catCourses.length > 0 ? (
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-gray-100">
-                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider">Course Name</th>
-                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider text-center">Students</th>
-                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider">Price</th>
-                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider text-right">Actions</th>
+                        <tr className="border-b border-gray-100 bg-gray-50/30">
+                          <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Course Name</th>
+                          <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Students</th>
+                          <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
+                          <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
                         {catCourses.map(course => (
                           <tr key={course.id} className="hover:bg-gray-50/40 transition-colors">
-                            <td className="px-5 py-3">
-                              <p className="text-sm text-gray-800">{course.name}</p>
-                              <span className="text-[10px] text-gray-400">{course.display_id}</span>
+                            <td className="px-5 py-4">
+                              <p className="text-sm font-semibold text-gray-900">{course.name}</p>
+                              <span className="text-[11px] font-medium text-gray-400">{course.display_id}</span>
                             </td>
-                            <td className="px-5 py-3 text-center text-sm text-gray-600">{course.students}</td>
-                            <td className="px-5 py-3 text-sm text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
-                            <td className="px-5 py-3">
-                              <span className={`px-2 py-0.5 rounded text-[10px] border ${
+                            <td className="px-5 py-4 text-center text-sm font-medium text-gray-600">{course.students}</td>
+                            <td className="px-5 py-4 text-sm font-medium text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
+                            <td className="px-5 py-4">
+                              <span className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border ${
                                 course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
                                 course.status === "Draft" ? "bg-amber-50 text-amber-700 border-amber-200" :
                                 "bg-gray-100 text-gray-600 border-gray-200"
