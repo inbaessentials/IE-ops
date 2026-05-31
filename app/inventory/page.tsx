@@ -3225,7 +3225,7 @@ function CourseManagementView() {
         <form className="space-y-4" onSubmit={handleSaveCourse}>
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-8">
             <div>
-              <label className="block text-sm font-normal text-gray-600 mb-2">Course Name *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Course Name *</label>
               <input 
                 required 
                 type="text" 
@@ -3238,7 +3238,7 @@ function CourseManagementView() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-normal text-gray-600 mb-2">Category *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
                 <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)} 
@@ -3250,7 +3250,7 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-normal text-gray-600 mb-2">Course Pricing (₹) *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Course Pricing (₹) *</label>
                 <input 
                   required 
                   type="number" 
@@ -3263,7 +3263,7 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-sm font-normal text-gray-600 mb-2">Syllabus Description</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Syllabus Description</label>
               <textarea 
                 rows={3} 
                 value={description} 
@@ -3275,7 +3275,7 @@ function CourseManagementView() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-normal text-gray-600 mb-2">Duration</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
                 <input 
                   type="text" 
                   value={duration} 
@@ -3285,7 +3285,7 @@ function CourseManagementView() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-normal text-gray-600 mb-2">Course Type</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Course Type</label>
                 <select 
                   value={courseType} 
                   onChange={(e) => setCourseType(e.target.value as any)} 
@@ -3300,7 +3300,7 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-sm font-normal text-gray-600 mb-2">Landing Page URL</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Landing Page URL</label>
               <input 
                 type="url" 
                 value={landingPageUrl} 
@@ -3311,7 +3311,7 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-sm font-normal text-gray-600 mb-2">WhatsApp CTA Broadcast Link</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">WhatsApp CTA Broadcast Link</label>
               <input 
                 type="url" 
                 value={whatsappCtaLink} 
@@ -3323,7 +3323,7 @@ function CourseManagementView() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-normal text-gray-600 mb-2">Publish Status</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Publish Status</label>
                 <select 
                   value={status} 
                   onChange={(e) => setStatus(e.target.value as any)} 
@@ -3336,7 +3336,7 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-normal text-gray-600 mb-2">Meta Tags (comma separated)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Meta Tags (comma separated)</label>
                 <input 
                   type="text" 
                   value={tags} 
