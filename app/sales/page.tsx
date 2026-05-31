@@ -513,9 +513,9 @@ export default function SalesPage() {
           <div className="flex-1 bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-8 overflow-y-auto">
             
             {/* Student Information Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">1. Student Information</h3>
-              <div className="flex gap-4 mb-4">
+            <div className="pb-2">
+              <h3 className="text-base font-medium text-gray-800 mb-5">1. Student Information</h3>
+              <div className="flex gap-4 mb-5">
                 <button type="button" onClick={() => setStudentMode("existing")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${studentMode === "existing" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>Existing Student</button>
                 <button type="button" onClick={() => setStudentMode("new")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${studentMode === "new" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>Create New Student</button>
               </div>
@@ -552,8 +552,9 @@ export default function SalesPage() {
             </div>
 
             {/* Course Selection Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">2. Course Selection</h3>
+            <hr className="border-gray-100 my-2" />
+            <div className="pt-2 pb-2">
+              <h3 className="text-base font-medium text-gray-800 mb-5">2. Course Selection</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
@@ -582,8 +583,9 @@ export default function SalesPage() {
             </div>
 
             {/* Payment Setup Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">3. Payment Setup</h3>
+            <hr className="border-gray-100 my-2" />
+            <div className="pt-2 pb-2">
+              <h3 className="text-base font-medium text-gray-800 mb-5">3. Payment Setup</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Course Fee (₹)</label>
