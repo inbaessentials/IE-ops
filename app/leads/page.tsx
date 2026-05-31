@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Drawer } from "@/components/ui/Drawer";
+import { DropdownMenu } from "@/components/ui/Dropdown";
 import { usePlatform } from "@/lib/PlatformContext";
 import { useToast } from "@/components/ui/Toast";
 import { 
@@ -568,7 +569,7 @@ export default function LeadCRM() {
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-          <span className="text-sm text-gray-500 font-medium uppercase">Interested Course:</span>
+          <span className="text-sm text-gray-500 font-medium">Course filter:</span>
           <select
             value={courseFilter}
             onChange={(e) => setCourseFilter(e.target.value)}
@@ -589,15 +590,11 @@ export default function LeadCRM() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">Lead Name</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Interested Course</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stage</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Contact</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Next Follow-Up</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <th className="p-4 text-xs font-semibold text-gray-600 pl-6">Lead Name</th>
+                  <th className="p-4 text-xs font-semibold text-gray-600">Mobile</th>
+                  <th className="p-4 text-xs font-semibold text-gray-600">Course / Program</th>
+                  <th className="p-4 text-xs font-semibold text-gray-600">Stage</th>
+                  <th className="p-4 text-xs font-semibold text-gray-600 text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -620,9 +617,6 @@ export default function LeadCRM() {
                     <td className="p-4 text-sm font-medium text-gray-800">
                       {lead.phone}
                     </td>
-                    <td className="p-4 text-sm">
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-semibold text-[10px]">{lead.source}</span>
-                    </td>
                     <td className="p-4 text-sm font-medium text-gray-800">{lead.course}</td>
                     <td className="p-4">
                       <select
@@ -635,25 +629,22 @@ export default function LeadCRM() {
                         ))}
                       </select>
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-600">{lead.assignedTo}</td>
-                    <td className="p-4 text-sm text-gray-500 font-semibold">{lead.whatsappLastContact || lead.dateCreated}</td>
-                    <td className="p-4 text-sm font-semibold text-amber-600">{lead.nextFollowUp || "Not set"}</td>
                     <td className="p-4 text-right pr-6">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button 
-                          onClick={() => handleOpenEditDrawer(lead)}
-                          className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded"
-                          title="Edit Details"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteLead(lead.id, lead.name)}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded"
-                          title="Delete Lead"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                      <div className="flex items-center justify-end">
+                        <DropdownMenu 
+                          items={[
+                            { label: "View Details", onClick: () => {
+                                setViewingLead(lead);
+                                setWaFirstContact(lead.whatsappFirstContact || "");
+                                setWaLastContact(lead.whatsappLastContact || "");
+                                setWaCount(lead.whatsappCount || 0);
+                                setWaStatus(lead.whatsappStatus || "No Response");
+                              } 
+                            },
+                            { label: "Edit Lead", onClick: () => handleOpenEditDrawer(lead) },
+                            { label: "Delete Lead", onClick: () => handleDeleteLead(lead.id, lead.name), destructive: true }
+                          ]}
+                        />
                       </div>
                     </td>
                   </tr>
@@ -705,7 +696,7 @@ export default function LeadCRM() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">Interested Course</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Course / Program</label>
                 <select 
                   value={formCourse}
                   onChange={e => setFormCourse(e.target.value)}
@@ -830,7 +821,7 @@ export default function LeadCRM() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-800 mb-1">Interested Course</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Course / Program</label>
                   <select 
                     value={formCourse}
                     onChange={e => setFormCourse(e.target.value)}
@@ -941,7 +932,7 @@ export default function LeadCRM() {
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Acquisition details</p>
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Interested Course</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Course / Program</p>
                   <p className="text-sm text-gray-800 flex items-center gap-1.5">
                     <BookOpen className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     {viewingLead.course}
