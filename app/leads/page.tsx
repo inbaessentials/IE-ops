@@ -617,13 +617,13 @@ export default function LeadCRM() {
                         {lead.name}
                       </button>
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">
+                    <td className="p-4 text-sm font-medium text-gray-800">
                       {lead.phone}
                     </td>
                     <td className="p-4 text-sm">
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-semibold text-[10px]">{lead.source}</span>
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">{lead.course}</td>
+                    <td className="p-4 text-sm font-medium text-gray-800">{lead.course}</td>
                     <td className="p-4">
                       <select
                         value={lead.stage}
@@ -666,9 +666,9 @@ export default function LeadCRM() {
       {/* Log Lead Drawer */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Log New Candidate Lead">
         <form className="space-y-4" onSubmit={handleCreateLead}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Lead / Candidate Name</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Lead / Candidate Name</label>
               <input 
                 required 
                 type="text" 
@@ -681,7 +681,7 @@ export default function LeadCRM() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Mobile Number</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Mobile Number</label>
                 <input 
                   required 
                   type="tel" 
@@ -692,7 +692,7 @@ export default function LeadCRM() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Email Address</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Email Address</label>
                 <input 
                   type="email" 
                   value={formEmail}
@@ -705,7 +705,7 @@ export default function LeadCRM() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Interested Course</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Interested Course</label>
                 <select 
                   value={formCourse}
                   onChange={e => setFormCourse(e.target.value)}
@@ -718,7 +718,7 @@ export default function LeadCRM() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Source</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Lead Source</label>
                 <select 
                   value={formSource}
                   onChange={e => setFormSource(e.target.value)}
@@ -736,7 +736,7 @@ export default function LeadCRM() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Assigned Counselor</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Assigned Counselor</label>
                 <select 
                   value={formAssignedTo}
                   onChange={e => setFormAssignedTo(e.target.value)}
@@ -748,7 +748,7 @@ export default function LeadCRM() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Pipeline Stage</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Lead Pipeline Stage</label>
                 <select 
                   value={formStage}
                   onChange={e => setFormStage(e.target.value as any)}
@@ -762,17 +762,17 @@ export default function LeadCRM() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Next Follow-up Action Date</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Next Follow-up Action Date</label>
               <input 
                 type="date" 
                 value={formNextFollowUp}
                 onChange={e => setFormNextFollowUp(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Interaction Notes</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Interaction Notes</label>
               <textarea 
                 rows={3} 
                 value={formNotes}
@@ -794,9 +794,9 @@ export default function LeadCRM() {
       <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingLead(null); }} title="Modify Lead Parameters">
         <form className="space-y-4" onSubmit={handleUpdateLead}>
           {editingLead && (
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Name</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Lead Name</label>
                 <input 
                   required 
                   type="text" 
@@ -808,7 +808,7 @@ export default function LeadCRM() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Contact Number</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Contact Number</label>
                   <input 
                     required 
                     type="tel" 
@@ -818,7 +818,7 @@ export default function LeadCRM() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Email Address</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Email Address</label>
                   <input 
                     type="email" 
                     value={formEmail}
@@ -830,7 +830,7 @@ export default function LeadCRM() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Interested Course</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Interested Course</label>
                   <select 
                     value={formCourse}
                     onChange={e => setFormCourse(e.target.value)}
@@ -843,7 +843,7 @@ export default function LeadCRM() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Source</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Lead Source</label>
                   <select 
                     value={formSource}
                     onChange={e => setFormSource(e.target.value)}
@@ -861,7 +861,7 @@ export default function LeadCRM() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Assigned counselor</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Assigned counselor</label>
                   <select 
                     value={formAssignedTo}
                     onChange={e => setFormAssignedTo(e.target.value)}
@@ -873,7 +873,7 @@ export default function LeadCRM() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Stage</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Lead Stage</label>
                   <select 
                     value={formStage}
                     onChange={e => setFormStage(e.target.value as any)}
@@ -887,17 +887,17 @@ export default function LeadCRM() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Next Action Date</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Next Action Date</label>
                 <input 
                   type="date" 
                   value={formNextFollowUp}
                   onChange={e => setFormNextFollowUp(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Counseling Notes</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Counseling Notes</label>
                 <textarea 
                   rows={3} 
                   value={formNotes}
@@ -927,7 +927,7 @@ export default function LeadCRM() {
                   {viewingLead.name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900 leading-tight">{viewingLead.name}</h3>
+                  <h3 className="text-sm font-medium text-gray-800 leading-tight">{viewingLead.name}</h3>
                   <p className="text-xs text-gray-400 mt-0.5">Logged: {viewingLead.dateCreated}</p>
                 </div>
               </div>
@@ -937,7 +937,7 @@ export default function LeadCRM() {
             </div>
 
             {/* Acquisition Details */}
-            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-4">
+            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-6">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Acquisition details</p>
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <div>
@@ -979,7 +979,7 @@ export default function LeadCRM() {
             </div>
 
             {/* WhatsApp Workflow Tracker */}
-            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-4">
+            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-6">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-green-600" />
                 <p className="text-xs font-medium text-gray-700">WhatsApp Workflow Tracker</p>

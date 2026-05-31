@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { KpiCard } from "@/components/ui/KpiCard";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw, Check, ImagePlus, User, ShoppingBag, CreditCard, Award, Wallet, IndianRupee, Users, TrendingUp, Flame, AlertCircle, Star } from "lucide-react";
@@ -117,7 +118,7 @@ function ProductMultiSelect({
         className="flex items-center justify-between w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg cursor-pointer focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-sm font-semibold text-gray-900">
+        <span className="text-sm font-medium text-gray-800">
           {selectedProducts.length === 0 
             ? "Select products..." 
             : `${selectedProducts.length} product${selectedProducts.length > 1 ? "s" : ""} selected`}
@@ -804,9 +805,13 @@ export default function SalesPage() {
         </div>
 
         {/* Dynamic Metric Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <Card 
-            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <KpiCard 
+            title={`Total ${getModuleProp('Sales', 'displayName')}`}
+            value={totalOrdersCount}
+            icon={<Package />}
+            iconBgClass="bg-blue-50"
+            iconTextClass="text-blue-600"
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("All");
@@ -814,17 +819,13 @@ export default function SalesPage() {
               setStartDate("");
               setEndDate("");
             }}
-          >
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {getModuleProp('Sales', 'displayName')}</p>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalOrdersCount}</h3>
-            </div>
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-              <Package className="w-4 h-4" />
-            </div>
-          </Card>
-          <Card 
-            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+          />
+          <KpiCard 
+            title={config.dashboardCards.find(c => c.key === 'Total Sales')?.title || 'Total Revenue'}
+            value={`₹${totalRevenue.toLocaleString("en-IN")}`}
+            icon={<Leaf />}
+            iconBgClass="bg-emerald-50"
+            iconTextClass="text-emerald-600"
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("All");
@@ -832,19 +833,14 @@ export default function SalesPage() {
               setStartDate("");
               setEndDate("");
             }}
-          >
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-                {config.dashboardCards.find(c => c.key === 'Total Sales')?.title || 'Total Revenue'}
-              </p>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
-            </div>
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Leaf className="w-4 h-4" />
-            </div>
-          </Card>
-          <Card 
-            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+          />
+          <KpiCard 
+            title={`Pending ${getModuleProp('Sales', 'displayName')}`}
+            value={pendingOrdersCount}
+            valueClass="text-amber-600"
+            icon={<Clock />}
+            iconBgClass="bg-amber-50"
+            iconTextClass="text-amber-600"
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("New");
@@ -852,17 +848,14 @@ export default function SalesPage() {
               setStartDate("");
               setEndDate("");
             }}
-          >
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending {getModuleProp('Sales', 'displayName')}</p>
-              <h3 className="text-xl font-semibold tracking-tight text-amber-600">{pendingOrdersCount}</h3>
-            </div>
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-              <Clock className="w-4 h-4" />
-            </div>
-          </Card>
-          <Card 
-            className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md hover:bg-gray-50/55 transition-all"
+          />
+          <KpiCard 
+            title={platform === 'online-course' ? 'Provisioned / Active' : 'Shipped / Delivered'}
+            value={completedOrdersCount}
+            valueClass="text-indigo-600"
+            icon={<CheckCircle2 />}
+            iconBgClass="bg-indigo-50"
+            iconTextClass="text-indigo-600"
             onClick={() => {
               setSearchTerm("");
               setStatusFilter("Shipped");
@@ -870,32 +863,20 @@ export default function SalesPage() {
               setStartDate("");
               setEndDate("");
             }}
-          >
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-                {platform === 'online-course' ? 'Provisioned / Active' : 'Shipped / Delivered'}
-              </p>
-              <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{completedOrdersCount}</h3>
-            </div>
-            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </Card>
-          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/inventory'}>
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-                {config.dashboardCards.find(c => c.key === 'Total Items Sold')?.title || 'Total Items Sold'}
-              </p>
-              <h3 className="text-xl font-semibold tracking-tight text-purple-600">{totalItemsSold}</h3>
-            </div>
-            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
-              <CircleDot className="w-4 h-4" />
-            </div>
-          </Card>
+          />
+          <KpiCard 
+            title={config.dashboardCards.find(c => c.key === 'Total Items Sold')?.title || 'Total Items Sold'}
+            value={totalItemsSold}
+            valueClass="text-purple-600"
+            icon={<CircleDot />}
+            iconBgClass="bg-purple-50"
+            iconTextClass="text-purple-600"
+            onClick={() => window.location.href = '/inventory'}
+          />
         </div>
 
-        <Card>
-          <div className="p-4 border-b border-gray-100 flex flex-wrap xl:flex-nowrap items-center justify-between gap-3">
+        <Card className="p-4 border border-gray-100 mb-6 shadow-sm">
+          <div className="flex flex-wrap xl:flex-nowrap items-center justify-between gap-3">
             <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 flex-1 min-w-0">
               {/* Search Input */}
               <div className="relative flex-1 min-w-[200px] max-w-[260px] shrink-0">
@@ -971,8 +952,10 @@ export default function SalesPage() {
               </Button>
             </div>
           </div>
+        </Card>
 
-          <div className="overflow-visible min-h-[500px] pb-48">
+        <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
+          <div className="overflow-x-auto min-h-[500px] pb-32">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
@@ -1033,7 +1016,7 @@ export default function SalesPage() {
                             {order.id}
                           </button>
                         </td>
-                        <td className="p-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-800">
                           <button 
                             type="button"
                             onClick={() => setViewingCustomerName(order.customer)}
@@ -1173,7 +1156,7 @@ export default function SalesPage() {
             {/* TAB 1: CUSTOMER INFO */}
             {activeDrawerTab === "customer" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
                     <User className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-bold text-gray-800">Customer Identity</h3>
@@ -1233,7 +1216,7 @@ export default function SalesPage() {
             {/* TAB 2: PRODUCT INFO */}
             {activeDrawerTab === "products" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
                     <ShoppingBag className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-bold text-gray-800">Add Order Items</h3>
@@ -1376,7 +1359,7 @@ export default function SalesPage() {
             {activeDrawerTab === "checkout" && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 {/* 1. Payment Method Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <CreditCard className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-extrabold text-slate-800">Payment & Invoicing</h3>
@@ -1392,7 +1375,7 @@ export default function SalesPage() {
                 </div>
 
                 {/* 2. Shipping Options Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <Truck className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
@@ -1442,7 +1425,7 @@ export default function SalesPage() {
                 </div>
 
                 {/* 3. Order Notes Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
                   <textarea 
                     rows={2} 
@@ -1522,7 +1505,7 @@ export default function SalesPage() {
             {/* TAB 1: CUSTOMER INFO */}
             {activeDrawerTab === "customer" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
                     <User className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-bold text-gray-800">Customer Identity</h3>
@@ -1582,7 +1565,7 @@ export default function SalesPage() {
             {/* TAB 2: PRODUCT INFO */}
             {activeDrawerTab === "products" && (
               <div className="space-y-4 animate-in fade-in duration-200">
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-50">
                     <ShoppingBag className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-bold text-gray-800">Add Order Items</h3>
@@ -1725,7 +1708,7 @@ export default function SalesPage() {
             {activeDrawerTab === "checkout" && (
               <div className="space-y-4 animate-in fade-in duration-200">
                 {/* 1. Payment Method Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <CreditCard className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-extrabold text-slate-800">Payment & Invoicing</h3>
@@ -1741,7 +1724,7 @@ export default function SalesPage() {
                 </div>
 
                 {/* 2. Shipping Options Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <Truck className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
@@ -1791,7 +1774,7 @@ export default function SalesPage() {
                 </div>
 
                 {/* 3. Order Notes Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
                   <textarea 
                     rows={2} 
@@ -1861,7 +1844,7 @@ export default function SalesPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2">
-                        <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <h4 className="text-sm font-medium text-gray-800 flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-gray-400" /> Customer Info
                         </h4>
                         <p className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => { setViewingCustomerName(viewingOrder.customer); setViewingOrder(null); }}>{viewingOrder.customer}</p>
@@ -1877,7 +1860,7 @@ export default function SalesPage() {
                         )}
                       </div>
                       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2">
-                        <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <h4 className="text-sm font-medium text-gray-800 flex items-center gap-2">
                           <Package className="w-4 h-4 text-gray-400" /> Fulfillment
                         </h4>
                         {viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered" ? (
@@ -1901,7 +1884,7 @@ export default function SalesPage() {
                     </div>
 
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-4">Order Items</h4>
+                      <h4 className="text-sm font-medium text-gray-800 mb-4">Order Items</h4>
                       <div className="space-y-3">
                         {viewingOrder.items.map((item: any, idx: number) => {
                           const matchedProd = dbProducts.find(
@@ -1928,7 +1911,7 @@ export default function SalesPage() {
                                   <p className="text-xs text-gray-500">Qty: {item.qty} x {item.price}</p>
                                 </div>
                               </div>
-                              <p className="text-sm font-semibold text-gray-900">
+                              <p className="text-sm font-medium text-gray-800">
                                 {item.price}
                               </p>
                             </div>
@@ -1958,7 +1941,7 @@ export default function SalesPage() {
               })()}
 
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <h4 className="text-sm font-semibold text-gray-900 mb-4">Order Timeline</h4>
+                <h4 className="text-sm font-medium text-gray-800 mb-4">Order Timeline</h4>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent">
                   
                   <div className="relative flex items-start gap-4">
@@ -2052,7 +2035,7 @@ export default function SalesPage() {
                 toast("Failed to update shipping info", "error");
               }
             }}>
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Courier Partner</label>
                   <Select 
@@ -2140,20 +2123,20 @@ export default function SalesPage() {
                 </div>
 
                 {/* Contact & Shipping Details */}
-                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
                   <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Contact Info</h4>
                   <div className="flex items-start gap-3">
                     <Phone className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-xs text-gray-400 font-semibold">Phone Number</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-0.5">{phone}</p>
+                      <p className="text-sm font-medium text-gray-800 mt-0.5">{phone}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 pt-3 border-t border-gray-50">
                     <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-xs text-gray-400 font-semibold">Shipping Address</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-0.5 leading-relaxed">{address}</p>
+                      <p className="text-sm font-medium text-gray-800 mt-0.5 leading-relaxed">{address}</p>
                     </div>
                   </div>
                 </div>
@@ -2595,7 +2578,7 @@ function GymRevenueView() {
           {/* Transactions List */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-semibold text-gray-900">Membership checkout receipts</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Membership checkout receipts</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -2614,7 +2597,7 @@ function GymRevenueView() {
                   {membershipInvoices.slice(0, 10).map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{inv.id}</td>
-                      <td className="p-3 text-sm font-semibold text-gray-900">{inv.member}</td>
+                      <td className="p-3 text-sm font-medium text-gray-800">{inv.member}</td>
                       <td className="p-3 text-xs font-medium text-gray-600">{inv.plan}</td>
                       <td className="p-3 text-xs text-gray-500">{inv.date}</td>
                       <td className="p-3 text-sm text-gray-500 font-medium">{inv.payment}</td>
@@ -2674,7 +2657,7 @@ function GymRevenueView() {
           {/* Coaching Plans List */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-semibold text-gray-900">Personal Training coaching receipts</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Personal Training coaching receipts</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -2693,7 +2676,7 @@ function GymRevenueView() {
                   {ptInvoices.slice(0, 10).map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{inv.id}</td>
-                      <td className="p-3 text-sm font-semibold text-gray-900">{inv.member}</td>
+                      <td className="p-3 text-sm font-medium text-gray-800">{inv.member}</td>
                       <td className="p-3 text-xs font-semibold text-amber-700 flex items-center gap-1">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         {inv.trainer}
@@ -2748,7 +2731,7 @@ function GymRevenueView() {
           {/* Supplement Stock Roster */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-semibold text-gray-900">Supplement & Product Stock Registry</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Supplement & Product Stock Registry</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -2766,7 +2749,7 @@ function GymRevenueView() {
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {products.map((prod: any) => (
                     <tr key={prod.id} className="hover:bg-gray-50/40 transition-colors">
-                      <td className="p-3 pl-6 text-sm font-semibold text-gray-900">{prod.name}</td>
+                      <td className="p-3 pl-6 text-sm font-medium text-gray-800">{prod.name}</td>
                       <td className="p-3 text-xs font-mono text-gray-500">{prod.sku}</td>
                       <td className="p-3 text-xs">
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 text-gray-600 border border-gray-200/50">
@@ -2779,7 +2762,7 @@ function GymRevenueView() {
                         </span>
                       </td>
                       <td className="p-3 text-xs text-gray-500 font-normal text-center">{prod.unitsSold} sold</td>
-                      <td className="p-3 text-sm font-semibold text-gray-900 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-sm font-medium text-gray-800 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right pr-6 font-bold text-emerald-600 text-sm">₹{prod.revenue.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
@@ -2818,7 +2801,7 @@ function GymRevenueView() {
           {/* Expenses breakdown */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-semibold text-gray-900">Gym Premises & operational expenses</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Gym Premises & operational expenses</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -2859,14 +2842,14 @@ function GymRevenueView() {
       {/* Studio Expense Drawer */}
       <Drawer isOpen={isAddExpenseOpen} onClose={() => setIsAddExpenseOpen(false)} title="Log Studio Operational Expense">
         <form className="space-y-4 font-sans animate-in fade-in duration-200" onSubmit={handleCreateExpense}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Expense Category</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Expense Category</label>
               <select
                 required
                 value={expenseCategory}
                 onChange={e => setExpenseCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm cursor-pointer"
+                className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-800 font-medium text-sm cursor-pointer"
               >
                 <option value="Rent">Premises Lease Rent</option>
                 <option value="Salaries">Payroll & Trainer Salaries</option>
@@ -2878,7 +2861,7 @@ function GymRevenueView() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Debit Amount (INR)</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Debit Amount (INR)</label>
               <input
                 required
                 type="number"
@@ -2890,7 +2873,7 @@ function GymRevenueView() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Expense Details / Notes</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Expense Details / Notes</label>
               <textarea
                 rows={3}
                 value={expenseNotes}

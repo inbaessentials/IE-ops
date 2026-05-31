@@ -348,9 +348,9 @@ export default function TeamPage() {
       {/* Add Team Member Drawer */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Register Roster Representative">
         <form className="space-y-4" onSubmit={handleCreateMember}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Full Name</label>
               <input 
                 required 
                 type="text" 
@@ -363,7 +363,7 @@ export default function TeamPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Staff Role</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Staff Role</label>
                 <select
                   value={formRole}
                   onChange={e => setFormRole(e.target.value as any)}
@@ -376,7 +376,7 @@ export default function TeamPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Department</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Department</label>
                 <input 
                   required 
                   type="text" 
@@ -395,7 +395,7 @@ export default function TeamPage() {
                   type="number" 
                   value={formLeadsAssigned}
                   onChange={e => setFormLeadsAssigned(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900 text-xs"
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800 text-xs"
                 />
               </div>
               <div>
@@ -405,7 +405,7 @@ export default function TeamPage() {
                   type="number" 
                   value={formLeadsConverted}
                   onChange={e => setFormLeadsConverted(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900 text-xs"
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800 text-xs"
                 />
               </div>
               <div>
@@ -415,7 +415,7 @@ export default function TeamPage() {
                   type="number" 
                   value={formFollowups}
                   onChange={e => setFormFollowups(e.target.value)}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900 text-xs"
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800 text-xs"
                 />
               </div>
             </div>

@@ -223,7 +223,7 @@ export default function ProductsPage() {
                         <span className="font-semibold text-gray-900 block">{supp.id}</span>
                         <span className="text-[10px] text-gray-400 font-mono block mt-0.5">{supp.sku}</span>
                       </td>
-                      <td className="p-3 text-sm font-semibold text-gray-900">{supp.name}</td>
+                      <td className="p-3 text-sm font-medium text-gray-800">{supp.name}</td>
                       <td className="p-3">
                         <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold border ${
                           supp.category === "Supplements" ? "bg-emerald-50 text-emerald-700 border-emerald-150" :
@@ -233,7 +233,7 @@ export default function ProductsPage() {
                           {supp.category}
                         </span>
                       </td>
-                      <td className="p-3 text-sm font-semibold text-gray-900">₹{supp.price.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-sm font-medium text-gray-800">₹{supp.price.toLocaleString("en-IN")}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-600">{supp.stock} units</span>
@@ -280,9 +280,9 @@ export default function ProductsPage() {
       {/* Supplements & Retail Product Drawer */}
       <Drawer isOpen={isAddSuppOpen} onClose={() => setIsAddSuppOpen(false)} title={editingSupp ? "Modify Retail Product Specifications" : "Register New Product Stock"}>
         <form className="space-y-4 font-sans" onSubmit={handleSubmitSupp}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Product Name</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Product Name</label>
               <input 
                 required 
                 type="text" 
@@ -295,7 +295,7 @@ export default function ProductsPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Product SKU / Code</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Product SKU / Code</label>
                 <input 
                   required 
                   type="text" 
@@ -306,11 +306,11 @@ export default function ProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Category</label>
                 <select 
                   value={suppCategory}
                   onChange={e => setSuppCategory(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm cursor-pointer"
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-800 font-medium text-sm cursor-pointer"
                 >
                   <option value="Supplements">Supplements</option>
                   <option value="Accessories">Accessories</option>
@@ -321,7 +321,7 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Retail Price (INR)</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Retail Price (INR)</label>
                 <input 
                   required 
                   type="number" 
@@ -332,7 +332,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">In Stock Qty</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">In Stock Qty</label>
                 <input 
                   required 
                   type="number" 
@@ -343,7 +343,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Units Sold</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Units Sold</label>
                 <input 
                   required 
                   type="number" 

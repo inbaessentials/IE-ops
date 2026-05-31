@@ -923,7 +923,7 @@ export default function InventoryPage() {
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-150 flex flex-col justify-between bg-white">
-                  <div className="p-5 space-y-4">
+                  <div className="p-5 space-y-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="w-14 h-14 bg-green-50 rounded-xl border border-green-100 flex items-center justify-center overflow-hidden shrink-0">
                         {product.image_url ? (
@@ -951,11 +951,11 @@ export default function InventoryPage() {
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
                         <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Price</p>
-                        <p className="text-sm font-semibold text-gray-900 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
+                        <p className="text-sm font-medium text-gray-800 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
                       </div>
                       <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
                         <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Students</p>
-                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{product.stock} enrolled</p>
+                        <p className="text-sm font-medium text-gray-800 mt-0.5">{product.stock} enrolled</p>
                       </div>
                     </div>
                     <div className="bg-[#2E8C13]/5 border border-[#2E8C13]/10 p-3 rounded-lg flex justify-between items-center">
@@ -1116,8 +1116,8 @@ export default function InventoryPage() {
         {activeTab === "info" ? (
           <form className="space-y-4 pb-10" onSubmit={handleSaveProduct}>
             
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Product Image</h3>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
+              <h3 className="text-sm font-medium text-gray-800 mb-2">Product Image</h3>
               
               <div className="flex items-center gap-4">
                 <div className="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden group">
@@ -1145,11 +1145,11 @@ export default function InventoryPage() {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900">Basic Info</h3>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
+              <h3 className="text-sm font-medium text-gray-800">Basic Info</h3>
                <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                <input required type="text" value={editingProduct?.name || ""} onChange={handleNameChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium" placeholder="e.g. Herbal Face Wash" />
+                <input required type="text" value={editingProduct?.name || ""} onChange={handleNameChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-800 font-medium" placeholder="e.g. Herbal Face Wash" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">SKU Code</label>
@@ -1167,8 +1167,8 @@ export default function InventoryPage() {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900">Pricing & Inventory</h3>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
+              <h3 className="text-sm font-medium text-gray-800">Pricing & Inventory</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price (₹)</label>
@@ -1203,8 +1203,8 @@ export default function InventoryPage() {
         ) : (
           <div className="space-y-6 pb-10">
             {/* Quick adjust Form */}
-            <form onSubmit={handleAdjustStock} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h4 className="text-sm font-semibold text-gray-900">Adjust Stock Level</h4>
+            <form onSubmit={handleAdjustStock} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
+              <h4 className="text-sm font-medium text-gray-800">Adjust Stock Level</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-gray-500 mb-1">Quantity</label>
@@ -1233,7 +1233,7 @@ export default function InventoryPage() {
 
             {/* Vertical Timeline */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Stock Ledger Timeline</h4>
+              <h4 className="text-sm font-medium text-gray-800 mb-4">Stock Ledger Timeline</h4>
               {timelineEvents.length > 0 ? (
                 <div className="relative border-l border-gray-200 pl-4 ml-2 space-y-6 py-2">
                   {timelineEvents.map((evt, idx) => (
@@ -1408,7 +1408,7 @@ export default function InventoryPage() {
                               required
                               value={item.name}
                               onChange={(e) => handleEditBulkQueueItem(item.id, { name: e.target.value })}
-                              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-semibold text-gray-900"
+                              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-medium text-gray-800"
                               placeholder="Name"
                             />
                           </div>
@@ -1476,7 +1476,7 @@ export default function InventoryPage() {
                               <select
                                 value={item.status}
                                 onChange={(e) => handleEditBulkQueueItem(item.id, { status: e.target.value })}
-                                className="w-3/5 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-semibold text-gray-900"
+                                className="w-3/5 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-medium text-gray-800"
                               >
                                 <option value="Active">Active</option>
                                 <option value="Inactive">Inactive</option>
@@ -1616,7 +1616,7 @@ export default function InventoryPage() {
               {bulkEditProducts.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
                   <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-sm font-semibold text-gray-900">No Products Available</h3>
+                  <h3 className="text-sm font-medium text-gray-800">No Products Available</h3>
                   <p className="text-xs text-gray-400 mt-1">There are no products in the inventory to edit.</p>
                 </div>
               ) : (
@@ -1696,7 +1696,7 @@ export default function InventoryPage() {
                                         required
                                         value={item.name}
                                         onChange={(e) => handleBulkEditChange(item.id, "name", e.target.value)}
-                                        className="w-full px-2.5 py-1 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-bold text-gray-900 bg-transparent hover:bg-gray-50 focus:bg-white transition-all"
+                                        className="w-full px-2.5 py-1 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-medium text-gray-800 bg-transparent hover:bg-gray-50 focus:bg-white transition-all"
                                         placeholder="Name"
                                       />
                                       {modified && (
@@ -2082,7 +2082,7 @@ function GymMembershipsView() {
                 filteredPlans.map((plan: any) => (
                   <tr key={plan.id} className="hover:bg-gray-50/40 transition-colors group">
                     <td className="p-3 pl-6 font-mono text-xs font-semibold text-gray-400">{plan.id}</td>
-                    <td className="p-3 text-sm font-semibold text-gray-900">{plan.name}</td>
+                    <td className="p-3 text-sm font-medium text-gray-800">{plan.name}</td>
                     <td className="p-3 text-sm text-gray-600 font-medium">{plan.duration}</td>
                     <td className="p-3 text-sm font-bold text-[#2E8C13]">₹{plan.price.toLocaleString("en-IN")}</td>
                     <td className="p-3 text-xs text-gray-500 font-medium">{plan.gst}% GST included</td>
@@ -2129,9 +2129,9 @@ function GymMembershipsView() {
       {/* Plan Drawer form */}
       <Drawer isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editingPlan ? "Modify Plan Specifications" : "Publish New Plan Offer"}>
         <form className="space-y-4 font-sans" onSubmit={handleSubmitPlan}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Plan / Package Name</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Plan / Package Name</label>
               <input 
                 required 
                 type="text" 
@@ -2144,11 +2144,11 @@ function GymMembershipsView() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Plan Validity Duration</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Plan Validity Duration</label>
                 <select 
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-800 font-medium text-sm"
                 >
                   <option value="1 Month">1 Month</option>
                   <option value="3 Months">3 Months</option>
@@ -2157,11 +2157,11 @@ function GymMembershipsView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">GST Tax Rate (%)</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">GST Tax Rate (%)</label>
                 <select 
                   value={gst}
                   onChange={e => setGst(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-800 font-medium text-sm"
                 >
                   <option value="18">18% GST (Standard)</option>
                   <option value="12">12% GST</option>
@@ -2172,7 +2172,7 @@ function GymMembershipsView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Base Price (INR)</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Base Price (INR)</label>
                 <input 
                   required 
                   type="number" 
@@ -2183,11 +2183,11 @@ function GymMembershipsView() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Plan Offering Status</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Plan Offering Status</label>
                 <select 
                   value={status}
                   onChange={e => setStatus(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-800 font-medium text-sm"
                 >
                   <option value="Active">Active (Publish)</option>
                   <option value="Inactive">Inactive (Draft)</option>
@@ -2196,7 +2196,7 @@ function GymMembershipsView() {
             </div>
 
             <div className="pt-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
                 <input 
                   type="checkbox" 
                   checked={freezeAllowed}
@@ -2987,7 +2987,7 @@ function CourseManagementView() {
               <div className="space-y-4">
                 <div className="p-4 bg-gray-50 border border-gray-200/50 rounded-2xl">
                   <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Course Syllabus Description</span>
-                  <p className="text-sm font-semibold text-gray-900 mt-1 leading-relaxed">{selectedCourse.description}</p>
+                  <p className="text-sm font-medium text-gray-800 mt-1 leading-relaxed">{selectedCourse.description}</p>
                   
                   {selectedCourse.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
@@ -3215,22 +3215,22 @@ function CourseManagementView() {
         title={editingCourse ? `Edit Course: ${editingCourse.name}` : "Publish New Course Offer"}
       >
         <form className="space-y-4" onSubmit={handleSaveCourse}>
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Course Name *</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Course Name *</label>
               <input 
                 required 
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                 placeholder="e.g. Fullstack Developer Blueprint" 
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Category *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Category *</label>
                 <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)} 
@@ -3242,42 +3242,42 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Course Pricing (₹) *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Course Pricing (₹) *</label>
                 <input 
                   required 
                   type="number" 
                   value={price} 
                   onChange={(e) => setPrice(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                   placeholder="e.g. 5999" 
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Syllabus Description</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Syllabus Description</label>
               <textarea 
                 rows={3} 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                 placeholder="Describe what students will learn, projects included, and benefits..." 
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Duration</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Duration</label>
                 <input 
                   type="text" 
                   value={duration} 
                   onChange={(e) => setDuration(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                   placeholder="e.g. 10 Weeks" 
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Course Type</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Course Type</label>
                 <select 
                   value={courseType} 
                   onChange={(e) => setCourseType(e.target.value as any)} 
@@ -3292,30 +3292,30 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Landing Page URL</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Landing Page URL</label>
               <input 
                 type="url" 
                 value={landingPageUrl} 
                 onChange={(e) => setLandingPageUrl(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                 placeholder="https://academy.inba.com/course-slug" 
               />
             </div>
 
             <div>
-              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">WhatsApp CTA Broadcast Link</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">WhatsApp CTA Broadcast Link</label>
               <input 
                 type="url" 
                 value={whatsappCtaLink} 
                 onChange={(e) => setWhatsappCtaLink(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                 placeholder="https://wa.me/..." 
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Publish Status</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Publish Status</label>
                 <select 
                   value={status} 
                   onChange={(e) => setStatus(e.target.value as any)} 
@@ -3328,12 +3328,12 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Meta Tags (comma separated)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Meta Tags (comma separated)</label>
                 <input 
                   type="text" 
                   value={tags} 
                   onChange={(e) => setTags(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
                   placeholder="Figma, Portfolio, Design" 
                 />
               </div>

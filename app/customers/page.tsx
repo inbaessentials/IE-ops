@@ -615,8 +615,8 @@ export default function CustomersPage() {
         </div>
       )}
 
-      <Card>
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
+      <Card className="p-4 border border-gray-100 mb-6 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
@@ -632,7 +632,9 @@ export default function CustomersPage() {
             Filter
           </Button>
         </div>
-        
+      </Card>
+
+      <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
         <div className="overflow-x-auto min-h-[300px]">
           {loading ? (
             <div className="flex items-center justify-center h-[300px] text-sm text-gray-500 font-medium">
@@ -777,7 +779,7 @@ export default function CustomersPage() {
       {/* Add Customer Drawer */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Add New Customer">
         <form className="space-y-4" onSubmit={handleAddCustomer}>
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
               <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="e.g. John Doe" />
@@ -820,7 +822,7 @@ export default function CustomersPage() {
       {/* Edit Customer Drawer */}
       <Drawer isOpen={!!editingCustomer} onClose={() => setEditingCustomer(null)} title="Edit Customer Details">
         <form className="space-y-4" onSubmit={handleEditCustomer}>
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
               <input 
@@ -1077,7 +1079,7 @@ export default function CustomersPage() {
               </div>
             )}
 
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
               <h4 className="font-semibold text-gray-900">
                 {platform === "online-course" ? "Contact & Details" : "Contact & Shipping"}
               </h4>
@@ -1754,7 +1756,7 @@ function GymMembersView() {
                           <div>
                             <button 
                               onClick={() => setViewingMember(member)}
-                              className="text-sm font-semibold text-gray-900 hover:text-[#2E8C13] transition-colors outline-none text-left"
+                              className="text-sm font-medium text-gray-800 hover:text-[#2E8C13] transition-colors outline-none text-left"
                             >
                               {member.name}
                             </button>
@@ -2058,9 +2060,9 @@ function GymMembersView() {
       {/* Log Lead form drawer */}
       <Drawer isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} title="Log New Acquisition Lead">
         <form className="space-y-4" onSubmit={handleCreateLead}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Candidate Full Name</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Candidate Full Name</label>
               <input 
                 required 
                 type="text" 
@@ -2071,7 +2073,7 @@ function GymMembersView() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Mobile Phone Number</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Mobile Phone Number</label>
               <input 
                 required 
                 type="tel" 
@@ -2083,11 +2085,11 @@ function GymMembersView() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Source</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Lead Source</label>
                 <select 
                   value={leadSource}
                   onChange={e => setLeadSource(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white text-gray-800 font-medium text-sm"
                 >
                   <option value="Instagram Ads">Instagram Ads</option>
                   <option value="Google Maps">Google Maps</option>
@@ -2097,11 +2099,11 @@ function GymMembersView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Assigned Trainer</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Assigned Trainer</label>
                 <select 
                   value={leadTrainer}
                   onChange={e => setLeadTrainer(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white text-gray-900 font-semibold text-sm"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white text-gray-800 font-medium text-sm"
                 >
                   <option value="Rajveer Singh">Rajveer Singh</option>
                   <option value="Meenakshi Sen">Meenakshi Sen</option>
@@ -2111,7 +2113,7 @@ function GymMembersView() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Trial Session Booking Date</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Trial Session Booking Date</label>
               <input 
                 type="date" 
                 value={leadTrialDate}
@@ -2120,7 +2122,7 @@ function GymMembersView() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Interviewer Notes</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Interviewer Notes</label>
               <textarea 
                 rows={3} 
                 value={leadNotes}
@@ -2140,9 +2142,9 @@ function GymMembersView() {
       {/* Register Member Form Drawer */}
       <Drawer isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} title="Register New Gym Member">
         <form className="space-y-4 animate-in fade-in duration-200" onSubmit={handleCreateMember}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4 font-sans">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6 font-sans">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Full Name</label>
               <input 
                 required 
                 type="text" 
@@ -2155,7 +2157,7 @@ function GymMembersView() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Mobile Number</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Mobile Number</label>
                 <input 
                   required
                   type="tel" 
@@ -2166,7 +2168,7 @@ function GymMembersView() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Email Address</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Email Address</label>
                 <input 
                   type="email" 
                   value={newMemberEmail}
@@ -2179,11 +2181,11 @@ function GymMembersView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Select Membership Plan</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Select Membership Plan</label>
                 <select
                   value={newMemberPlan}
                   onChange={(e) => setNewMemberPlan(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none font-semibold text-gray-900 text-sm cursor-pointer"
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none font-medium text-gray-800 text-sm cursor-pointer"
                 >
                   <option value="Monthly Plan">Monthly Plan (₹2,999)</option>
                   <option value="Quarterly Plan">Quarterly Plan (₹7,999)</option>
@@ -2192,11 +2194,11 @@ function GymMembersView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Assign Personal Coach (PT)</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Assign Personal Coach (PT)</label>
                 <select
                   value={newMemberTrainer}
                   onChange={(e) => setNewMemberTrainer(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none font-semibold text-gray-900 text-sm cursor-pointer"
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none font-medium text-gray-800 text-sm cursor-pointer"
                 >
                   <option value="None">No Personal Coach (Self Workout)</option>
                   {trainers.map((t: any) => (
@@ -2207,7 +2209,7 @@ function GymMembersView() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1">Membership Commencement Date</label>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Membership Commencement Date</label>
               <input 
                 required 
                 type="date" 
@@ -2352,7 +2354,7 @@ function GymMembersView() {
             </button>
 
             {/* Printable Pass Card frame */}
-            <div className="border-[8px] border-amber-800 p-6 rounded-xl bg-amber-50/15 relative text-center space-y-4 select-none print:border-amber-800">
+            <div className="border-[8px] border-amber-800 p-6 rounded-xl bg-amber-50/15 relative text-center space-y-6 select-none print:border-amber-800">
               <div className="absolute inset-1 border border-amber-600/30 rounded-lg pointer-events-none" />
               
               <div className="mx-auto w-10 h-10 flex items-center justify-center text-amber-700 bg-amber-50 rounded-full border border-amber-300">

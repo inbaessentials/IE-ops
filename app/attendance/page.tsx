@@ -482,7 +482,7 @@ export default function AttendancePage() {
         {/* Chart 1: Attendance Trend Area Chart */}
         <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
           <CardHeader className="border-b border-gray-50 pb-4">
-            <CardTitle className="text-sm font-semibold text-gray-900">Attendance Scan Trend</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-800">Attendance Scan Trend</CardTitle>
             <p className="text-xs text-gray-500 mt-0.5">Physical check-in scans frequency compiled over the last 7 workout days.</p>
           </CardHeader>
           <CardContent className="p-6">
@@ -512,7 +512,7 @@ export default function AttendancePage() {
         {/* Chart 2: Member Visit Frequency Pie Chart */}
         <Card className="overflow-hidden border border-gray-100 shadow-sm flex flex-col">
           <CardHeader className="border-b border-gray-50 pb-4">
-            <CardTitle className="text-sm font-semibold text-gray-900">Workout Frequency Shares</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-800">Workout Frequency Shares</CardTitle>
             <p className="text-xs text-gray-500 mt-0.5">Segment share of studio members by their weekly attendance metrics.</p>
           </CardHeader>
           <CardContent className="p-6 flex-1 flex flex-col justify-between">
@@ -556,7 +556,7 @@ export default function AttendancePage() {
       {/* Chart 3: Peak Hour Analysis */}
       <Card className="overflow-hidden border border-gray-100 shadow-sm">
         <CardHeader className="border-b border-gray-50 pb-4">
-          <CardTitle className="text-sm font-semibold text-gray-900">Peak Hours Rush Analysis</CardTitle>
+          <CardTitle className="text-sm font-medium text-gray-800">Peak Hours Rush Analysis</CardTitle>
           <p className="text-xs text-gray-500 mt-0.5">Average sign-in scans distributed by gym hours to optimize staff and space capacities.</p>
         </CardHeader>
         <CardContent className="p-6">
@@ -640,7 +640,7 @@ export default function AttendancePage() {
                       {log.memberName.charAt(0)}
                     </div>
                     <div>
-                      <span className="text-sm font-semibold text-gray-900 block leading-tight">{log.memberName}</span>
+                      <span className="text-sm font-medium text-gray-800 block leading-tight">{log.memberName}</span>
                       <span className="text-[10px] text-gray-400 block font-mono mt-0.5">{log.memberId}</span>
                     </div>
                   </td>
@@ -682,14 +682,14 @@ export default function AttendancePage() {
       {/* Mock Access Scan Drawer form */}
       <Drawer isOpen={isScanOpen} onClose={() => setIsScanOpen(false)} title="Log Physical Access Scanner Check-in">
         <form className="space-y-4 font-sans" onSubmit={handleMockScan}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Select Active Gym Member</label>
+              <label className="block text-sm font-medium text-gray-800 mb-2">Select Active Gym Member</label>
               <select
                 required
                 value={scannerMemberId}
                 onChange={e => setScannerMemberId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm cursor-pointer"
+                className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-800 font-medium text-sm cursor-pointer"
               >
                 <option value="">-- Choose Member to Scan pass --</option>
                 {members.filter(m => m.status === "Active").map((m: any) => (
@@ -701,9 +701,9 @@ export default function AttendancePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Scan Transaction Type</label>
+              <label className="block text-sm font-medium text-gray-800 mb-2">Scan Transaction Type</label>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
                   <input 
                     type="radio" 
                     name="scanType"
@@ -714,7 +714,7 @@ export default function AttendancePage() {
                   Check-In Scan (Workout Start)
                 </label>
                 
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
                   <input 
                     type="radio" 
                     name="scanType"
@@ -958,7 +958,7 @@ export default function AttendancePage() {
                     </div>
 
                     {/* Member Detailed card details */}
-                    <div className="bg-[#111827] p-5 rounded-2xl border border-gray-800 w-full text-left space-y-4">
+                    <div className="bg-[#111827] p-5 rounded-2xl border border-gray-800 w-full text-left space-y-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#2E8C13]/20 text-[#2E8C13] flex items-center justify-center font-bold text-sm">
                           {kioskMatchedMember.name.charAt(0)}

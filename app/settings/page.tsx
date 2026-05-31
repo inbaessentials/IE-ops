@@ -553,7 +553,7 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-semibold text-gray-900">Platform Settings</h2>
                   <p className="text-sm text-gray-500 mt-1">Configure the core business mode of your Operations System.</p>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Business Platform</label>
                     <select
@@ -621,7 +621,7 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-semibold text-gray-900">Company Information</h2>
                   <p className="text-sm text-gray-500 mt-1">Official details used for billing and return addresses.</p>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
@@ -772,7 +772,7 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-3">
                         <Tags className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">{cat.name}</p>
+                          <p className="text-sm font-medium text-gray-800 group-hover:text-primary transition-colors">{cat.name}</p>
                           <p className="text-xs text-gray-500">{cat.count} products linked</p>
                         </div>
                       </div>
@@ -832,7 +832,7 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-3">
                         <Truck className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-primary transition-colors">{sup.name}</p>
+                          <p className="text-sm font-medium text-gray-800 group-hover:text-primary transition-colors">{sup.name}</p>
                           <p className="text-xs text-gray-500">
                             {sup.mobile ? `Mobile: ${sup.mobile}` : "No contact details"} {sup.gst_number ? `| GST: ${sup.gst_number}` : ""}
                           </p>
@@ -880,7 +880,7 @@ export default function SettingsPage() {
       <Drawer isOpen={!!viewingCategory} onClose={() => setViewingCategory(null)} title="Category Details" size="xl">
         {viewingCategory && (
           <div className="space-y-6 pb-20 animate-in fade-in duration-200">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
               {/* Top Badge & Action Bar */}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">Master Category</span>
@@ -1070,7 +1070,7 @@ export default function SettingsPage() {
       <Drawer isOpen={!!viewingSupplier} onClose={() => setViewingSupplier(null)} title="Supplier Details">
         {viewingSupplier && (
           <div className="space-y-6 pb-20">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
               {/* Top Badge & Action Bar */}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">Master Supplier</span>
@@ -1117,8 +1117,8 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h4 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2">Supplier Contact & GST details</h4>
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+              <h4 className="text-sm font-medium text-gray-800 border-b border-gray-100 pb-2">Supplier Contact & GST details</h4>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile / Phone Number</label>
                 <input 

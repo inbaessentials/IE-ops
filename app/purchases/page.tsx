@@ -502,7 +502,7 @@ export default function PurchasesPage() {
           {/* Coupon directory list */}
           <Card>
             <div className="p-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Active Coupons Directory</h3>
+              <h3 className="text-sm font-medium text-gray-800">Active Coupons Directory</h3>
             </div>
             
             <div className="overflow-x-auto">
@@ -529,7 +529,7 @@ export default function PurchasesPage() {
                           {c.type}
                         </span>
                       </td>
-                      <td className="p-4 text-sm font-semibold text-gray-900">
+                      <td className="p-4 text-sm font-medium text-gray-800">
                         {c.type === "Percentage" ? `${c.value}%` : `₹${c.value}`}
                       </td>
                       <td className="p-4 text-sm text-gray-500 font-semibold">{c.expiry}</td>
@@ -555,22 +555,22 @@ export default function PurchasesPage() {
           {/* Add Coupon Drawer */}
           <Drawer isOpen={isAddCouponOpen} onClose={() => setIsAddCouponOpen(false)} title="Create New Coupon Offer">
             <form className="space-y-4" onSubmit={handleCreateCoupon}>
-              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Coupon Code (Uppercase)</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Coupon Code (Uppercase)</label>
                   <input 
                     required
                     type="text"
                     value={formCouponCode}
                     onChange={e => setFormCouponCode(e.target.value)}
                     placeholder="e.g. SUMMER30"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-bold text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">Discount Type</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Discount Type</label>
                     <select
                       value={formDiscountType}
                       onChange={e => setFormDiscountType(e.target.value as any)}
@@ -581,25 +581,25 @@ export default function PurchasesPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">Discount Value</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Discount Value</label>
                     <input 
                       required
                       type="number"
                       value={formDiscountValue}
                       onChange={e => setFormDiscountValue(e.target.value)}
                       placeholder="e.g. 15"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Expiry Date</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Expiry Date</label>
                   <input 
                     type="date"
                     value={formExpiryDate}
                     onChange={e => setFormExpiryDate(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-semibold text-gray-900"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
                   />
                 </div>
               </div>
@@ -648,8 +648,8 @@ export default function PurchasesPage() {
           </div>
 
           {/* Main Listing Section */}
-          <Card>
-            <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Card className="p-4 border border-gray-100 mb-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="relative flex-1 w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
@@ -674,9 +674,11 @@ export default function PurchasesPage() {
                 </select>
               </div>
             </div>
+          </Card>
 
+          <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
             {filteredOrders.length > 0 ? (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto min-h-[300px]">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
@@ -717,13 +719,13 @@ export default function PurchasesPage() {
                         return (
                           <tr key={po.id} className="hover:bg-gray-50/50 transition-colors group">
                             <td className="p-4 pl-6 font-semibold text-gray-900">
-                              <p className="text-sm font-semibold text-gray-900">{po.notes || "Summer Cohort Campaign"}</p>
+                              <p className="text-sm font-medium text-gray-800">{po.notes || "Summer Cohort Campaign"}</p>
                               <span className="text-[10px] font-mono text-gray-400">{po.po_number.replace("PO-", "CAMP-")} • {po.date}</span>
                             </td>
                             <td className="p-4 text-sm font-bold text-gray-800">
                               {po.supplier}
                             </td>
-                            <td className="p-4 text-sm font-semibold text-gray-900">
+                            <td className="p-4 text-sm font-medium text-gray-800">
                               ₹{po.amount.toLocaleString()}
                             </td>
                             <td className="p-4 text-center text-sm font-semibold text-gray-500">
@@ -771,7 +773,7 @@ export default function PurchasesPage() {
                               {po.date}
                             </div>
                           </td>
-                          <td className="p-4 text-sm font-semibold text-gray-900">
+                          <td className="p-4 text-sm font-medium text-gray-800">
                             <div className="flex items-center gap-1.5">
                               <Truck className="w-4 h-4 text-gray-400" />
                               {po.supplier}
@@ -780,7 +782,7 @@ export default function PurchasesPage() {
                           <td className="p-4 text-sm text-gray-600 max-w-xs truncate" title={po.notes}>
                             {po.notes || <span className="text-gray-300 italic">No description</span>}
                           </td>
-                          <td className="p-4 text-sm font-semibold text-gray-900">₹{po.amount.toLocaleString()}</td>
+                          <td className="p-4 text-sm font-medium text-gray-800">₹{po.amount.toLocaleString()}</td>
                           <td className="p-4">
                             <select
                               value={po.status}
@@ -833,9 +835,9 @@ export default function PurchasesPage() {
           {/* Create Purchase Order Drawer */}
           <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Purchase Order">
             <form className="space-y-4" onSubmit={handleCreatePo}>
-              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Supplier</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Supplier</label>
                   {suppliers.length > 0 ? (
                     <select 
                       value={selectedSupplier}
@@ -855,7 +857,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Items Description / Raw Materials Notes</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Items Description / Raw Materials Notes</label>
                   <textarea 
                     rows={4}
                     value={poNotes}
@@ -866,7 +868,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Total Cost (₹)</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Total Cost (₹)</label>
                   <input 
                     required 
                     type="number" 
@@ -879,7 +881,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Initial Status</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Initial Status</label>
                   <select 
                     value={poStatus}
                     onChange={(e) => setPoStatus(e.target.value as any)}
@@ -902,19 +904,19 @@ export default function PurchasesPage() {
           <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingPo(null); }} title="Edit Purchase Order">
             <form className="space-y-4" onSubmit={handleUpdatePo}>
               {editingPo && (
-                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">PO Number</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">PO Number</label>
                     <input 
                       type="text" 
                       disabled 
                       value={editingPo.po_number}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-gray-50 text-gray-500 font-semibold" 
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-gray-50 text-gray-500 font-medium" 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">Supplier</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Supplier</label>
                     <select 
                       value={selectedSupplier}
                       onChange={(e) => setSelectedSupplier(e.target.value)}
@@ -927,7 +929,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">Items Description / Raw Materials Notes</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Items Description / Raw Materials Notes</label>
                     <textarea 
                       rows={4}
                       value={poNotes}
@@ -938,7 +940,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">Total Cost (₹)</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Total Cost (₹)</label>
                     <input 
                       required 
                       type="number" 
@@ -950,7 +952,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">Status</label>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Status</label>
                     <select 
                       value={poStatus}
                       onChange={(e) => setPoStatus(e.target.value as any)}

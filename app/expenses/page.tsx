@@ -480,7 +480,7 @@ export default function ExpensesPage() {
         title={editingExpense ? `Edit ${expenseSingular}` : `Add ${expenseSingular}`}
       >
         <form className="space-y-4" onSubmit={handleSaveExpense}>
-          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
               <Select 

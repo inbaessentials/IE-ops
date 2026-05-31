@@ -670,13 +670,13 @@ export default function Dashboard() {
           {/* 1. Renewals Due Widget */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 <CalendarCheck className="w-4 h-4 text-amber-500" />
                 Active Memberships Expiring Soon
               </CardTitle>
               <p className="text-[11px] text-gray-500 mt-0.5">Protect revenue leakage by proactively engaging expiring members.</p>
             </CardHeader>
-            <CardContent className="p-4 flex-1 space-y-4">
+            <CardContent className="p-4 flex-1 space-y-6">
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="bg-red-50/50 p-2.5 rounded-xl border border-red-100">
                   <span className="text-xl font-bold text-red-600">{expiring7.length}</span>
@@ -738,13 +738,13 @@ export default function Dashboard() {
           {/* 2. Churn Risk Widget */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
                 Churn Risk Members (Absent Scans)
               </CardTitle>
               <p className="text-[11px] text-gray-500 mt-0.5">Flagging active members who haven't check-in recently to combat churn.</p>
             </CardHeader>
-            <CardContent className="p-4 flex-1 space-y-4">
+            <CardContent className="p-4 flex-1 space-y-6">
               <div className="grid grid-cols-4 gap-2 text-center text-xs">
                 <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
                   <span className="text-base font-bold text-amber-600">{churn7.length}</span>
@@ -801,7 +801,7 @@ export default function Dashboard() {
           {/* 3. PT Upsell Opportunities */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 <Award className="w-4 h-4 text-purple-500" />
                 Personal Training (PT) Upsell Opportunities
               </CardTitle>
@@ -840,7 +840,7 @@ export default function Dashboard() {
           {/* 4. Product Cross-Sell Opportunities */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-emerald-500" />
                 Product & Supplement Cross-Sell Targets
               </CardTitle>
@@ -883,7 +883,7 @@ export default function Dashboard() {
           {/* Top Trainers Leaderboard */}
           <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#2E8C13]" />
                 Top Performing Trainers Roster
               </CardTitle>
@@ -925,7 +925,7 @@ export default function Dashboard() {
           {/* Best Selling Supplement Products */}
           <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-indigo-500" />
                 Supplement & Product Sales
               </CardTitle>
@@ -993,7 +993,7 @@ export default function Dashboard() {
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-900 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
+            className="bg-gray-50 border border-gray-200 text-sm font-medium text-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
           >
             <option value="All">All Categories</option>
             {categories.map((cat) => (
@@ -1006,7 +1006,7 @@ export default function Dashboard() {
           <select 
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-900 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
+            className="bg-gray-50 border border-gray-200 text-sm font-medium text-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
           >
             <option value="All time">All Time</option>
             <option value="Today">Today</option>
@@ -1187,7 +1187,7 @@ export default function Dashboard() {
                   return (
                     <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">{prod.name}</h4>
+                        <h4 className="text-sm font-medium text-gray-800">{prod.name}</h4>
                         <p className="text-xs text-gray-500 mt-0.5">{prod.category || "Uncategorized"}</p>
                       </div>
                       <div className="flex items-center gap-3">

@@ -304,7 +304,7 @@ export default function ReturnsPage() {
                         {ref.date}
                       </div>
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">
+                    <td className="p-4 text-sm font-medium text-gray-800">
                       <div className="flex items-center gap-1.5">
                         <User className="w-4 h-4 text-gray-400" />
                         {ref.student}
@@ -316,7 +316,7 @@ export default function ReturnsPage() {
                         {ref.course}
                       </div>
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">₹{ref.amount.toLocaleString("en-IN")}</td>
+                    <td className="p-4 text-sm font-medium text-gray-800">₹{ref.amount.toLocaleString("en-IN")}</td>
                     <td className="p-4 text-sm font-medium text-gray-500">{ref.reason}</td>
                     <td className="p-4">
                       <select
@@ -371,7 +371,7 @@ export default function ReturnsPage() {
       {/* Add Request Drawer */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title={`Create ${singularReturn}`}>
         <form className="space-y-4" onSubmit={handleCreateRefund}>
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {platform === "online-course" ? "Student Name" : "Customer Name"}

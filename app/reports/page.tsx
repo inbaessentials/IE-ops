@@ -505,7 +505,7 @@ export default function ReportsPage() {
                           <td className="p-4 text-sm font-medium text-gray-500">
                             {cat.units} {salesPlural.toLowerCase()}
                           </td>
-                        <td className="p-4 text-sm font-semibold text-gray-900">
+                        <td className="p-4 text-sm font-medium text-gray-800">
                           {cat.revenueFormatted}
                         </td>
                         <td className="p-4 text-sm font-semibold text-[#2E8C13]">
@@ -577,7 +577,7 @@ export default function ReportsPage() {
                               <div className="text-xs text-gray-400 mt-0.5">{prod.sku}</div>
                             </td>
                             <td className="p-4 text-sm font-medium text-gray-500">{prod.units} {salesPlural.toLowerCase()}</td>
-                            <td className="p-4 text-sm font-semibold text-gray-900">{prod.revenue}</td>
+                            <td className="p-4 text-sm font-medium text-gray-800">{prod.revenue}</td>
                             <td className="p-4 text-emerald-600 font-bold flex items-center gap-0.5 mt-2">
                               <ArrowUpRight className="w-3 h-3" /> {prod.growth}
                             </td>
