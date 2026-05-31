@@ -2606,64 +2606,64 @@ function CourseManagementView() {
           iconTextClass="text-purple-600" 
         />
       </div>
-      {/* ── Page-level Tabs: Courses | Category ─── */}
-      <div className="flex gap-0 border-b border-gray-200">
-        <button
-          onClick={() => setPageTab("courses")}
-          className={`px-5 py-2.5 text-sm transition-all border-b-2 ${
-            pageTab === "courses"
-              ? "border-primary text-primary font-semibold"
-              : "border-transparent text-gray-500 hover:text-gray-800 font-normal"
-          }`}
-        >
-          Courses
-        </button>
-        <button
-          onClick={() => setPageTab("category")}
-          className={`px-5 py-2.5 text-sm transition-all border-b-2 flex items-center gap-1.5 ${
-            pageTab === "category"
-              ? "border-primary text-primary font-semibold"
-              : "border-transparent text-gray-500 hover:text-gray-800 font-normal"
-          }`}
-        >
-          <Tag className="w-3.5 h-3.5" />
-          Category
-        </button>
-      </div>
+      {/* ── UNIFIED TOOLBAR: TABS + FILTERS ─── */}
+      <Card className="p-4 border border-gray-100 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-sm mb-6">
+        {/* Left: Tabs */}
+        <div className="flex bg-gray-100 p-1 rounded-lg shrink-0 w-full lg:w-auto overflow-x-auto">
+          <button
+            onClick={() => setPageTab("courses")}
+            className={`px-4 py-1.5 text-sm rounded-md transition-all whitespace-nowrap ${
+              pageTab === "courses"
+                ? "bg-white text-primary font-semibold shadow-sm"
+                : "text-gray-500 hover:text-gray-800 font-medium"
+            }`}
+          >
+            Courses
+          </button>
+          <button
+            onClick={() => setPageTab("category")}
+            className={`px-4 py-1.5 text-sm rounded-md transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              pageTab === "category"
+                ? "bg-white text-primary font-semibold shadow-sm"
+                : "text-gray-500 hover:text-gray-800 font-medium"
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5" />
+            Category
+          </button>
+        </div>
 
-      {/* ── COURSES TAB ─── */}
-      {pageTab === "courses" && (
-        <>
-          {/* Filter toolbar */}
-          <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-            <div className="relative flex-1 w-full max-w-md">
+        {/* Right: Search & Filters (Only show on Courses tab) */}
+        {pageTab === "courses" && (
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:flex-1 lg:justify-end">
+            <div className="relative w-full sm:max-w-[240px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input 
                 type="text" 
-                placeholder="Search by course ID, title or category..."
+                placeholder="Search course..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="w-full pl-9 pr-4 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Category:</span>
+                <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Category:</span>
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 outline-none"
+                  className={`pl-3 pr-8 py-1.5 border border-gray-200 rounded-lg text-xs bg-white outline-none cursor-pointer ${categoryFilter !== 'All' ? 'font-bold text-primary' : 'font-semibold text-gray-700'}`}
                 >
                   <option value="All">All Categories</option>
                   {courseCategories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Status:</span>
+                <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 outline-none"
+                  className={`pl-3 pr-8 py-1.5 border border-gray-200 rounded-lg text-xs bg-white outline-none cursor-pointer ${statusFilter !== 'All' ? 'font-bold text-primary' : 'font-semibold text-gray-700'}`}
                 >
                   <option value="All">All Statuses</option>
                   <option value="Live">Live</option>
@@ -2673,7 +2673,13 @@ function CourseManagementView() {
                 </select>
               </div>
             </div>
-          </Card>
+          </div>
+        )}
+      </Card>
+
+      {/* ── COURSES TAB ─── */}
+      {pageTab === "courses" && (
+        <>
 
           {/* Main Course Table */}
           <Card className="overflow-hidden">
