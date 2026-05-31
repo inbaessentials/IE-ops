@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/Toast";
 import { 
   Filter, Search, Plus, User, Phone, Mail, BookOpen, 
   Share2, Calendar, ClipboardList, Trash2, Edit, CheckCircle, AlertTriangle, 
-  MessageSquare, Sparkles, Send
+  MessageSquare, Sparkles, Send, MoreHorizontal
 } from "lucide-react";
 
 interface Lead {
@@ -590,17 +590,17 @@ export default function LeadCRM() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-xs font-semibold text-gray-600 pl-6">Lead Name</th>
-                  <th className="p-4 text-xs font-semibold text-gray-600">Mobile</th>
-                  <th className="p-4 text-xs font-semibold text-gray-600">Course / Program</th>
-                  <th className="p-4 text-xs font-semibold text-gray-600">Stage</th>
-                  <th className="p-4 text-xs font-semibold text-gray-600 text-right pr-6">Actions</th>
+                  <th className="p-4 pl-6 text-xs font-medium text-gray-600 uppercase tracking-wider">Lead Name</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course / Program</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stage</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredLeads.map(lead => (
-                  <tr key={lead.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="p-4 pl-6 font-semibold text-gray-900">
+                  <tr key={lead.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                    <td className="p-4 pl-6">
                       <button 
                         onClick={() => {
                           setViewingLead(lead);
@@ -609,9 +609,10 @@ export default function LeadCRM() {
                           setWaCount(lead.whatsappCount || 0);
                           setWaStatus(lead.whatsappStatus || "No Response");
                         }}
-                        className="hover:text-[#2E8C13] transition-colors font-bold text-left outline-none"
+                        className="text-left outline-none"
                       >
-                        {lead.name}
+                        <p className="text-sm font-semibold text-gray-900 hover:text-primary transition-colors">{lead.name}</p>
+                        <span className="text-[10px] font-medium text-gray-500">{lead.dateCreated} • {lead.source}</span>
                       </button>
                     </td>
                     <td className="p-4 text-sm font-medium text-gray-800">
@@ -622,7 +623,7 @@ export default function LeadCRM() {
                       <select
                         value={lead.stage}
                         onChange={e => handleUpdateStage(lead.id, e.target.value as any)}
-                        className={`px-2 py-1 rounded-md text-xs font-bold border border-gray-100 cursor-pointer outline-none ${STAGE_COLORS[lead.stage]}`}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border cursor-pointer outline-none ${STAGE_COLORS[lead.stage]}`}
                       >
                         {STAGES.map(s => (
                           <option key={s} value={s}>{s}</option>
@@ -630,21 +631,43 @@ export default function LeadCRM() {
                       </select>
                     </td>
                     <td className="p-4 text-right pr-6">
-                      <div className="flex items-center justify-end">
-                        <DropdownMenu 
-                          items={[
-                            { label: "View Details", onClick: () => {
-                                setViewingLead(lead);
-                                setWaFirstContact(lead.whatsappFirstContact || "");
-                                setWaLastContact(lead.whatsappLastContact || "");
-                                setWaCount(lead.whatsappCount || 0);
-                                setWaStatus(lead.whatsappStatus || "No Response");
-                              } 
-                            },
-                            { label: "Edit Lead", onClick: () => handleOpenEditDrawer(lead) },
-                            { label: "Delete Lead", onClick: () => handleDeleteLead(lead.id, lead.name), destructive: true }
-                          ]}
-                        />
+                      <div className="relative inline-block group/menu">
+                        <button
+                          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                          title="Actions"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                        <div className="absolute right-0 top-8 z-50 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-150 pointer-events-none group-hover/menu:pointer-events-auto">
+                          <button
+                            onClick={() => {
+                              setViewingLead(lead);
+                              setWaFirstContact(lead.whatsappFirstContact || "");
+                              setWaLastContact(lead.whatsappLastContact || "");
+                              setWaCount(lead.whatsappCount || 0);
+                              setWaStatus(lead.whatsappStatus || "No Response");
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <BookOpen className="w-3.5 h-3.5 text-gray-400" />
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => handleOpenEditDrawer(lead)}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Edit className="w-3.5 h-3.5 text-gray-400" />
+                            Edit Lead
+                          </button>
+                          <div className="border-t border-gray-100 my-1" />
+                          <button
+                            onClick={() => handleDeleteLead(lead.id, lead.name)}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-rose-600 hover:bg-rose-50 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Lead
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
