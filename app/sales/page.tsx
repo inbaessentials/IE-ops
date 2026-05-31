@@ -961,8 +961,7 @@ export default function SalesPage() {
                 <tr className="bg-gray-50/70 border-b border-gray-100">
                   {platform === "online-course" ? (
                     <>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment ID</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student & Enrollment ID</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
@@ -1011,23 +1010,23 @@ export default function SalesPage() {
                   if (platform === "online-course") {
                     return (
                       <tr key={order.id} className="hover:bg-gray-50/40 transition-colors group relative">
-                        <td className="p-4 whitespace-nowrap text-sm font-semibold text-primary">
-                          <button 
-                            type="button"
-                            onClick={() => setViewingOrder(order)}
-                            className="hover:underline text-left font-mono"
-                          >
-                            {order.id}
-                          </button>
-                        </td>
-                        <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-800">
-                          <button 
-                            type="button"
-                            onClick={() => setViewingCustomerName(order.customer)}
-                            className="hover:underline text-left"
-                          >
-                            {order.customer}
-                          </button>
+                        <td className="p-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <button 
+                              type="button"
+                              onClick={() => setViewingCustomerName(order.customer)}
+                              className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left"
+                            >
+                              {order.customer}
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => setViewingOrder(order)}
+                              className="text-xs text-gray-500 mt-0.5 hover:underline text-left font-mono"
+                            >
+                              {order.id}
+                            </button>
+                          </div>
                         </td>
                         <td className="p-4 whitespace-nowrap text-sm text-gray-600 font-medium max-w-[200px] truncate">
                           {order.items.map((item: any) => item.name).join(", ") || "Digital Marketing Masterclass"}
