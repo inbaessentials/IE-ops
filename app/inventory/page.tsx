@@ -2575,17 +2575,36 @@ function CourseManagementView() {
     const total = courses.filter(c => c.status !== "Archived").length;
     const leadsSum = courses.reduce((sum, c) => sum + (c.leads || 0), 0);
     const studentsSum = courses.reduce((sum, c) => sum + (c.students || 0), 0);
-    const activeStudents = courses.reduce((sum, c) => c.status === "Live" ? sum + (c.students || 0) : sum, 0);
     const revenueSum = courses.reduce((sum, c) => sum + ((c.price || 0) * (c.students || 0)), 0);
     const conversion = leadsSum > 0 ? ((studentsSum / leadsSum) * 100).toFixed(0) : "0";
+    
+    // Mock calculations for new metrics
+    const pendingPaymentsSum = courses.reduce((sum, c) => sum + (c.price * Math.floor((c.leads || 0) * 0.15)), 0);
+    
+    // Hardcoded for demo/mock purposes based on prompt
+    const newEnrollments = Math.floor(studentsSum * 0.4); 
+    const lastMonthEnrollments = Math.floor(studentsSum * 0.35);
+    const enrollmentGrowth = lastMonthEnrollments > 0 
+      ? (((newEnrollments - lastMonthEnrollments) / lastMonthEnrollments) * 100).toFixed(1)
+      : "0";
+
+    // Get current and last month names
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const currentMonthIdx = new Date().getMonth();
+    const currentMonthStr = monthNames[currentMonthIdx];
+    const lastMonthStr = monthNames[currentMonthIdx === 0 ? 11 : currentMonthIdx - 1];
 
     return {
       total,
       leads: leadsSum,
       students: studentsSum,
-      active: activeStudents,
       revenue: revenueSum,
-      conv: conversion
+      conv: conversion,
+      pendingPayments: pendingPaymentsSum,
+      newEnrollments,
+      enrollmentGrowth,
+      currentMonthStr,
+      lastMonthStr
     };
   }, [courses]);
 
@@ -2671,19 +2690,24 @@ function CourseManagementView() {
           iconTextClass="text-purple-600" 
         />
         <KpiCard 
-          title="Total Enrollments" 
-          value={stats.students} 
+          title={`New Enrollments (${stats.currentMonthStr})`}
+          value={stats.newEnrollments}
           icon={<CalendarCheck />} 
           iconBgClass="bg-indigo-50" 
-          iconTextClass="text-indigo-600" 
+          iconTextClass="text-indigo-600"
+          subText={
+            <span className="text-[10px] font-medium text-emerald-600">
+              +{stats.enrollmentGrowth}% vs {stats.lastMonthStr}
+            </span>
+          }
         />
         <KpiCard 
-          title="Active Students" 
-          value={stats.active} 
-          valueClass="text-[#2E8C13]"
+          title="Pending Payments" 
+          value={`₹${stats.pendingPayments.toLocaleString("en-IN")}`} 
+          valueClass="text-amber-600"
           icon={<Award />} 
-          iconBgClass="bg-green-50 animate-pulse" 
-          iconTextClass="text-[#2E8C13]" 
+          iconBgClass="bg-amber-50" 
+          iconTextClass="text-amber-600" 
         />
         <KpiCard 
           title="Revenue Generated" 

@@ -8,6 +8,7 @@ interface KpiCardProps {
   iconBgClass?: string;
   iconTextClass?: string;
   valueClass?: string;
+  subText?: React.ReactNode;
   onClick?: () => void;
 }
 
@@ -18,6 +19,7 @@ export function KpiCard({
   iconBgClass = "bg-gray-50",
   iconTextClass = "text-gray-600",
   valueClass = "text-gray-900",
+  subText,
   onClick,
 }: KpiCardProps) {
   return (
@@ -34,6 +36,11 @@ export function KpiCard({
         <h3 className={`text-xl font-semibold tracking-tight ${valueClass}`}>
           {value}
         </h3>
+        {subText && (
+          <div className="mt-1">
+            {subText}
+          </div>
+        )}
       </div>
       <div className={`p-2.5 rounded-xl ${iconBgClass} ${iconTextClass} flex items-center justify-center`}>
         <div className="w-4 h-4 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4">
