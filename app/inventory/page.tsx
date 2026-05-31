@@ -2704,18 +2704,18 @@ function CourseManagementView() {
                               onClick={() => { setSelectedCourse(course); setActiveTab("overview"); }}
                               className="text-left outline-none"
                             >
-                              <p className="text-sm text-gray-900 hover:text-primary transition-colors">{course.name}</p>
-                              <span className="text-[10px] font-mono text-gray-400">{course.display_id} • {course.courseType}</span>
+                              <p className="text-sm font-semibold text-gray-900 hover:text-primary transition-colors">{course.name}</p>
+                              <span className="text-[10px] font-mono font-medium text-gray-500">{course.display_id} • {course.courseType}</span>
                             </button>
                           </td>
                           <td className="p-4">
-                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">{course.category}</span>
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-medium">{course.category}</span>
                           </td>
-                          <td className="p-4 text-sm text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
-                          <td className="p-4 text-center text-sm text-gray-500">{course.leads}</td>
-                          <td className="p-4 text-center text-sm text-gray-700">{course.students}</td>
-                          <td className="p-4 text-center text-sm text-purple-600">{convPct}%</td>
-                          <td className="p-4 text-right text-sm text-emerald-600">₹{grossRev.toLocaleString("en-IN")}</td>
+                          <td className="p-4 text-sm font-medium text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
+                          <td className="p-4 text-center text-sm font-medium text-gray-500">{course.leads}</td>
+                          <td className="p-4 text-center text-sm font-medium text-gray-700">{course.students}</td>
+                          <td className="p-4 text-center text-sm font-medium text-purple-600">{convPct}%</td>
+                          <td className="p-4 text-right text-sm font-medium text-emerald-600">₹{grossRev.toLocaleString("en-IN")}</td>
                           <td className="p-4 text-center">
                             <span className={`px-2 py-0.5 rounded text-[10px] border ${
                               course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
