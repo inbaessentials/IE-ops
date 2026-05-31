@@ -2875,7 +2875,7 @@ function CourseManagementView() {
                               onClick={() => { setSelectedCourse(course); setActiveTab("overview"); }}
                               className="text-left outline-none"
                             >
-                              <p className="text-base font-bold text-gray-900 hover:text-primary transition-colors">{course.name}</p>
+                              <p className="text-base font-semibold text-gray-900 hover:text-primary transition-colors">{course.name}</p>
                               <span className="text-xs font-medium text-gray-500">{course.display_id} • {course.courseType}</span>
                             </button>
                           </td>
@@ -3044,7 +3044,7 @@ function CourseManagementView() {
                         {catCourses.map(course => (
                           <tr key={course.id} className="hover:bg-gray-50/40 transition-colors">
                             <td className="px-5 py-4">
-                              <p className="text-base font-bold text-gray-900">{course.name}</p>
+                              <p className="text-base font-semibold text-gray-900">{course.name}</p>
                               <span className="text-xs font-medium text-gray-400">{course.display_id}</span>
                             </td>
                             <td className="px-5 py-4 text-center text-sm font-medium text-gray-600">{course.students}</td>
