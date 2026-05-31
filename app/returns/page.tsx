@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Plus, Search, Filter, AlertCircle, Calendar, User, DollarSign, Trash2, BookOpen } from "lucide-react";
+import { Plus, Search, Filter, AlertCircle, Calendar, User, DollarSign, Trash2, BookOpen, Clock, Activity, Download, CheckCircle2, RefreshCw } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
 import { usePlatform } from "@/lib/PlatformContext";
 import { Badge } from "@/components/ui/Badge";
+import { DropdownMenu } from "@/components/ui/Dropdown";
 
 interface RefundRequest {
   id: string;
@@ -26,11 +27,13 @@ export default function ReturnsPage() {
   
   // State variables
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
 
   // Form Fields
+  const [selectedEnrollmentId, setSelectedEnrollmentId] = useState("");
   const [studentName, setStudentName] = useState("");
   const [courseName, setCourseName] = useState("");
   const [refundAmount, setRefundAmount] = useState("");
@@ -111,6 +114,12 @@ export default function ReturnsPage() {
 
   useEffect(() => {
     loadRefunds();
+    
+    // Load enrollments for autofill
+    const savedEnr = localStorage.getItem("inba_enrollments_module");
+    if (savedEnr) {
+      setEnrollments(JSON.parse(savedEnr));
+    }
   }, [platform]);
 
   const handleUpdateStatus = (id: string, newStatus: any) => {
@@ -130,6 +139,26 @@ export default function ReturnsPage() {
     setRefunds(filtered);
     localStorage.setItem(key, JSON.stringify(filtered));
     toast(`Deleted ${refId}`, "error");
+  };
+
+  const handleEnrollmentSelect = (enrId: string) => {
+    setSelectedEnrollmentId(enrId);
+    if (enrId === "manual") {
+      setStudentName("");
+      setCourseName("");
+      setRefundAmount("");
+      return;
+    }
+    const enr = enrollments.find(e => e.id === enrId);
+    if (enr) {
+      setStudentName(enr.studentName);
+      setCourseName(enr.course || "");
+      setRefundAmount(enr.amount ? enr.amount.toString() : "");
+    } else {
+      setStudentName("");
+      setCourseName("");
+      setRefundAmount("");
+    }
   };
 
   const handleCreateRefund = (e: React.FormEvent) => {
@@ -156,6 +185,7 @@ export default function ReturnsPage() {
     localStorage.setItem(key, JSON.stringify(updated));
 
     // Reset Form
+    setSelectedEnrollmentId("");
     setStudentName("");
     setCourseName("");
     setRefundAmount("");
@@ -177,8 +207,23 @@ export default function ReturnsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const getDropdownItems = (ref: RefundRequest) => [
+    { label: "View Details", onClick: () => toast("Details opened", "info") },
+    { label: "Process Refund", onClick: () => handleUpdateStatus(ref.id, "Paid") },
+    { label: "Mark as Approved", onClick: () => handleUpdateStatus(ref.id, "Approved") },
+    { label: "Reject Request", onClick: () => handleUpdateStatus(ref.id, "Rejected"), destructive: true },
+    { label: "Delete", onClick: () => handleDeleteRefund(ref.id, ref.refund_id), destructive: true }
+  ];
+
   const returnsTitle = getModuleProp('Returns', 'displayName');
   const singularReturn = getModuleProp('Returns', 'singularDisplayName');
+
+  // KPI Calculations
+  const totalClaimsCount = refunds.length;
+  const totalValueClaimed = refunds.reduce((sum, r) => sum + r.amount, 0);
+  const pendingCount = refunds.filter(r => r.status === "Requested" || r.status === "Pending Approval").length;
+  const approvedCount = refunds.filter(r => r.status === "Approved").length;
+  const paidCount = refunds.filter(r => r.status === "Paid" || r.status === "Returned").length;
 
   return (
     <div className="space-y-6">
@@ -187,57 +232,77 @@ export default function ReturnsPage() {
           <h1 className="text-xl font-semibold text-gray-900">{returnsTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{getModuleProp('Returns', 'description')}</p>
         </div>
-        <Button className="gap-2 font-semibold" onClick={() => {
-          setReason(platform === "online-course" ? "Unsatisfied with course" : "Damaged Item");
-          setIsAddDrawerOpen(true);
-        }}>
-          <Plus className="w-4 h-4" />
-          Create {singularReturn}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
+          <Button className="gap-2 font-semibold" onClick={() => {
+            setReason(platform === "online-course" ? "Unsatisfied with course" : "Damaged Item");
+            setSelectedEnrollmentId("");
+            setStudentName("");
+            setCourseName("");
+            setRefundAmount("");
+            setIsAddDrawerOpen(true);
+          }}>
+            <Plus className="w-4 h-4" />
+            Create {singularReturn}
+          </Button>
+        </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+      {/* Dynamic Metrics Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-              Total {platform === "online-course" ? "Refund Claims" : "Returns Registered"}
-            </p>
-            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{refunds.length}</h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Claims</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{totalClaimsCount}</h3>
           </div>
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-            <AlertCircle className="w-4 h-4" />
+            <RefreshCw className="w-4 h-4" />
           </div>
         </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-              {platform === "online-course" ? "Refund Value Claimed" : "Return Valuation"}
-            </p>
-            <h3 className="text-xl font-semibold tracking-tight text-[#2E8C13]">
-              ₹{refunds.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
-            </h3>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Value Claimed</p>
+            <h3 className="text-xl font-semibold tracking-tight text-red-600">₹{totalValueClaimed.toLocaleString("en-IN")}</h3>
           </div>
-          <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
+          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
             <DollarSign className="w-4 h-4" />
           </div>
         </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
             <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending Resolution</p>
-            <h3 className="text-xl font-semibold tracking-tight text-amber-600">
-              {refunds.filter(r => r.status === "Requested" || r.status === "Pending Approval" || r.status === "Approved").length}
-            </h3>
+            <h3 className="text-xl font-semibold tracking-tight text-amber-600">{pendingCount}</h3>
           </div>
-          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-            <Calendar className="w-4 h-4" />
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl animate-pulse">
+            <Clock className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Approved</p>
+            <h3 className="text-xl font-semibold tracking-tight text-indigo-600">{approvedCount}</h3>
+          </div>
+          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Settled (Paid)</p>
+            <h3 className="text-xl font-semibold tracking-tight text-emerald-600">{paidCount}</h3>
+          </div>
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+            <Activity className="w-4 h-4" />
           </div>
         </Card>
       </div>
 
-      <Card>
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative flex-1 w-full max-w-md">
+      <Card className="p-4 border border-gray-100 mb-6 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
@@ -247,12 +312,12 @@ export default function ReturnsPage() {
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
             />
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-            <span className="text-sm text-gray-500 font-medium uppercase">Filter Status:</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500 font-medium uppercase">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
             >
               <option value="All">All Statuses</option>
               {platform === "online-course" ? (
@@ -272,106 +337,100 @@ export default function ReturnsPage() {
             </select>
           </div>
         </div>
+      </Card>
 
-        {filteredRefunds.length > 0 ? (
-          <div className="overflow-x-auto">
+      <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
+        <div className="overflow-x-auto min-h-[300px]">
+          {filteredRefunds.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/30 border-b border-gray-100">
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider pl-6">
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="p-4 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {platform === "online-course" ? "Refund ID" : "Return ID"}
                   </th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {platform === "online-course" ? "Student" : "Customer"}
                   </th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {platform === "online-course" ? "Course" : "Product Return"}
                   </th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Reason</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status Resolution</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status Resolution</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredRefunds.map((ref) => (
-                  <tr key={ref.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="p-4 pl-6 font-semibold text-gray-900">{ref.refund_id}</td>
-                    <td className="p-4 text-sm text-gray-600 font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                        {ref.date}
-                      </div>
+                  <tr key={ref.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                    <td className="p-4 pl-6 whitespace-nowrap text-sm font-semibold text-primary font-mono">{ref.refund_id}</td>
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                      {ref.date}
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-900">
-                      <div className="flex items-center gap-1.5">
-                        <User className="w-4 h-4 text-gray-400" />
-                        {ref.student}
-                      </div>
+                    <td className="p-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                      {ref.student}
                     </td>
-                    <td className="p-4 text-sm font-medium text-gray-600 max-w-xs truncate" title={ref.course}>
-                      <div className="flex items-center gap-1.5">
-                        <BookOpen className="w-4 h-4 text-gray-400" />
-                        {ref.course}
-                      </div>
+                    <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-600 max-w-xs truncate" title={ref.course}>
+                      {ref.course}
                     </td>
-                    <td className="p-4 text-sm font-medium text-gray-800">₹{ref.amount.toLocaleString("en-IN")}</td>
-                    <td className="p-4 text-sm font-medium text-gray-600">{ref.reason}</td>
-                    <td className="p-4">
-                      <select
-                        value={ref.status}
-                        onChange={(e) => handleUpdateStatus(ref.id, e.target.value as any)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-bold border-0 outline-none cursor-pointer ${
-                          ref.status === "Paid" || ref.status === "Returned" ? "bg-green-50 text-green-700 hover:bg-green-100" :
-                          ref.status === "Approved" ? "bg-blue-50 text-blue-700 hover:bg-blue-100" :
-                          ref.status === "Rejected" ? "bg-red-50 text-red-700 hover:bg-red-100" :
-                          "bg-orange-50 text-orange-700 hover:bg-orange-100"
-                        }`}
-                      >
-                        {platform === "online-course" ? (
-                          <>
-                            <option value="Requested">Requested</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Paid">Paid</option>
-                          </>
-                        ) : (
-                          <>
-                            <option value="Pending Approval">Pending Approval</option>
-                            <option value="Returned">Returned</option>
-                            <option value="Rejected">Rejected</option>
-                          </>
-                        )}
-                      </select>
+                    <td className="p-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                      ₹{ref.amount.toLocaleString("en-IN")}
                     </td>
-                    <td className="p-4 text-right pr-6">
-                      <button 
-                        type="button"
-                        onClick={() => handleDeleteRefund(ref.id, ref.refund_id)}
-                        className="text-gray-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"
-                        title="Delete Request"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-600">
+                      {ref.reason}
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <Badge variant={
+                        ref.status === "Paid" || ref.status === "Returned" ? "success" :
+                        ref.status === "Approved" ? "default" :
+                        ref.status === "Rejected" ? "error" : "warning"
+                      }>
+                        {ref.status}
+                      </Badge>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-right pr-6">
+                      <DropdownMenu items={getDropdownItems(ref)} />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <div className="p-12 text-center text-gray-500 min-h-[220px] flex flex-col items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-gray-300 mb-2" />
-            <p className="text-sm font-medium">{getModuleProp('Returns', 'emptyStateText')}</p>
-          </div>
-        )}
+          ) : (
+            <div className="p-12 text-center text-gray-500 min-h-[300px] flex flex-col items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-gray-300 mb-2" />
+              <p className="text-sm font-medium">{getModuleProp('Returns', 'emptyStateText')}</p>
+            </div>
+          )}
+        </div>
       </Card>
 
       {/* Add Request Drawer */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title={`Create ${singularReturn}`}>
         <form className="space-y-4" onSubmit={handleCreateRefund}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+            
+            {/* Enrollment Selection (For Online Course only) */}
+            {platform === "online-course" && enrollments.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Enrollment</label>
+                <select 
+                  value={selectedEnrollmentId}
+                  onChange={(e) => handleEnrollmentSelect(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-gray-900 font-medium text-sm"
+                >
+                  <option value="">-- Search and Select Enrollment --</option>
+                  <option value="manual">Manual Entry</option>
+                  {enrollments.map(enr => (
+                    <option key={enr.id} value={enr.id}>
+                      {enr.id} - {enr.studentName} ({enr.course})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-gray-500 mt-1.5">Selecting an enrollment will auto-fill the refund details.</p>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {platform === "online-course" ? "Student Name" : "Customer Name"}
@@ -381,7 +440,8 @@ export default function ReturnsPage() {
                 type="text" 
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium" 
+                readOnly={selectedEnrollmentId !== "" && selectedEnrollmentId !== "manual"}
+                className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium ${selectedEnrollmentId !== "" && selectedEnrollmentId !== "manual" ? "bg-gray-50" : ""}`}
                 placeholder={platform === "online-course" ? "e.g. John Doe" : "e.g. Meera Reddy"} 
               />
             </div>
@@ -394,7 +454,8 @@ export default function ReturnsPage() {
                 type="text" 
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium" 
+                readOnly={selectedEnrollmentId !== "" && selectedEnrollmentId !== "manual"}
+                className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium ${selectedEnrollmentId !== "" && selectedEnrollmentId !== "manual" ? "bg-gray-50" : ""}`}
                 placeholder={platform === "online-course" ? "e.g. UI/UX Bootcamp" : "e.g. Herbal Face Wash"} 
               />
             </div>
@@ -416,7 +477,7 @@ export default function ReturnsPage() {
               <select 
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-gray-900 font-medium"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-gray-900 font-medium text-sm"
               >
                 {platform === 'online-course' ? (
                   <>
@@ -441,7 +502,7 @@ export default function ReturnsPage() {
                 rows={3} 
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 font-medium text-sm" 
                 placeholder="Describe details regarding this refund claim..."
               />
             </div>
