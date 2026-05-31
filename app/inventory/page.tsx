@@ -2941,47 +2941,48 @@ function CourseManagementView() {
         isOpen={!!selectedCourse} 
         onClose={() => setSelectedCourse(null)} 
         title={selectedCourse ? `${selectedCourse.name} Details` : "Course Profile"}
+        size="2xl"
       >
         {selectedCourse && (
           <div className="space-y-6">
             {/* Navigation tabs inside the drawer */}
-            <div className="flex border-b border-gray-100 gap-2 shrink-0">
+            <div className="flex border-b border-gray-100 gap-4 shrink-0 overflow-x-auto">
               <button 
                 onClick={() => setActiveTab("overview")}
-                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
-                  activeTab === "overview" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                className={`pb-3 px-2 text-sm font-medium border-b-2 transition-all outline-none whitespace-nowrap ${
+                  activeTab === "overview" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-900"
                 }`}
               >
                 Overview
               </button>
               <button 
                 onClick={() => setActiveTab("enrollments")}
-                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
-                  activeTab === "enrollments" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                className={`pb-3 px-2 text-sm font-medium border-b-2 transition-all outline-none whitespace-nowrap ${
+                  activeTab === "enrollments" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-900"
                 }`}
               >
                 Enrollments
               </button>
               <button 
                 onClick={() => setActiveTab("leads")}
-                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
-                  activeTab === "leads" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                className={`pb-3 px-2 text-sm font-medium border-b-2 transition-all outline-none whitespace-nowrap ${
+                  activeTab === "leads" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-900"
                 }`}
               >
                 Leads
               </button>
               <button 
                 onClick={() => setActiveTab("payments")}
-                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
-                  activeTab === "payments" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                className={`pb-3 px-2 text-sm font-medium border-b-2 transition-all outline-none whitespace-nowrap ${
+                  activeTab === "payments" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-900"
                 }`}
               >
                 Payments
               </button>
               <button 
                 onClick={() => setActiveTab("insights")}
-                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-all outline-none ${
-                  activeTab === "insights" ? "border-primary text-primary" : "border-transparent text-gray-400 hover:text-gray-900"
+                className={`pb-3 px-2 text-sm font-medium border-b-2 transition-all outline-none whitespace-nowrap ${
+                  activeTab === "insights" ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-900"
                 }`}
               >
                 Insights
@@ -3076,21 +3077,21 @@ function CourseManagementView() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                        <th className="p-3 pl-4">Student</th>
-                        <th className="p-3">Date Enrolled</th>
-                        <th className="p-3">Tuition Fee</th>
-                        <th className="p-3 text-right pr-4">Status</th>
+                        <th className="p-4 pl-6">Student</th>
+                        <th className="p-4">Date Enrolled</th>
+                        <th className="p-4">Tuition Fee</th>
+                        <th className="p-4 text-right pr-6">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
+                    <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
                       {enrollments.map((en, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
-                          <td className="p-3 pl-4 font-bold text-gray-900">{en.student}</td>
-                          <td className="p-3 text-gray-500">{en.date}</td>
-                          <td className="p-3 text-gray-900">₹{en.amount.toLocaleString()}</td>
-                          <td className="p-3 text-right pr-4">
-                            <span className={`px-2 py-0.5 rounded font-bold text-[9px] ${
-                              en.status === "Paid" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700 animate-pulse"
+                          <td className="p-4 pl-6 font-semibold text-gray-900">{en.student}</td>
+                          <td className="p-4 text-gray-500">{en.date}</td>
+                          <td className="p-4 text-gray-800">₹{en.amount.toLocaleString()}</td>
+                          <td className="p-4 text-right pr-6">
+                            <span className={`px-2 py-0.5 rounded font-semibold text-[10px] ${
+                              en.status === "Paid" ? "bg-green-50 text-green-700 border border-green-200" : "bg-orange-50 text-orange-700 border border-orange-200"
                             }`}>
                               {en.status}
                             </span>
@@ -3111,23 +3112,23 @@ function CourseManagementView() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                        <th className="p-3 pl-4">Lead Name</th>
-                        <th className="p-3">Ad Source</th>
-                        <th className="p-3">CRM Stage</th>
-                        <th className="p-3 text-right pr-4">Last Contact</th>
+                        <th className="p-4 pl-6">Lead Name</th>
+                        <th className="p-4">Ad Source</th>
+                        <th className="p-4">CRM Stage</th>
+                        <th className="p-4 text-right pr-6">Last Contact</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
+                    <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
                       {leadsList.map((le, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
-                          <td className="p-3 pl-4 font-bold text-gray-900">{le.name}</td>
-                          <td className="p-3 text-gray-500">{le.source}</td>
-                          <td className="p-3">
-                            <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-700 font-bold rounded text-[9px]">
+                          <td className="p-4 pl-6 font-semibold text-gray-900">{le.name}</td>
+                          <td className="p-4 text-gray-500">{le.source}</td>
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold rounded text-[10px]">
                               {le.stage}
                             </span>
                           </td>
-                          <td className="p-3 text-right pr-4 text-gray-500">{le.contact}</td>
+                          <td className="p-4 text-right pr-6 text-gray-500">{le.contact}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -3144,20 +3145,20 @@ function CourseManagementView() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                        <th className="p-3 pl-4">Invoice ID</th>
-                        <th className="p-3">Amount Billing</th>
-                        <th className="p-3">Invoice Date</th>
-                        <th className="p-3 text-right pr-4">Status</th>
+                        <th className="p-4 pl-6">Invoice ID</th>
+                        <th className="p-4">Amount Billing</th>
+                        <th className="p-4">Invoice Date</th>
+                        <th className="p-4 text-right pr-6">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
+                    <tbody className="divide-y divide-gray-100 text-sm font-normal text-gray-700">
                       {payments.map((pa, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
-                          <td className="p-3 pl-4 font-mono font-bold text-gray-900">{pa.invoice}</td>
-                          <td className="p-3 text-gray-900 font-bold">₹{pa.amount.toLocaleString()}</td>
-                          <td className="p-3 text-gray-500">{pa.date}</td>
-                          <td className="p-3 text-right pr-4">
-                            <span className="px-2 py-0.5 bg-green-50 text-green-700 font-bold rounded text-[9px]">
+                          <td className="p-4 pl-6 font-mono text-gray-900">{pa.invoice}</td>
+                          <td className="p-4 text-gray-900">₹{pa.amount.toLocaleString()}</td>
+                          <td className="p-4 text-gray-500">{pa.date}</td>
+                          <td className="p-4 text-right pr-6">
+                            <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-[10px]">
                               {pa.status}
                             </span>
                           </td>
@@ -3219,28 +3220,29 @@ function CourseManagementView() {
         isOpen={isAddOpen} 
         onClose={() => setIsAddOpen(false)} 
         title={editingCourse ? `Edit Course: ${editingCourse.name}` : "Publish New Course Offer"}
+        size="xl"
       >
         <form className="space-y-4" onSubmit={handleSaveCourse}>
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-8">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Course Name *</label>
+              <label className="block text-sm font-normal text-gray-600 mb-2">Course Name *</label>
               <input 
                 required 
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                 placeholder="e.g. Fullstack Developer Blueprint" 
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Category *</label>
+                <label className="block text-sm font-normal text-gray-600 mb-2">Category *</label>
                 <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-semibold text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-normal text-gray-700 text-sm"
                 >
                   <option value="Marketing">Marketing</option>
                   <option value="Design">Design</option>
@@ -3248,46 +3250,46 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Course Pricing (₹) *</label>
+                <label className="block text-sm font-normal text-gray-600 mb-2">Course Pricing (₹) *</label>
                 <input 
                   required 
                   type="number" 
                   value={price} 
                   onChange={(e) => setPrice(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                   placeholder="e.g. 5999" 
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Syllabus Description</label>
+              <label className="block text-sm font-normal text-gray-600 mb-2">Syllabus Description</label>
               <textarea 
                 rows={3} 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                 placeholder="Describe what students will learn, projects included, and benefits..." 
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Duration</label>
+                <label className="block text-sm font-normal text-gray-600 mb-2">Duration</label>
                 <input 
                   type="text" 
                   value={duration} 
                   onChange={(e) => setDuration(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                   placeholder="e.g. 10 Weeks" 
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Course Type</label>
+                <label className="block text-sm font-normal text-gray-600 mb-2">Course Type</label>
                 <select 
                   value={courseType} 
                   onChange={(e) => setCourseType(e.target.value as any)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-semibold text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-normal text-gray-700 text-sm"
                 >
                   <option value="Live Cohort">Live Cohort</option>
                   <option value="Recorded Course">Recorded Course</option>
@@ -3298,34 +3300,34 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Landing Page URL</label>
+              <label className="block text-sm font-normal text-gray-600 mb-2">Landing Page URL</label>
               <input 
                 type="url" 
                 value={landingPageUrl} 
                 onChange={(e) => setLandingPageUrl(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                 placeholder="https://academy.inba.com/course-slug" 
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">WhatsApp CTA Broadcast Link</label>
+              <label className="block text-sm font-normal text-gray-600 mb-2">WhatsApp CTA Broadcast Link</label>
               <input 
                 type="url" 
                 value={whatsappCtaLink} 
                 onChange={(e) => setWhatsappCtaLink(e.target.value)} 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                 placeholder="https://wa.me/..." 
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Publish Status</label>
+                <label className="block text-sm font-normal text-gray-600 mb-2">Publish Status</label>
                 <select 
                   value={status} 
                   onChange={(e) => setStatus(e.target.value as any)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-semibold text-gray-900"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-normal text-gray-700 text-sm"
                 >
                   <option value="Draft">Draft</option>
                   <option value="Live">Live</option>
@@ -3334,12 +3336,12 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Meta Tags (comma separated)</label>
+                <label className="block text-sm font-normal text-gray-600 mb-2">Meta Tags (comma separated)</label>
                 <input 
                   type="text" 
                   value={tags} 
                   onChange={(e) => setTags(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
                   placeholder="Figma, Portfolio, Design" 
                 />
               </div>
