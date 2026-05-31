@@ -1931,7 +1931,11 @@ export default function SalesPage() {
                         </div>
                       </div>
                     </div>
-                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  </>
+                );
+              })()}
+
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                 <h4 className="text-sm font-medium text-gray-800 mb-4">Enrollment Timeline</h4>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent">
                   
@@ -1977,8 +1981,6 @@ export default function SalesPage() {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
                 </div>
               </div>
 
