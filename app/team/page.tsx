@@ -287,63 +287,76 @@ export default function TeamPage() {
         </div>
       </Card>
 
-      {/* Team Roster Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTeam.map(rep => {
-          // Calculate individual conversion rate
-          const indRate = rep.leadsAssigned > 0 ? ((rep.leadsConverted / rep.leadsAssigned) * 100).toFixed(0) : "0";
-          return (
-            <Card key={rep.id} className="p-6 border border-gray-100 shadow-xs hover:shadow-md hover:scale-[1.01] transition-all bg-white relative overflow-hidden group">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base border border-gray-200">
-                    {rep.name.split(" ").map(w => w.charAt(0)).join("")}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-950 text-sm">{rep.name}</h3>
-                    <p className="text-xs text-gray-400 font-semibold mt-0.5">{rep.department}</p>
-                  </div>
-                </div>
-
-                <Badge className={`font-medium text-[10px] border ${ROLE_COLORS[rep.role]}`}>
-                  {rep.role}
-                </Badge>
-              </div>
-
-              {/* Ratios split */}
-              <div className="grid grid-cols-3 gap-2 text-center mt-6 pt-4 border-t border-gray-100 text-xs">
-                <div className="space-y-1">
-                  <span className="text-[10px] text-gray-400 font-semibold uppercase block">Assigned Leads</span>
-                  <span className="font-bold text-gray-900 text-sm block">{rep.leadsAssigned}</span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] text-gray-400 font-semibold uppercase block">Converted</span>
-                  <span className="font-bold text-[#2E8C13] text-sm block">{rep.leadsConverted} <span className="text-[10px] font-semibold text-gray-400">({indRate}%)</span></span>
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] text-gray-400 font-semibold uppercase block">Follow-ups</span>
-                  <span className="font-bold text-indigo-600 text-sm block">{rep.followupsCompleted}</span>
-                </div>
-              </div>
-
-              {/* Top Banner overlay for visual aesthetics */}
-              <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#2E8C13] to-indigo-600 opacity-80" />
-
-              {/* Actions Overlay */}
-              <div className="mt-4 pt-4 border-t border-gray-100/50 flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={() => handleDeleteMember(rep.id, rep.name)}
-                  className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded text-xs font-bold flex items-center gap-1 transition-all"
-                  title="Remove Representative"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Remove Member</span>
-                </button>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Team Roster Table */}
+      <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
+        <div className="overflow-x-auto min-h-[300px]">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
+                <th className="p-4 pl-6">Representative</th>
+                <th className="p-4">Role & Dept</th>
+                <th className="p-4">Assigned Leads</th>
+                <th className="p-4">Converted</th>
+                <th className="p-4">Follow-ups</th>
+                <th className="p-4 text-right pr-6">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
+              {filteredTeam.map(rep => {
+                const indRate = rep.leadsAssigned > 0 ? ((rep.leadsConverted / rep.leadsAssigned) * 100).toFixed(0) : "0";
+                return (
+                  <tr key={rep.id} className="hover:bg-gray-50/40 transition-colors group">
+                    <td className="p-4 pl-6 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-xs border border-gray-200">
+                          {rep.name.split(" ").map(w => w.charAt(0)).join("")}
+                        </div>
+                        <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{rep.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <div className="flex flex-col items-start gap-1">
+                        <Badge className={`font-medium text-[10px] border ${ROLE_COLORS[rep.role]}`}>
+                          {rep.role}
+                        </Badge>
+                        <span className="text-xs text-gray-500">{rep.department}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-gray-900 font-bold">
+                      {rep.leadsAssigned}
+                    </td>
+                    <td className="p-4 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[#2E8C13]">{rep.leadsConverted}</span>
+                        <span className="text-[10px] font-semibold text-gray-500">({indRate}% rate)</span>
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-indigo-600 font-bold">
+                      {rep.followupsCompleted}
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-right pr-6">
+                      <button 
+                        onClick={() => handleDeleteMember(rep.id, rep.name)}
+                        className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded text-xs font-bold transition-all inline-flex items-center"
+                        title="Remove Representative"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filteredTeam.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-sm text-gray-500">
+                    No representatives found matching your search.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* Add Team Member Drawer */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Register Roster Representative">

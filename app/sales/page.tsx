@@ -850,7 +850,7 @@ export default function SalesPage() {
             }}
           />
           <KpiCard 
-            title={platform === 'online-course' ? 'Provisioned / Active' : 'Paid / Enrolled'}
+            title={platform === 'online-course' ? 'Active Students' : 'Paid / Enrolled'}
             value={completedOrdersCount}
             valueClass="text-indigo-600"
             icon={<CheckCircle2 />}
@@ -966,6 +966,7 @@ export default function SalesPage() {
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date</th>
                       <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
                     </>
@@ -992,17 +993,20 @@ export default function SalesPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredOrders.map((order) => {
-                  // Determine dynamic course payment status
-                  let coursePaymentStatus = order.payment;
-                  if (order.status === "Cancelled") {
-                    coursePaymentStatus = "Failed";
-                  } else if (order.payment === "COD" || order.payment === "Unpaid") {
-                    coursePaymentStatus = "Pending";
-                  }
+                  // Determine dynamic course payment status & method
+                  let coursePaymentStatus = "Paid";
+                  if (order.status === "Pending" || order.status === "New" || order.payment === "Unpaid") coursePaymentStatus = "Pending";
+                  if (order.status === "Cancelled" || order.status === "Failed") coursePaymentStatus = "Failed";
+                  if (order.status === "Returned" || order.status === "Refunded") coursePaymentStatus = "Refunded";
+                  if (order.status === "Partial Payment") coursePaymentStatus = "Partial Payment";
                   
-                  if (order.status === "Returned" || order.status === "Refunded") {
-                    coursePaymentStatus = "Refunded";
-                  }
+                  let coursePaymentMethod = "UPI";
+                  const pmt = (order.payment || "").toLowerCase();
+                  if (pmt.includes("cash") || pmt.includes("cod")) coursePaymentMethod = "Cash";
+                  else if (pmt.includes("bank") || pmt.includes("net")) coursePaymentMethod = "Net Banking";
+                  else if (pmt.includes("credit")) coursePaymentMethod = "Credit Card";
+                  else if (pmt.includes("debit")) coursePaymentMethod = "Debit Card";
+                  else if (pmt.includes("razorpay")) coursePaymentMethod = "Razorpay";
 
                   if (platform === "online-course") {
                     return (
@@ -1029,7 +1033,7 @@ export default function SalesPage() {
                           {order.items.map((item: any) => item.name).join(", ") || "Digital Marketing Masterclass"}
                         </td>
                         <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                          ₹{Number(order.amount).toLocaleString("en-IN")}
+                          ₹{Number(order.amount.replace(/[^0-9.-]+/g,"")).toLocaleString("en-IN")}
                         </td>
                         <td className="p-4 whitespace-nowrap">
                           <Badge 
@@ -1042,6 +1046,9 @@ export default function SalesPage() {
                             {coursePaymentStatus}
                           </Badge>
                         </td>
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                          {coursePaymentMethod}
+                        </td>
                         <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-medium">
                           {order.date || new Date(order.created_at || Date.now()).toLocaleDateString("en-IN")}
                         </td>
@@ -1049,7 +1056,18 @@ export default function SalesPage() {
                           {order.source || ["Meta Ads", "Google Ads", "Organic", "YouTube Ads", "Referral"][Number(order.id.replace(/\D/g, "")) % 5 || 0]}
                         </td>
                         <td className="p-4 whitespace-nowrap text-right">
-                          <DropdownMenu items={getDropdownItems(order)} />
+                          <DropdownMenu items={[
+                            { label: "View Enrollment", onClick: () => setViewingOrder(order) },
+                            { label: "Edit Enrollment", onClick: () => handleOpenEditOrder(order) },
+                            { label: "View Payment", onClick: () => handlePrint(order) },
+                            { label: "Add Notes", onClick: () => toast(`Notes added for ${order.id}`, "success") },
+                            { label: "Contact Student", onClick: () => toast(`Contacting student`, "success") },
+                            { label: "Send Welcome Email", onClick: () => toast(`Welcome email sent`, "success") },
+                            { label: "Change Status", onClick: () => toast(`Status changed`, "success") },
+                            { label: "Issue Refund", onClick: () => toast(`Refund issued`, "success") },
+                            { label: "View Activity Timeline", onClick: () => toast(`Viewing activity timeline`, "success") },
+                            { label: "Download Receipt", onClick: () => handlePrint(order) },
+                          ]} />
                         </td>
                       </tr>
                     );
@@ -1118,14 +1136,14 @@ export default function SalesPage() {
         </Card>
 
         {/* Create Order Drawer */}
-        <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Sales Order" size="xl">
+        <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title={platform === "online-course" ? "Create Enrollment" : "Create Sales Order"} size="xl">
           <form className="space-y-4 pb-20" onSubmit={handleCreateOrder}>
             {/* Premium Tab Switcher */}
             <div className="flex bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50 gap-1.5 mb-6 select-none shadow-xs">
               {[
-                { id: "customer", label: "Customer Info", icon: User },
-                { id: "products", label: "Product Info", icon: ShoppingBag },
-                { id: "checkout", label: "Pricing & Shipping", icon: CreditCard }
+                { id: "customer", label: platform === "online-course" ? "Student Info" : "Customer Info", icon: User },
+                { id: "products", label: platform === "online-course" ? "Course Program" : "Product Info", icon: ShoppingBag },
+                { id: "checkout", label: platform === "online-course" ? "Pricing Setup" : "Pricing & Shipping", icon: CreditCard }
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeDrawerTab === tab.id;
@@ -1367,7 +1385,7 @@ export default function SalesPage() {
                   <div>
                     <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Payment Method</label>
                     <Select 
-                      options={["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
+                      options={platform === "online-course" ? ["UPI", "Credit Card", "Debit Card", "Net Banking", "Razorpay", "Cash"] : ["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
                       value={newOrderPayment}
                       onChange={setNewOrderPayment}
                     />
@@ -1375,7 +1393,8 @@ export default function SalesPage() {
                 </div>
 
                 {/* 2. Shipping Options Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+                {platform !== "online-course" && (
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
                     <Truck className="w-4 h-4 text-primary" />
                     <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
@@ -1423,6 +1442,7 @@ export default function SalesPage() {
                     )}
                   </div>
                 </div>
+                )}
 
                 {/* 3. Order Notes Card */}
                 <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
@@ -1724,54 +1744,56 @@ export default function SalesPage() {
                 </div>
 
                 {/* 2. Shipping Options Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-                  <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
-                    <Truck className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Shipping Type</label>
-                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 gap-1 select-none">
-                      <button
-                        type="button"
-                        onClick={() => { setShippingType("free"); setShippingFee(0); }}
-                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                          shippingType === "free"
-                            ? "bg-white text-primary shadow-sm font-extrabold"
-                            : "text-slate-500 hover:text-slate-800"
-                        }`}
-                      >
-                        Free Shipping
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShippingType("paid")}
-                        className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                          shippingType === "paid"
-                            ? "bg-white text-primary shadow-sm font-extrabold"
-                            : "text-slate-500 hover:text-slate-800"
-                        }`}
-                      >
-                        Flat Rate / Paid
-                      </button>
+                {platform !== "online-course" && (
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
+                      <Truck className="w-4 h-4 text-primary" />
+                      <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
                     </div>
-
-                    {shippingType === "paid" && (
-                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
-                        <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
-                        <input 
-                          required
-                          type="number"
-                          min={0}
-                          placeholder="Enter flat rate shipping fee..."
-                          value={shippingFee || ""} 
-                          onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
-                          className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
-                        />
+                    <div>
+                      <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Shipping Type</label>
+                      <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 gap-1 select-none">
+                        <button
+                          type="button"
+                          onClick={() => { setShippingType("free"); setShippingFee(0); }}
+                          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                            shippingType === "free"
+                              ? "bg-white text-primary shadow-sm font-extrabold"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          Free Shipping
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShippingType("paid")}
+                          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                            shippingType === "paid"
+                              ? "bg-white text-primary shadow-sm font-extrabold"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          Flat Rate / Paid
+                        </button>
                       </div>
-                    )}
+
+                      {shippingType === "paid" && (
+                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
+                          <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
+                          <input 
+                            required
+                            type="number"
+                            min={0}
+                            placeholder="Enter flat rate shipping fee..."
+                            value={shippingFee || ""} 
+                            onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
+                            className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 3. Order Notes Card */}
                 <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">

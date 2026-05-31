@@ -643,34 +643,33 @@ export default function CustomersPage() {
           ) : filteredCustomers.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100">
+                <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
                   {platform === "online-course" ? (
                     <>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment Date</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="p-4 pl-6">Student Name</th>
+                      <th className="p-4">Contact</th>
+                      <th className="p-4">Course</th>
+                      <th className="p-4">Enrollment Date</th>
+                      <th className="p-4">Last Active</th>
+                      <th className="p-4">Status</th>
                     </>
                   ) : (
                     <>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Orders</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
+                      <th className="p-4 pl-6">Customer Name</th>
+                      <th className="p-4">Contact</th>
+                      <th className="p-4">Orders</th>
+                      <th className="p-4">Total Spent</th>
                     </>
                   )}
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="p-4 text-right pr-6">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
                 {filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     {platform === "online-course" ? (
                       <>
-                        <td className="p-4 whitespace-nowrap">
+                        <td className="p-4 pl-6 whitespace-nowrap">
                           <div 
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => setViewingCustomer(customer)}
@@ -678,25 +677,25 @@ export default function CustomersPage() {
                             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
                               {customer.name.charAt(0)}
                             </div>
-                            <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
+                            <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
                           </div>
                         </td>
-                        <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          {customer.phone}
+                        <td className="p-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <span className="text-gray-900">{customer.email}</span>
+                            <span className="text-xs text-gray-500">{customer.phone}</span>
+                          </div>
                         </td>
-                        <td className="p-4 whitespace-nowrap text-sm text-gray-600">
-                          {customer.email}
-                        </td>
-                        <td className="p-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="p-4 whitespace-nowrap text-gray-600">
                           <div className="flex flex-wrap gap-1 max-w-[200px]">
                             {(customer.coursesList || ["UI/UX Bootcamp"]).map((c: string, idx: number) => (
-                              <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                              <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded font-semibold text-[10px] bg-green-50 text-green-700 border border-green-200">
                                 {c}
                               </span>
                             ))}
                           </div>
                         </td>
-                        <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                        <td className="p-4 whitespace-nowrap text-gray-500">
                           {customer.lastOrderDate !== "N/A" 
                             ? new Date(customer.lastOrderDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) 
                             : "N/A"}
@@ -727,7 +726,7 @@ export default function CustomersPage() {
                       </>
                     ) : (
                       <>
-                        <td className="p-4 whitespace-nowrap">
+                        <td className="p-4 pl-6 whitespace-nowrap">
                           <div 
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => setViewingCustomer(customer)}
@@ -736,9 +735,9 @@ export default function CustomersPage() {
                               {customer.name.charAt(0)}
                             </div>
                             <div>
-                              <span className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
+                              <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{customer.name}</span>
                               {customer.isRepeat && (
-                                <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">
+                                <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border border-yellow-200 bg-yellow-100 text-yellow-800">
                                   <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
                                   Loyal
                                 </span>
@@ -747,18 +746,20 @@ export default function CustomersPage() {
                           </div>
                         </td>
                         <td className="p-4 whitespace-nowrap">
-                          <p className="text-sm text-gray-900">{customer.email}</p>
-                          <p className="text-xs text-gray-500">{customer.phone}</p>
+                          <div className="flex flex-col">
+                            <span className="text-gray-900">{customer.email}</span>
+                            <span className="text-xs text-gray-500">{customer.phone}</span>
+                          </div>
                         </td>
-                        <td className="p-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="p-4 whitespace-nowrap text-gray-600">
                           {`${customer.ordersCount} ${customer.ordersCount === 1 ? "order" : "orders"}`}
                         </td>
-                        <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        <td className="p-4 whitespace-nowrap text-gray-800">
                           {customer.totalSpentFormatted}
                         </td>
                       </>
                     )}
-                    <td className="p-4 whitespace-nowrap text-right">
+                    <td className="p-4 whitespace-nowrap text-right pr-6">
                       <DropdownMenu items={getDropdownItems(customer)} />
                     </td>
                   </tr>
