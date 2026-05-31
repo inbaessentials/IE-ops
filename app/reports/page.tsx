@@ -37,6 +37,130 @@ export default function ReportsPage() {
     try {
       setLoading(true);
 
+      if (platform === "gym-services") {
+        const m = localStorage.getItem("inba_gym_members");
+        const t = localStorage.getItem("inba_gym_trainers");
+        const p = localStorage.getItem("inba_gym_products");
+        const e = localStorage.getItem("inba_gym_expenses");
+        const l = localStorage.getItem("inba_gym_leads");
+
+        const membersList = m ? JSON.parse(m) : [];
+        const trainersList = t ? JSON.parse(t) : [];
+        const productsList = p ? JSON.parse(p) : [];
+        const expensesList = e ? JSON.parse(e) : [];
+        const leadsList = l ? JSON.parse(l) : [];
+
+        // Membership Rev
+        const totalMemRev = membersList.reduce((sum: number, item: any) => {
+          if (item.status === "Expired" || item.status === "Cancelled") return sum;
+          let price = 2999;
+          if (item.membership === "Quarterly Plan") price = 7999;
+          else if (item.membership === "Half Yearly") price = 13999;
+          else if (item.membership === "Annual Plan") price = 24999;
+          return sum + price;
+        }, 0);
+
+        // PT Rev
+        let totalPtRev = 0;
+        membersList.filter((m: any) => m.trainer !== "None").forEach((m: any, idx: number) => {
+          const isWeightLoss = idx % 3 === 0;
+          totalPtRev += isWeightLoss ? 18000 : 12000;
+        });
+
+        // Products Rev
+        const totalProdRev = productsList.reduce((sum: number, prod: any) => sum + (prod.revenue || 0), 0) || 326163;
+
+        // Expenses
+        const totalExpSum = expensesList.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0) || 261500;
+
+        const grossRev = totalMemRev + totalPtRev + totalProdRev;
+        const netProfitVal = Math.max(0, grossRev - totalExpSum);
+
+        const avgAOV = membersList.length > 0 ? (totalMemRev / membersList.length) : 0;
+
+        setStats({
+          totalRevenue: grossRev,
+          netProfit: netProfitVal,
+          totalOrders: membersList.length,
+          operatingExpenses: totalExpSum,
+          avgOrderValue: avgAOV
+        });
+
+        // Group Top Products
+        const topProductsList = productsList
+          .sort((a: any, b: any) => (b.revenue || 0) - (a.revenue || 0))
+          .slice(0, 4)
+          .map((prod: any, index: number) => ({
+            rank: index + 1,
+            name: prod.name,
+            sku: prod.sku,
+            units: prod.unitsSold || 0,
+            revenue: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(prod.revenue || 0),
+            growth: "+15.4%",
+            status: index === 0 ? "Best Seller" : index === 1 ? "High Growth" : "Stable"
+          }));
+        setTopProducts(topProductsList);
+
+        // Group Operating Cost Split
+        const expenseMap: Record<string, number> = {};
+        expensesList.forEach((exp: any) => {
+          const cat = exp.category || "Other";
+          const amt = Number(exp.amount || 0);
+          expenseMap[cat] = (expenseMap[cat] || 0) + amt;
+        });
+        const expensesSplit = Object.entries(expenseMap).map(([name, amount], index) => {
+          const pct = totalExpSum > 0 ? Math.round((amount / totalExpSum) * 100) : 0;
+          const colors = ["bg-[#2E8C13]", "bg-[#45B823]", "bg-amber-500", "bg-red-500", "bg-gray-800"];
+          return {
+            name,
+            amount: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount),
+            percentage: pct,
+            color: colors[index % colors.length]
+          };
+        });
+        setExpensesBreakdown(expensesSplit);
+
+        // Group Category detailed performance
+        const catList = [
+          {
+            name: "Membership Plans",
+            units: membersList.length,
+            revenue: totalMemRev,
+            cost: 0,
+            profit: totalMemRev,
+            revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalMemRev),
+            profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalMemRev),
+            margin: "100%",
+            share: Math.round((totalMemRev / (grossRev || 1)) * 100)
+          },
+          {
+            name: "Personal Coaching (PT)",
+            units: membersList.filter((m: any) => m.trainer !== "None").length,
+            revenue: totalPtRev,
+            cost: 0,
+            profit: totalPtRev,
+            revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalPtRev),
+            profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalPtRev),
+            margin: "100%",
+            share: Math.round((totalPtRev / (grossRev || 1)) * 100)
+          },
+          {
+            name: "Supplements Shop",
+            units: productsList.reduce((sum: number, p: any) => sum + (p.unitsSold || 0), 0),
+            revenue: totalProdRev,
+            cost: Math.round(totalProdRev * 0.6),
+            profit: Math.round(totalProdRev * 0.4),
+            revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalProdRev),
+            profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Math.round(totalProdRev * 0.4)),
+            margin: "40%",
+            share: Math.round((totalProdRev / (grossRev || 1)) * 100)
+          }
+        ];
+        setCategoryPerformance(catList);
+        setLoading(false);
+        return;
+      }
+
       // 1. Fetch Orders
       const { data: orders } = await supabase.from("orders").select("*");
 
@@ -298,7 +422,7 @@ export default function ReportsPage() {
               : "border-transparent text-gray-500 hover:text-gray-900"
           }`}
         >
-          <span>🧠</span> {(platform === "inba" ? "Inba" : platform === "fashion" ? "Fashion" : platform === "online-course" ? "Course" : platform === "wholesale" ? "Wholesale" : "Business")} Pulse Intelligence
+          <span>🧠</span> {(platform === "inba" ? "Inba" : platform === "fashion" ? "Fashion" : platform === "online-course" ? "Course" : platform === "wholesale" ? "Wholesale" : platform === "gym-services" ? "Gym" : "Business")} Pulse Intelligence
         </button>
       </div>
 

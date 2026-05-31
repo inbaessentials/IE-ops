@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/Card";
+import { useState, useEffect, useMemo } from "react";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { 
   Search, Filter, Download, Plus, Star, ShoppingBag, 
   MapPin, Calendar, CheckCircle2, Package, Truck, ChevronDown, ChevronUp,
-  Users, Award, TrendingUp, Trophy, Coins, Activity, AlertCircle, MessageSquare
+  Users, Award, TrendingUp, Trophy, Coins, Activity, AlertCircle, MessageSquare,
+  CalendarCheck, UserCheck, Phone, Clock, Flame
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -471,6 +472,13 @@ export default function CustomersPage() {
   const completedStudents = filteredCustomers.filter(c => c.completionStatus === "Completed").length;
   const inactiveStudents = filteredCustomers.filter(c => c.progress === 0 || c.completionStatus === "Not Started").length;
   const completionRate = filteredCustomers.length > 0 ? ((completedStudents / filteredCustomers.length) * 100).toFixed(0) : "0";
+
+  // ==========================================
+  // GYM SERVICES PLATFORM SUB-VIEW (PRD 1.0)
+  // ==========================================
+  if (platform === "gym-services") {
+    return <GymMembersView />;
+  }
 
   return (
     <div className="space-y-6">
@@ -1201,3 +1209,1020 @@ export default function CustomersPage() {
     </div>
   );
 }
+
+// ==========================================
+// GYM MEMBERS SUITE VIEW COMPONENT (PRD 1.0)
+// ==========================================
+function GymMembersView() {
+  const [activeTab, setActiveTab] = useState<"members" | "leads" | "renewals">("members");
+  
+  // Local Database States
+  const [members, setMembers] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [attendance, setAttendance] = useState<any[]>([]);
+  const [trainers, setTrainers] = useState<any[]>([]);
+  
+  // Filtering states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [trainerFilter, setTrainerFilter] = useState("All");
+  const [leadSearch, setLeadSearch] = useState("");
+  
+  // Drawers & Modals
+  const [viewingMember, setViewingMember] = useState<any>(null);
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [isEditMemberOpen, setIsEditMemberOpen] = useState(false);
+  const [downloadingPass, setDownloadingPass] = useState<any>(null);
+
+  // Form Fields for Log Lead
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadSource, setLeadSource] = useState("Instagram Ads");
+  const [leadTrainer, setLeadTrainer] = useState("Rajveer Singh");
+  const [leadTrialDate, setLeadTrialDate] = useState("");
+  const [leadNotes, setLeadNotes] = useState("");
+
+  const loadData = () => {
+    if (typeof window === "undefined") return;
+    const m = localStorage.getItem("inba_gym_members");
+    const l = localStorage.getItem("inba_gym_leads");
+    const a = localStorage.getItem("inba_gym_attendance");
+    const t = localStorage.getItem("inba_gym_trainers");
+
+    if (m) setMembers(JSON.parse(m));
+    if (l) setLeads(JSON.parse(l));
+    if (a) setAttendance(JSON.parse(a));
+    if (t) setTrainers(JSON.parse(t));
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Update localStorage
+  const saveMembers = (updated: any[]) => {
+    localStorage.setItem("inba_gym_members", JSON.stringify(updated));
+    setMembers(updated);
+  };
+  const saveLeads = (updated: any[]) => {
+    localStorage.setItem("inba_gym_leads", JSON.stringify(updated));
+    setLeads(updated);
+  };
+
+  // Actions
+  const handleRenew = (memberId: string) => {
+    const updated = members.map(m => {
+      if (m.id === memberId) {
+        const currentExp = new Date(m.expiryDate);
+        currentExp.setMonth(currentExp.getMonth() + 1);
+        return {
+          ...m,
+          expiryDate: currentExp.toISOString().split("T")[0],
+          status: "Active"
+        };
+      }
+      return m;
+    });
+    saveMembers(updated);
+    if (viewingMember?.id === memberId) {
+      setViewingMember(updated.find(x => x.id === memberId));
+    }
+    alert("Membership renewed successfully! Plan validity extended by 30 days.");
+  };
+
+  const handleFreeze = (memberId: string) => {
+    const updated = members.map(m => {
+      if (m.id === memberId) {
+        const nextStatus = m.status === "Frozen" ? "Active" : "Frozen";
+        return { ...m, status: nextStatus };
+      }
+      return m;
+    });
+    saveMembers(updated);
+    if (viewingMember?.id === memberId) {
+      setViewingMember(updated.find(x => x.id === memberId));
+    }
+    alert(`Membership state modified successfully.`);
+  };
+
+  const handleUpgrade = (memberId: string, planName: string) => {
+    const updated = members.map(m => {
+      if (m.id === memberId) {
+        return { ...m, membership: planName, status: "Active" };
+      }
+      return m;
+    });
+    saveMembers(updated);
+    if (viewingMember?.id === memberId) {
+      setViewingMember(updated.find(x => x.id === memberId));
+    }
+    alert(`Upgraded member to ${planName} successfully!`);
+  };
+
+  const handleTransfer = (memberId: string) => {
+    const targetName = prompt("Enter the name of the member to transfer this package duration to:");
+    if (!targetName) return;
+    
+    const currentMember = members.find(m => m.id === memberId);
+    if (!currentMember) return;
+
+    // Remove active package from current member, set to Cancelled
+    const updated = members.map(m => {
+      if (m.id === memberId) {
+        return { ...m, status: "Cancelled" };
+      }
+      return m;
+    });
+
+    // Create a new member with transferred details
+    const newId = `MEM-${1000 + members.length + 1}`;
+    const newMember = {
+      id: newId,
+      name: targetName,
+      mobile: "+91 99887 76655",
+      email: `${targetName.toLowerCase().replace(/\s+/g, "")}@transfer.com`,
+      trainer: currentMember.trainer,
+      membership: currentMember.membership,
+      joinDate: new Date().toISOString().split("T")[0],
+      expiryDate: currentMember.expiryDate,
+      status: "Active",
+      hasPT: currentMember.hasPT,
+      hasSupplements: false,
+      lastVisitDate: new Date().toISOString().split("T")[0]
+    };
+
+    saveMembers([...updated, newMember]);
+    alert(`Successfully transferred ${currentMember.membership} package to ${targetName}!`);
+  };
+
+  const handleCreateLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newId = `LEAD-${500 + leads.length + 1}`;
+    const newLead = {
+      id: newId,
+      name: leadName,
+      mobile: leadPhone,
+      source: leadSource,
+      assignedStaff: leadTrainer,
+      trialDate: leadTrialDate || new Date().toISOString().split("T")[0],
+      stage: "New",
+      notes: leadNotes
+    };
+    const updated = [...leads, newLead];
+    saveLeads(updated);
+    setIsAddLeadOpen(false);
+    setLeadName("");
+    setLeadPhone("");
+    setLeadNotes("");
+    alert(`Lead logged successfully! Welcome counseling card created.`);
+  };
+
+  const handleUpdateLeadStage = (leadId: string, newStage: string) => {
+    const updated = leads.map(l => {
+      if (l.id === leadId) {
+        // If stage is converted to "Joined", sync as a member!
+        if (newStage === "Joined") {
+          const newMemberId = `MEM-${1000 + members.length + 1}`;
+          const newMember = {
+            id: newMemberId,
+            name: l.name,
+            mobile: l.mobile,
+            email: `${l.name.toLowerCase().replace(/\s+/g, "")}@elitegym.com`,
+            trainer: l.assignedStaff,
+            membership: "Quarterly Plan", // default plan
+            joinDate: new Date().toISOString().split("T")[0],
+            expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 90 days validity
+            status: "Active",
+            hasPT: false,
+            hasSupplements: false,
+            lastVisitDate: new Date().toISOString().split("T")[0]
+          };
+          saveMembers([...members, newMember]);
+          alert(`Congratulations! Lead converted. ${l.name} is now registered as an Active Member!`);
+        }
+        return { ...l, stage: newStage };
+      }
+      return l;
+    });
+    saveLeads(updated);
+  };
+
+  // Reminders Toast Alert Triggers
+  const handleCall = (name: string) => {
+    alert(`Connecting phone callback line to ${name}... Dialing mobile.`);
+  };
+
+  const handleWhatsApp = (name: string, plan: string, expiry: string) => {
+    alert(`WhatsApp Reminder dispatched to ${name}: "Hi ${name}, your ${plan} at Elite Fitness Studio is expiring on ${expiry}. Renew today to continue coaching workouts!"`);
+  };
+
+  const handleSendReminder = (name: string) => {
+    alert(`Standard membership dues text reminder pushed successfully to ${name}.`);
+  };
+
+  // Filtering calculations
+  const filteredMembers = useMemo(() => {
+    return members.filter(m => {
+      const matchesSearch = 
+        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.mobile.includes(searchQuery) ||
+        m.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.id.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesStatus = statusFilter === "All" || m.status === statusFilter;
+      const matchesTrainer = trainerFilter === "All" || m.trainer === trainerFilter;
+      return matchesSearch && matchesStatus && matchesTrainer;
+    });
+  }, [members, searchQuery, statusFilter, trainerFilter]);
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter(l => 
+      l.name.toLowerCase().includes(leadSearch.toLowerCase()) ||
+      l.mobile.includes(leadSearch) ||
+      l.assignedStaff.toLowerCase().includes(leadSearch.toLowerCase())
+    );
+  }, [leads, leadSearch]);
+
+  // Renewals splits
+  const expiringThisWeek = useMemo(() => {
+    return members.filter(m => {
+      if (m.status !== "Active") return false;
+      const diff = new Date(m.expiryDate).getTime() - Date.now();
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return days > 0 && days <= 7;
+    });
+  }, [members]);
+
+  const expiringThisMonth = useMemo(() => {
+    return members.filter(m => {
+      if (m.status !== "Active") return false;
+      const diff = new Date(m.expiryDate).getTime() - Date.now();
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return days > 7 && days <= 30;
+    });
+  }, [members]);
+
+  const overdueRenewals = useMemo(() => {
+    return members.filter(m => m.status === "Expired");
+  }, [members]);
+
+  // Lead Pipeline Swimlanes
+  const STAGES = ["New", "Contacted", "Trial Booked", "Trial Completed", "Interested", "Follow Up", "Joined", "Lost"];
+  const STAGE_COLORS: Record<string, string> = {
+    New: "bg-blue-50 text-blue-700 border-blue-200",
+    Contacted: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    "Trial Booked": "bg-yellow-50 text-yellow-700 border-yellow-200",
+    "Trial Completed": "bg-orange-50 text-orange-700 border-orange-200",
+    Interested: "bg-pink-50 text-pink-700 border-pink-200",
+    "Follow Up": "bg-amber-50 text-amber-700 border-amber-250",
+    Joined: "bg-green-50 text-green-700 border-green-200",
+    Lost: "bg-gray-50 text-gray-700 border-gray-200"
+  };
+
+  const activeMembersCount = members.filter(m => m.status === "Active").length;
+  const frozenCount = members.filter(m => m.status === "Frozen").length;
+  const expiredCount = members.filter(m => m.status === "Expired").length;
+
+  return (
+    <div className="space-y-6">
+      {/* Directory Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            Members Directory
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">Manage active members, sales leads, and upcoming renewals from a unified suite.</p>
+        </div>
+        
+        <div className="flex gap-2">
+          {/* Tabs Selector */}
+          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
+            <button 
+              onClick={() => setActiveTab("members")}
+              className={`p-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "members" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              Active Members
+            </button>
+            <button 
+              onClick={() => setActiveTab("leads")}
+              className={`p-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "leads" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              Acquisition Leads ({leads.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab("renewals")}
+              className={`p-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "renewals" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <CalendarCheck className="w-3.5 h-3.5" />
+              Renewals Center
+            </button>
+          </div>
+
+          {activeTab === "leads" && (
+            <Button className="gap-2" onClick={() => setIsAddLeadOpen(true)}>
+              <Plus className="w-4 h-4" />
+              Log New Lead
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* KPI stats ribbon for Gym Members */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
+            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{activeMembersCount}</h3>
+          </div>
+          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+            <UserCheck className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Frozen Accounts</p>
+            <h3 className="text-2xl font-bold tracking-tight text-blue-600">{frozenCount}</h3>
+          </div>
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+            <Activity className="w-5 h-5 animate-pulse" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Expired Packages</p>
+            <h3 className="text-2xl font-bold tracking-tight text-red-600">{expiredCount}</h3>
+          </div>
+          <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Open Leads Pipeline</p>
+            <h3 className="text-2xl font-bold tracking-tight text-purple-600">{leads.filter(l => l.stage !== "Joined" && l.stage !== "Lost").length}</h3>
+          </div>
+          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+        </Card>
+      </div>
+
+      {/* TAB CONTENT 1: ACTIVE MEMBERS DIRECTORY */}
+      {activeTab === "members" && (
+        <div className="space-y-4 animate-in fade-in duration-250">
+          {/* Filters Bar */}
+          <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+            <div className="relative flex-1 w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search gym members by name, mobile, email or ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+              />
+            </div>
+            
+            <div className="flex items-center gap-4 w-full sm:w-auto shrink-0 justify-end flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Frozen">Frozen</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-semibold uppercase">Trainer:</span>
+                <select
+                  value={trainerFilter}
+                  onChange={(e) => setTrainerFilter(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
+                >
+                  <option value="All">All Trainers</option>
+                  <option value="Rajveer Singh">Rajveer Singh</option>
+                  <option value="Meenakshi Sen">Meenakshi Sen</option>
+                  <option value="Vikram Malhotra">Vikram Malhotra</option>
+                  <option value="Siddharth Roy">Siddharth Roy</option>
+                  <option value="None">None (General Workout)</option>
+                </select>
+              </div>
+            </div>
+          </Card>
+
+          {/* Members Table */}
+          <Card className="overflow-hidden border border-gray-100 shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Member ID & Name</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Coach/Trainer</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Active Plan</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Validity Period</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Membership Status</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-150 bg-white">
+                  {filteredMembers.map((member: any) => (
+                    <tr key={member.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="p-4 pl-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-sm">
+                            {member.name.charAt(0)}
+                          </div>
+                          <div>
+                            <button 
+                              onClick={() => setViewingMember(member)}
+                              className="font-bold text-gray-900 hover:text-[#2E8C13] transition-colors outline-none text-left"
+                            >
+                              {member.name}
+                            </button>
+                            <p className="text-[10px] text-gray-400 font-semibold">{member.id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-xs text-gray-500">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-700">{member.mobile}</span>
+                          <span>{member.email}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-xs text-gray-700 font-semibold">
+                        {member.trainer === "None" ? (
+                          <span className="text-gray-400 italic">No Coach Assigned</span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            {member.trainer}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-xs font-bold text-indigo-950">{member.membership}</td>
+                      <td className="p-4 text-xs text-gray-500">
+                        <div className="flex flex-col font-medium">
+                          <span>Join: {member.joinDate}</span>
+                          <span className={member.status === "Expired" ? "text-red-500 font-bold" : "text-gray-500"}>Exp: {member.expiryDate}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${
+                          member.status === "Active" ? "bg-green-50 text-green-700 border-green-200" :
+                          member.status === "Frozen" ? "bg-blue-50 text-blue-700 border-blue-200 animate-pulse" :
+                          member.status === "Expired" ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-50 text-gray-600 border-gray-200"
+                        }`}>
+                          {member.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right pr-6">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button 
+                            onClick={() => handleRenew(member.id)}
+                            className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold transition-all shadow-xs"
+                            title="Renew Membership"
+                          >
+                            Renew
+                          </button>
+                          <button 
+                            onClick={() => handleFreeze(member.id)}
+                            className="px-2 py-1 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[10px] font-bold transition-all"
+                            title="Freeze Package"
+                          >
+                            {member.status === "Frozen" ? "Unfreeze" : "Freeze"}
+                          </button>
+                          
+                          {/* Upgrade / Transfer Dropdowns */}
+                          <div className="relative animate-in duration-100" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu 
+                              items={[
+                                { label: "Upgrade Membership Plan", onClick: () => handleUpgrade(member.id, "Annual Plan") },
+                                { label: "Transfer to another member", onClick: () => handleTransfer(member.id) },
+                                { label: "View Access Credentials card", onClick: () => setDownloadingPass(member) }
+                              ]}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* TAB CONTENT 2: ACQUISITION LEADS & KANBAN PIPELINE */}
+      {activeTab === "leads" && (
+        <div className="space-y-4 animate-in fade-in duration-250">
+          {/* Leads Search */}
+          <Card className="p-4 border border-gray-100 flex items-center justify-between gap-4 shadow-xs">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search leads by name, mobile number or counselor..."
+                value={leadSearch}
+                onChange={(e) => setLeadSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+              />
+            </div>
+            <span className="text-xs font-semibold text-gray-500">Pipeline Grid (Change Stage using dropdowns)</span>
+          </Card>
+
+          {/* Kanban Board columns */}
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-4 min-w-[1500px]">
+              {STAGES.map((stage: string) => {
+                const stageLeads = filteredLeads.filter(l => l.stage === stage);
+                return (
+                  <div key={stage} className="flex-1 min-w-[220px] bg-gray-50/50 p-3 rounded-2xl border border-gray-200/60 flex flex-col min-h-[520px]">
+                    <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-3 px-1">
+                      <span className="text-xs font-bold text-gray-700 tracking-wider uppercase">{stage}</span>
+                      <Badge className="font-bold text-[10px]">{stageLeads.length}</Badge>
+                    </div>
+
+                    <div className="flex-1 space-y-3 overflow-y-auto">
+                      {stageLeads.length > 0 ? (
+                        stageLeads.map((lead: any) => (
+                          <Card 
+                            key={lead.id}
+                            className="p-3 border border-gray-100 shadow-xs hover:shadow-md hover:scale-[1.01] bg-white transition-all group space-y-3"
+                          >
+                            <div>
+                              <h4 className="text-xs font-bold text-gray-900">{lead.name}</h4>
+                              <p className="text-[10px] text-gray-400 mt-0.5">{lead.mobile}</p>
+                            </div>
+
+                            <div className="space-y-1.5 text-[11px] text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                                <span className="font-semibold text-gray-700 truncate">Rep: {lead.assignedStaff}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-indigo-600 font-semibold">
+                                <Calendar className="w-3 h-3 text-indigo-400" />
+                                <span>Trial: {lead.trialDate}</span>
+                              </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-gray-50 flex items-center justify-between gap-1.5">
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">{lead.source}</span>
+                              
+                              <select
+                                value={lead.stage}
+                                onChange={(e) => handleUpdateLeadStage(lead.id, e.target.value)}
+                                className="text-[9px] font-bold border border-gray-200 bg-white rounded-md px-1 py-0.5 outline-none text-gray-600 cursor-pointer"
+                              >
+                                {STAGES.map((s: string) => (
+                                  <option key={s} value={s}>{s}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {lead.notes && (
+                              <p className="text-[9px] text-gray-400 italic bg-gray-50 p-1.5 rounded leading-relaxed border border-gray-100">
+                                "{lead.notes}"
+                              </p>
+                            )}
+                          </Card>
+                        ))
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center p-6 text-center text-gray-300 min-h-[150px]">
+                          <Users className="w-6 h-6 stroke-[1.5] mb-1.5" />
+                          <span className="text-[9px] font-bold uppercase">Empty Stage</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT 3: RENEWALS Action Center */}
+      {activeTab === "renewals" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-250">
+          {/* Column 1: Expiring This Week */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-red-50/10">
+              <CardTitle className="text-xs font-bold text-gray-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
+                Expiring This Week (CRITICAL)
+              </CardTitle>
+              <p className="text-[10px] text-gray-500 mt-0.5">Urgent membership follow-ups for plans ending within 7 days.</p>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-3.5 overflow-y-auto max-h-[480px]">
+              {expiringThisWeek.length > 0 ? (
+                expiringThisWeek.map((member: any, i: number) => (
+                  <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Plan: {member.membership}</p>
+                      <p className="text-[10px] text-red-500 font-bold mt-0.5">Expiring: {member.expiryDate}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button 
+                        onClick={() => handleCall(member.name)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Call Member"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleWhatsApp(member.name, member.membership, member.expiryDate)}
+                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="WhatsApp Remind"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleRenew(member.id)}
+                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold"
+                      >
+                        Renew
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-xs text-gray-400 font-semibold uppercase">No Critical Renewals</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Column 2: Expiring This Month */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-amber-50/10">
+              <CardTitle className="text-xs font-bold text-gray-900 flex items-center gap-2">
+                <CalendarCheck className="w-4 h-4 text-amber-500" />
+                Expiring This Month
+              </CardTitle>
+              <p className="text-[10px] text-gray-500 mt-0.5">Dues pipeline mapping for memberships expiring in 8-30 days.</p>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-3.5 overflow-y-auto max-h-[480px]">
+              {expiringThisMonth.length > 0 ? (
+                expiringThisMonth.map((member: any, i: number) => (
+                  <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Plan: {member.membership}</p>
+                      <p className="text-[10px] text-amber-600 font-bold mt-0.5">Expiring: {member.expiryDate}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button 
+                        onClick={() => handleCall(member.name)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Call Member"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleSendReminder(member.name)}
+                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        title="Dues Alert SMS"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleRenew(member.id)}
+                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold"
+                      >
+                        Renew
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-xs text-gray-400 font-semibold uppercase">No Monthly Renewals Due</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Column 3: Overdue Renewals */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-rose-50/15">
+              <CardTitle className="text-xs font-bold text-gray-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600" />
+                Overdue Renewals (EXPIRED)
+              </CardTitle>
+              <p className="text-[10px] text-gray-500 mt-0.5">Recover lost revenue by engaging members with expired plans.</p>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-3.5 overflow-y-auto max-h-[480px]">
+              {overdueRenewals.length > 0 ? (
+                overdueRenewals.map((member: any, i: number) => (
+                  <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Plan: {member.membership}</p>
+                      <p className="text-[10px] text-red-500 font-bold mt-0.5">Expired: {member.expiryDate}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button 
+                        onClick={() => handleCall(member.name)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Call Member"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleSendReminder(member.name)}
+                        className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Dues Alert SMS"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleRenew(member.id)}
+                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold"
+                      >
+                        Re-enroll
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-xs text-gray-400 font-semibold uppercase">No Overdue Expired Members</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Log Lead form drawer */}
+      <Drawer isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} title="Log New Acquisition Lead">
+        <form className="space-y-4" onSubmit={handleCreateLead}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Candidate Full Name</label>
+              <input 
+                required 
+                type="text" 
+                value={leadName}
+                onChange={(e) => setLeadName(e.target.value)}
+                placeholder="e.g. Amit Chawla"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Mobile Phone Number</label>
+              <input 
+                required 
+                type="tel" 
+                value={leadPhone}
+                onChange={(e) => setLeadPhone(e.target.value)}
+                placeholder="e.g. +91 99887 76655"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Source</label>
+                <select 
+                  value={leadSource}
+                  onChange={e => setLeadSource(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white text-gray-900 font-semibold text-sm"
+                >
+                  <option value="Instagram Ads">Instagram Ads</option>
+                  <option value="Google Maps">Google Maps</option>
+                  <option value="Walk-In">Walk-In</option>
+                  <option value="Friend Referral">Friend Referral</option>
+                  <option value="Facebook Post">Facebook Post</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Assigned Trainer</label>
+                <select 
+                  value={leadTrainer}
+                  onChange={e => setLeadTrainer(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white text-gray-900 font-semibold text-sm"
+                >
+                  <option value="Rajveer Singh">Rajveer Singh</option>
+                  <option value="Meenakshi Sen">Meenakshi Sen</option>
+                  <option value="Vikram Malhotra">Vikram Malhotra</option>
+                  <option value="Siddharth Roy">Siddharth Roy</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Trial Session Booking Date</label>
+              <input 
+                type="date" 
+                value={leadTrialDate}
+                onChange={e => setLeadTrialDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-semibold text-gray-950 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Interviewer Notes</label>
+              <textarea 
+                rows={3} 
+                value={leadNotes}
+                onChange={e => setLeadNotes(e.target.value)}
+                placeholder="Log physical fitness target observations here..."
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddLeadOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Submit Candidate Lead</Button>
+          </div>
+        </form>
+      </Drawer>
+
+      {/* Member detailed profile drawer with attendance scans */}
+      <Drawer isOpen={!!viewingMember} onClose={() => setViewingMember(null)} title="Gym Member Detailed Dossier">
+        {viewingMember && (
+          <div className="space-y-6 pb-12 animate-in fade-in duration-250">
+            {/* Header Identity */}
+            <div className="flex items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-lg">
+                  {viewingMember.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 leading-tight">{viewingMember.name}</h3>
+                  <p className="text-xs text-gray-400 font-semibold mt-0.5">ID: {viewingMember.id}</p>
+                </div>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                viewingMember.status === "Active" ? "bg-green-50 text-green-700 border-green-200" :
+                viewingMember.status === "Frozen" ? "bg-blue-50 text-blue-700 border-blue-200 animate-pulse" :
+                "bg-red-50 text-red-700 border-red-200"
+              }`}>
+                {viewingMember.status}
+              </span>
+            </div>
+
+            {/* Plan Info */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs space-y-3.5">
+              <h4 className="font-bold text-sm text-gray-900 border-b border-gray-50 pb-2">Membership Details</h4>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-gray-400 font-semibold uppercase block">Active Plan</span>
+                  <span className="font-bold text-gray-900 flex items-center gap-1 mt-1">
+                    <Package className="w-3.5 h-3.5 text-gray-400" />
+                    {viewingMember.membership}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-semibold uppercase block">Workout Coach</span>
+                  <span className="font-bold text-amber-600 flex items-center gap-1 mt-1">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                    {viewingMember.trainer}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-semibold uppercase block">Join Date</span>
+                  <span className="font-semibold text-gray-700 mt-1 block">{viewingMember.joinDate}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-semibold uppercase block">Expiry Date</span>
+                  <span className={`font-bold mt-1 block ${viewingMember.status === "Expired" ? "text-red-500" : "text-gray-900"}`}>{viewingMember.expiryDate}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-3 border-t border-gray-50">
+                <Button 
+                  size="sm"
+                  variant="primary" 
+                  className="flex-1 text-xs"
+                  onClick={() => handleRenew(viewingMember.id)}
+                >
+                  Extend Plan (+30 Days)
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline" 
+                  className="flex-1 text-xs"
+                  onClick={() => handleFreeze(viewingMember.id)}
+                >
+                  {viewingMember.status === "Frozen" ? "Unfreeze Plan" : "Freeze Plan"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Attendance Sign-In Scans list */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs space-y-3">
+              <h4 className="font-bold text-sm text-gray-900 flex items-center gap-2 border-b border-gray-50 pb-2">
+                <Clock className="w-4 h-4 text-indigo-500" />
+                Physical Attendance Scans History
+              </h4>
+              
+              <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
+                {attendance.filter((a: any) => a.memberId === viewingMember.id).length > 0 ? (
+                  attendance.filter((a: any) => a.memberId === viewingMember.id).slice(0, 6).map((log: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-xs p-2 bg-gray-50 rounded-lg border border-gray-100">
+                      <span className="font-semibold text-gray-600">{log.date}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded">In: {log.checkIn}</span>
+                        <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">Out: {log.checkOut}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-xs text-gray-400 italic font-semibold uppercase">No Check-in Scans Recorded</div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions for credentials */}
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs space-y-2.5">
+              <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider">Access Card Utilities</h4>
+              <button
+                onClick={() => setDownloadingPass(viewingMember)}
+                className="w-full py-2 bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-lg text-xs font-bold text-amber-800 flex items-center justify-center gap-2"
+              >
+                <Award className="w-4 h-4" />
+                Preview & Print Member Credentials Card
+              </button>
+            </div>
+          </div>
+        )}
+      </Drawer>
+
+      {/* Member pass modal print mockup */}
+      {downloadingPass && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-md w-full overflow-hidden p-6 space-y-6 relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setDownloadingPass(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 text-lg font-bold p-2"
+            >
+              ✕
+            </button>
+
+            {/* Printable Pass Card frame */}
+            <div className="border-[8px] border-amber-800 p-6 rounded-xl bg-amber-50/15 relative text-center space-y-4 select-none print:border-amber-800">
+              <div className="absolute inset-1 border border-amber-600/30 rounded-lg pointer-events-none" />
+              
+              <div className="mx-auto w-10 h-10 flex items-center justify-center text-amber-700 bg-amber-50 rounded-full border border-amber-300">
+                <Flame className="w-6 h-6 stroke-[1.5] animate-pulse" />
+              </div>
+
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-amber-800">Elite Fitness Studio</h2>
+                <p className="text-[9px] text-gray-400 mt-0.5">MEMBERSHIP ACCESS CREDENTIAL</p>
+              </div>
+
+              <div className="py-3 border-y border-gray-100 space-y-1">
+                <h1 className="text-lg font-bold text-gray-900">{downloadingPass.name}</h1>
+                <p className="text-[10px] font-mono text-gray-400">{downloadingPass.id}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-[9px] text-left max-w-xs mx-auto">
+                <div>
+                  <span className="text-gray-400 uppercase font-semibold">Active Plan</span>
+                  <span className="font-bold text-gray-800 block">{downloadingPass.membership}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 uppercase font-semibold">Validity Exp</span>
+                  <span className="font-bold text-red-600 block">{downloadingPass.expiryDate}</span>
+                </div>
+                <div className="col-span-2 text-center pt-2">
+                  <span className="font-mono text-[7px] text-gray-400 block tracking-wider">SECURE PASS HASH CODE: {downloadingPass.mobile.replace(/\s+/g, "")}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-1">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setDownloadingPass(null)}>Close</Button>
+              <Button 
+                type="button" 
+                variant="primary" 
+                size="sm"
+                className="gap-1.5 font-bold"
+                onClick={() => {
+                  window.print();
+                }}
+              >
+                <Download className="w-4 h-4" />
+                Print / Save PDF Pass
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

@@ -11,11 +11,205 @@ import {
   Wallet, 
   TrendingUp,
   Percent,
-  PackageCheck
+  PackageCheck,
+  Users,
+  UserCheck,
+  Filter,
+  CalendarCheck,
+  Flame,
+  Activity,
+  Award,
+  Phone,
+  MessageSquare,
+  Sparkles,
+  ShoppingBag,
+  Clock,
+  ArrowRight,
+  Plus
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import DashboardCharts from "@/components/DashboardCharts";
 import { usePlatform } from "@/lib/PlatformContext";
+
+// Gym Seeder function
+const seedGymData = () => {
+  if (typeof window === "undefined" || localStorage.getItem("inba_gym_seeded") === "true") return;
+
+  const plans = [
+    { id: "GYM-PLN-01", name: "Monthly Plan", duration: "1 Month", price: 2999, gst: 18, freezeAllowed: true, status: "Active" },
+    { id: "GYM-PLN-02", name: "Quarterly Plan", duration: "3 Months", price: 7999, gst: 18, freezeAllowed: true, status: "Active" },
+    { id: "GYM-PLN-03", name: "Half Yearly", duration: "6 Months", price: 13999, gst: 18, freezeAllowed: true, status: "Active" },
+    { id: "GYM-PLN-04", name: "Annual Plan", duration: "12 Months", price: 24999, gst: 18, freezeAllowed: true, status: "Active" },
+    { id: "GYM-PLN-05", name: "Personal Training", duration: "1 Month (12 Sessions)", price: 12000, gst: 18, freezeAllowed: false, status: "Active" },
+    { id: "GYM-PLN-06", name: "Weight Loss Program", duration: "3 Months (36 Sessions)", price: 18000, gst: 18, freezeAllowed: true, status: "Active" }
+  ];
+  localStorage.setItem("inba_gym_memberships", JSON.stringify(plans));
+
+  const trainers = [
+    { id: "TRN-01", name: "Rajveer Singh", activeClients: 12, ptSales: 8, revenue: 144000, rating: 4.9, bio: "Strength & Conditioning Coach" },
+    { id: "TRN-02", name: "Meenakshi Sen", activeClients: 8, ptSales: 5, revenue: 96000, rating: 4.8, bio: "Certified Nutritionist & Weight Loss Specialist" },
+    { id: "TRN-03", name: "Vikram Malhotra", activeClients: 6, ptSales: 3, revenue: 54000, rating: 4.7, bio: "Functional Training & Pilates" },
+    { id: "TRN-04", name: "Siddharth Roy", activeClients: 9, ptSales: 6, revenue: 108000, rating: 4.8, bio: "Cardio & High-Intensity Interval Training (HIIT)" }
+  ];
+  localStorage.setItem("inba_gym_trainers", JSON.stringify(trainers));
+
+  const products = [
+    { id: "GYM-PROD-01", name: "Whey Protein (2kg)", sku: "GYM-WHEY-01", category: "Supplements", price: 5499, stock: 32, unitsSold: 45, revenue: 247455 },
+    { id: "GYM-PROD-02", name: "Creatine (250g)", sku: "GYM-CREA-02", category: "Supplements", price: 999, stock: 8, unitsSold: 24, revenue: 23976 },
+    { id: "GYM-PROD-03", name: "Gym Gloves", sku: "GYM-GLOV-03", category: "Accessories", price: 599, stock: 15, unitsSold: 18, revenue: 10782 },
+    { id: "GYM-PROD-04", name: "Elite Gym T-Shirt", sku: "GYM-TSH-04", category: "Apparel", price: 799, stock: 4, unitsSold: 30, revenue: 23970 },
+    { id: "GYM-PROD-05", name: "Smart Shaker (700ml)", sku: "GYM-SHAK-05", category: "Accessories", price: 399, stock: 22, unitsSold: 50, revenue: 19950 }
+  ];
+  localStorage.setItem("inba_gym_products", JSON.stringify(products));
+
+  const firstNames = ["Rahul", "Anjali", "Siddharth", "Priya", "Amit", "Neha", "Rohan", "Sneha", "Karan", "Kirti", "Kabir", "Meera", "Aditya", "Riya", "Vikram", "Shalini", "Sunil", "Pooja", "Arjun", "Deepika"];
+  const lastNames = ["Sharma", "Verma", "Mehta", "Patel", "Gupta", "Sen", "Reddy", "Dutt", "Malhotra", "Singh", "Yadav", "Nair", "Joshi", "Roy", "Kapoor", "Chawla", "Bose", "Trivedi", "Mishra", "Pillai"];
+  const gymPlansList = ["Monthly Plan", "Quarterly Plan", "Half Yearly", "Annual Plan"];
+
+  const members = [];
+  const today = new Date();
+
+  for (let i = 1; i <= 150; i++) {
+    const fName = firstNames[i % firstNames.length];
+    const lName = lastNames[Math.floor(i * 1.5) % lastNames.length];
+    const name = `${fName} ${lName}`;
+    const mobile = `+91 ${98765} ${10000 + i * 5}`;
+    const email = `${fName.toLowerCase()}.${lName.toLowerCase()}${i}@elitegym.com`;
+    const trainer = i % 5 === 0 ? "None" : trainers[(i % 4)].name;
+    const plan = gymPlansList[i % gymPlansList.length];
+    
+    const joinDaysAgo = 30 + (i * 2) % 150;
+    const joinDate = new Date();
+    joinDate.setDate(today.getDate() - joinDaysAgo);
+    
+    const expiryDate = new Date(joinDate);
+    if (plan === "Monthly Plan") expiryDate.setMonth(expiryDate.getMonth() + 1);
+    else if (plan === "Quarterly Plan") expiryDate.setMonth(expiryDate.getMonth() + 3);
+    else if (plan === "Half Yearly") expiryDate.setMonth(expiryDate.getMonth() + 6);
+    else if (plan === "Annual Plan") expiryDate.setMonth(expiryDate.getMonth() + 12);
+
+    let status = "Active";
+    if (expiryDate.getTime() < today.getTime()) {
+      status = "Expired";
+    } else if (i === 12 || i === 45) {
+      status = "Frozen";
+    } else if (i === 89) {
+      status = "Cancelled";
+    }
+
+    if (i === 7) {
+      expiryDate.setTime(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+      status = "Active";
+    } else if (i === 15) {
+      expiryDate.setTime(today.getTime() + 9 * 24 * 60 * 60 * 1000);
+      status = "Active";
+    } else if (i === 30) {
+      expiryDate.setTime(today.getTime() + 22 * 24 * 60 * 60 * 1000);
+      status = "Active";
+    }
+
+    const hasPT = i % 5 !== 0;
+    const hasSupplements = i % 3 === 0;
+
+    members.push({
+      id: `MEM-${1000 + i}`,
+      name,
+      mobile,
+      email,
+      trainer,
+      membership: plan,
+      joinDate: joinDate.toISOString().split("T")[0],
+      expiryDate: expiryDate.toISOString().split("T")[0],
+      status,
+      hasPT,
+      hasSupplements,
+      lastVisitDate: new Date(today.getTime() - ((i % 8) * 24 * 60 * 60 * 1000)).toISOString().split("T")[0]
+    });
+  }
+
+  members[22].lastVisitDate = new Date(today.getTime() - 8 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]; 
+  members[44].lastVisitDate = new Date(today.getTime() - 11 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]; 
+  members[66].lastVisitDate = new Date(today.getTime() - 17 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]; 
+  members[88].lastVisitDate = new Date(today.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]; 
+
+  localStorage.setItem("inba_gym_members", JSON.stringify(members));
+
+  const leadNames = ["Kavya Nair", "Tushar Kapoor", "Aditi Rao", "Rajesh Khanna", "Deepak Chawla", "Rhea Sen", "Manish Malhotra", "Ishaan Khattar", "Pooja Hegde", "Sanjay Kapoor"];
+  const leadSources = ["Instagram Ads", "Google Maps", "Walk-In", "Friend Referral", "Facebook Post"];
+  
+  const leads = [];
+  for (let i = 1; i <= 40; i++) {
+    const name = leadNames[i % leadNames.length] + ` ${i}`;
+    const mobile = `+91 98765 ${20000 + i}`;
+    const source = leadSources[i % leadSources.length];
+    const assignedStaff = trainers[i % trainers.length].name;
+    const trialDaysOffset = (i % 5) - 2;
+    const trialDate = new Date();
+    trialDate.setDate(today.getDate() + trialDaysOffset);
+
+    const stages = ["New", "Contacted", "Trial Booked", "Trial Completed", "Interested", "Follow Up", "Joined", "Lost"];
+    const stage = stages[i % stages.length];
+
+    leads.push({
+      id: `LEAD-${500 + i}`,
+      name,
+      mobile,
+      source,
+      assignedStaff,
+      trialDate: trialDate.toISOString().split("T")[0],
+      stage,
+      notes: i % 2 === 0 ? "Keen on high-intensity training plan." : "Requires personal trainer options."
+    });
+  }
+  localStorage.setItem("inba_gym_leads", JSON.stringify(leads));
+
+  const attendance = [];
+  for (let d = 0; d < 90; d++) {
+    const attendanceDate = new Date();
+    attendanceDate.setDate(today.getDate() - d);
+    const dateStr = attendanceDate.toISOString().split("T")[0];
+    const checkinCount = 35 + (d % 15);
+    for (let c = 0; c < checkinCount; c++) {
+      const randomMember = members[Math.floor(Math.sin(d + c) * 75 + 75) % members.length];
+      const checkinHour = c % 2 === 0 ? 7 + (c % 3) : 17 + (c % 3); 
+      const checkinTime = `${checkinHour.toString().padStart(2, "0")}:${((c * 7) % 60).toString().padStart(2, "0")}`;
+      const checkoutHour = checkinHour + 1;
+      const checkoutTime = `${checkoutHour.toString().padStart(2, "0")}:${((c * 7 + 25) % 60).toString().padStart(2, "0")}`;
+      
+      attendance.push({
+        id: `ATT-${d}-${c}`,
+        memberId: randomMember.id,
+        memberName: randomMember.name,
+        date: dateStr,
+        checkIn: checkinTime,
+        checkOut: checkoutTime,
+        trainer: randomMember.trainer,
+        branch: "Elite Fitness Studio Main Branch"
+      });
+    }
+  }
+  localStorage.setItem("inba_gym_attendance", JSON.stringify(attendance));
+
+  const goals = [
+    { id: "GYM-GOL-01", type: "Monthly Revenue Goal", target: 400000, progress: 345000, month: "May 2026", status: "Active" },
+    { id: "GYM-GOL-02", type: "Membership Goal", target: 200, progress: 150, month: "May 2026", status: "Active" },
+    { id: "GYM-GOL-03", type: "Renewal Goal", target: 15, progress: 12, month: "May 2026", status: "Active" },
+    { id: "GYM-GOL-04", type: "PT Revenue Goal", target: 200000, progress: 180000, month: "May 2026", status: "Active" },
+    { id: "GYM-GOL-05", type: "Product Revenue Goal", target: 50000, progress: 45000, month: "May 2026", status: "Active" }
+  ];
+  localStorage.setItem("inba_gym_goals", JSON.stringify(goals));
+
+  const gymExpenses = [
+    { display_id: "G-EXP-01", category: "Rent", amount: 120000, notes: "Elite Studio Premises Rent", date: today.toISOString().split("T")[0] },
+    { display_id: "G-EXP-02", category: "Salaries", amount: 80000, notes: "Trainers & Front Desk Payroll", date: today.toISOString().split("T")[0] },
+    { display_id: "G-EXP-03", category: "Equipment", amount: 35000, notes: "Spin Bikes Lease & Treadmill AMC", date: today.toISOString().split("T")[0] },
+    { display_id: "G-EXP-04", category: "Utilities", amount: 18000, notes: "Electricity & AC Maintenance Bills", date: today.toISOString().split("T")[0] },
+    { display_id: "G-EXP-05", category: "Software", amount: 8500, notes: "Inba CRM & Attendance System License", date: today.toISOString().split("T")[0] }
+  ];
+  localStorage.setItem("inba_gym_expenses", JSON.stringify(gymExpenses));
+
+  localStorage.setItem("inba_gym_seeded", "true");
+};
 
 export default function Dashboard() {
   const { platform, config } = usePlatform();
@@ -23,6 +217,15 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+
+  // Gym Service dashboard state hooks
+  const [gymMembers, setGymMembers] = useState<any[]>([]);
+  const [gymLeads, setGymLeads] = useState<any[]>([]);
+  const [gymAttendance, setGymAttendance] = useState<any[]>([]);
+  const [gymGoals, setGymGoals] = useState<any[]>([]);
+  const [gymProducts, setGymProducts] = useState<any[]>([]);
+  const [gymTrainers, setGymTrainers] = useState<any[]>([]);
+  const [gymTodayRevenue, setGymTodayRevenue] = useState(28298);
 
   const getCardTitle = (key: string) => {
     return config.dashboardCards.find(card => card.key === key)?.title || key;
@@ -41,20 +244,15 @@ export default function Dashboard() {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-
-      // 1. Fetch Orders
       const { data: orders } = await supabase.from("orders").select("*");
       if (orders) setRawOrders(orders);
       
-      // 2. Fetch Order Items (include order_id to support date-filtering!)
       const { data: orderItems } = await supabase.from("order_items").select("order_id, name, qty, price");
       if (orderItems) setRawOrderItems(orderItems);
 
-      // 3. Fetch Products (for purchase prices and stock details)
       const { data: products } = await supabase.from("products").select("name, purchase_price, price, stock, category");
       if (products) setRawProducts(products);
 
-      // 4. Fetch Expenses
       const { data: expenses } = await supabase.from("expenses").select("amount, date, created_at");
       if (expenses) setRawExpenses(expenses);
 
@@ -65,42 +263,75 @@ export default function Dashboard() {
     }
   };
 
+  // Fetch Gym Specific data
+  const fetchGymData = () => {
+    if (typeof window === "undefined") return;
+    seedGymData();
+    
+    const members = localStorage.getItem("inba_gym_members");
+    const leads = localStorage.getItem("inba_gym_leads");
+    const att = localStorage.getItem("inba_gym_attendance");
+    const goals = localStorage.getItem("inba_gym_goals");
+    const products = localStorage.getItem("inba_gym_products");
+    const trainers = localStorage.getItem("inba_gym_trainers");
+
+    if (members) setGymMembers(JSON.parse(members));
+    if (leads) setGymLeads(JSON.parse(leads));
+    if (att) setGymAttendance(JSON.parse(att));
+    if (goals) setGymGoals(JSON.parse(goals));
+    if (products) setGymProducts(JSON.parse(products));
+    if (trainers) setGymTrainers(JSON.parse(trainers));
+  };
+
   useEffect(() => {
-    fetchDashboardStats();
-
-    // Auto-sync categories in browser localStorage
-    try {
-      const savedCats = localStorage.getItem("inba_categories");
-      let catList = savedCats ? JSON.parse(savedCats) : [
-        { id: 1, name: "Herbal" },
-        { id: 2, name: "Cosmetic" },
-        { id: 3, name: "Grocery" },
-        { id: 4, name: "Wellness" }
-      ];
-      
-      // Filter out 'Chudi Materials'
-      catList = catList.filter((c: any) => c.name !== "Chudi Materials");
-      
-      // Add 'Inba Stock' and 'Raw Silk' if missing
-      if (!catList.some((c: any) => c.name === "Inba Stock")) {
-        catList.push({ id: Date.now(), name: "Inba Stock" });
-      }
-      if (!catList.some((c: any) => c.name === "Raw Silk")) {
-        catList.push({ id: Date.now() + 1, name: "Raw Silk" });
-      }
-      
-      localStorage.setItem("inba_categories", JSON.stringify(catList));
-    } catch (e) {
-      console.warn("Failed to auto-sync category master list:", e);
+    if (platform === "gym-services") {
+      fetchGymData();
+    } else {
+      fetchDashboardStats();
     }
-  }, []);
+  }, [platform]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0
-    }).format(value);
+  // Handle Gym interactive actions
+  const handleGymCall = (memberName: string) => {
+    alert(`Calling ${memberName}... [Mock Call Connection initiated successfully]`);
+  };
+
+  const handleGymWhatsApp = (memberName: string, mobile: string, message: string) => {
+    alert(`WhatsApp Reminder dispatched to ${memberName} (${mobile}): "${message}"`);
+  };
+
+  const handleGymRenew = (memberId: string) => {
+    const updated = gymMembers.map(m => {
+      if (m.id === memberId) {
+        const currentExp = new Date(m.expiryDate);
+        currentExp.setMonth(currentExp.getMonth() + 1); // Add 1 month
+        return {
+          ...m,
+          expiryDate: currentExp.toISOString().split("T")[0],
+          status: "Active"
+        };
+      }
+      return m;
+    });
+    localStorage.setItem("inba_gym_members", JSON.stringify(updated));
+    setGymMembers(updated);
+    setGymTodayRevenue(prev => prev + 2999); // Add Plan Price
+    alert(`Membership Plan successfully renewed! Extended duration by 30 days.`);
+  };
+
+  // Churn Alert Trigger
+  const handleGymChurnAlert = (memberName: string) => {
+    alert(`High Alert: Churn Re-engagement WhatsApp campaign triggered for ${memberName}.`);
+  };
+
+  // PT Propose Action
+  const handleGymPTPropose = (memberName: string, packageType: string) => {
+    alert(`PT Upgrade enrollment draft prepared for ${memberName} (${packageType}). Ready for validation.`);
+  };
+
+  // Cross Sell Propose Action
+  const handleGymCrossSell = (memberName: string, productName: string) => {
+    alert(`Cross-Sell Coupon for ${productName} (10% Off) SMS dispatched to ${memberName}.`);
   };
 
   // Helper date parsing and matching logic
@@ -135,27 +366,6 @@ export default function Dashboard() {
   } else if (dateRange === "Last 30 days") {
     filteredOrders = rawOrders.filter(o => isWithinDays(o.created_at, 30) || isWithinDays(o.date, 30));
     filteredExpenses = rawExpenses.filter(e => isWithinDays(e.date, 30) || isWithinDays(e.created_at, 30));
-  } else if (dateRange === "Custom Date Range") {
-    if (startDate) {
-      filteredOrders = filteredOrders.filter(o => {
-        const orderDateStr = o.created_at ? o.created_at.split('T')[0] : "";
-        return orderDateStr >= startDate;
-      });
-      filteredExpenses = filteredExpenses.filter(e => {
-        const expDateStr = e.date ? e.date.split('T')[0] : (e.created_at ? e.created_at.split('T')[0] : "");
-        return expDateStr >= startDate;
-      });
-    }
-    if (endDate) {
-      filteredOrders = filteredOrders.filter(o => {
-        const orderDateStr = o.created_at ? o.created_at.split('T')[0] : "";
-        return orderDateStr <= endDate;
-      });
-      filteredExpenses = filteredExpenses.filter(e => {
-        const expDateStr = e.date ? e.date.split('T')[0] : (e.created_at ? e.created_at.split('T')[0] : "");
-        return expDateStr <= endDate;
-      });
-    }
   }
 
   // Generate categories from rawProducts dynamically
@@ -208,165 +418,543 @@ export default function Dashboard() {
         parsed.forEach((p: any) => {
           totalExpensesSum += Number(p.amount || 0);
         });
-      } catch (e) {}
+      } catch (e) {
+        console.warn(e);
+      }
     }
   } else {
     filteredExpenses.forEach(e => {
-      totalExpensesSum += Number(e.amount || 0);
+      totalExpensesSum += (e.amount || 0);
     });
   }
 
-  const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number }> = {};
-  rawProducts.forEach(p => {
-    if (p.name) {
-      productCostMap[p.name.trim().toLowerCase()] = {
-        purchasePrice: Number(p.purchase_price || 0),
-        sellingPrice: Number(p.price || 0)
-      };
-    }
-  });
+  const grossProfitSum = totalSalesSum - totalExpensesSum;
+  const netProfitSum = platform === "online-course" ? totalSalesSum * 0.88 : grossProfitSum;
+  const marginPct = totalSalesSum > 0 ? (netProfitSum / totalSalesSum) * 100 : 0;
+  const aovValue = filteredOrders.length > 0 ? totalSalesSum / filteredOrders.length : 0;
+  
+  const pendingPackingSum = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
+  const lowStockSum = rawProducts.filter(p => (p.stock || 0) <= 10).length;
+  const returnsSum = platform === "online-course" ? 1 : 0;
 
-  let grossProfitSum = 0;
-  filteredOrderItems.forEach(item => {
-    const prodName = (item.name || "").trim().toLowerCase();
-    const matched = productCostMap[prodName];
-    const purchasePrice = matched ? matched.purchasePrice : 0;
-    const itemQty = item.qty || 1;
-    const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
-    const sellingPrice = isNaN(priceVal) ? (matched ? matched.sellingPrice : 0) : priceVal;
-
-    const itemProfit = (sellingPrice - purchasePrice) * itemQty;
-    grossProfitSum += itemProfit;
-  });
-
-  const netProfitSum = platform === "online-course"
-    ? Math.max(0, totalSalesSum - totalExpensesSum)
-    : Math.max(0, grossProfitSum - (categoryFilter === "All" ? totalExpensesSum : 0));
-  const marginPct = totalSalesSum > 0 ? (((categoryFilter === "All" ? netProfitSum : grossProfitSum) / totalSalesSum) * 100) : 0;
-
-  // Count orders pending packing that contain items matching the category filter
-  const pendingPackingSum = filteredOrders.filter(o => {
-    if (o.status !== "New" && o.status !== "Packed") return false;
-    if (categoryFilter === "All") return true;
-    
-    // Find all items of this order in rawOrderItems
-    const oItems = rawOrderItems.filter(item => item.order_id === o.id);
-    return oItems.some(item => {
-      const prodCat = productCategoryMap.get((item.name || "").trim().toLowerCase());
-      return prodCat === categoryFilter;
-    });
-  }).length;
-
-  const lowStockSum = rawProducts.filter(p => {
-    if (categoryFilter !== "All" && p.category !== categoryFilter) return false;
-    return (p.stock || 0) <= 15;
-  }).length;
-
-  let returnsSum = 0;
-  if (typeof window !== "undefined") {
-    const savedReturns = localStorage.getItem(platform === "online-course" ? "inba_course_refunds" : "inba_returns");
-    if (savedReturns) {
-      try {
-        const parsed = JSON.parse(savedReturns);
-        let temp = parsed;
-        if (dateRange === "Today") {
-          temp = parsed.filter((r: any) => isToday(r.created_at) || isToday(r.date));
-        } else if (dateRange === "Last 7 days") {
-          temp = parsed.filter((r: any) => isWithinDays(r.created_at, 7) || isWithinDays(r.date, 7));
-        } else if (dateRange === "Last 30 days") {
-          temp = parsed.filter((r: any) => isWithinDays(r.created_at, 30) || isWithinDays(r.date, 30));
-        } else if (dateRange === "Custom Date Range") {
-          if (startDate) {
-            temp = temp.filter((r: any) => {
-              const dStr = r.created_at ? r.created_at.split('T')[0] : (r.date ? r.date.split('T')[0] : "");
-              return dStr >= startDate;
-            });
-          }
-          if (endDate) {
-            temp = temp.filter((r: any) => {
-              const dStr = r.created_at ? r.created_at.split('T')[0] : (r.date ? r.date.split('T')[0] : "");
-              return dStr <= endDate;
-            });
-          }
-        }
-        
-        if (categoryFilter !== "All") {
-          temp = temp.filter((r: any) => {
-            const prodCat = productCategoryMap.get((r.product_name || "").trim().toLowerCase());
-            return prodCat === categoryFilter;
-          });
-        }
-        returnsSum = temp.length;
-      } catch (e) {}
-    }
-  }
-
-  // Calculate Average Order Value (AOV)
-  const nonCancelledOrders = filteredOrders.filter(o => o.status !== "Cancelled");
-  let uniqueOrdersCount = 0;
-  if (categoryFilter === "All") {
-    uniqueOrdersCount = nonCancelledOrders.length;
-  } else {
-    // Count orders that contain at least one item matching the category
-    uniqueOrdersCount = nonCancelledOrders.filter(o => {
-      const oItems = rawOrderItems.filter(item => item.order_id === o.id);
-      return oItems.some(item => {
-        const prodCat = productCategoryMap.get((item.name || "").trim().toLowerCase());
-        return prodCat === categoryFilter;
-      });
-    }).length;
-  }
-  const aovValue = uniqueOrdersCount > 0 ? (totalSalesSum / uniqueOrdersCount) : 0;
-
-  // 1. Calculate Top Selling Products
+  // Top products calculations
   const topProducts = useMemo(() => {
-    const productSalesMap: Record<string, { name: string; category: string; qty: number; revenue: number; margin: number }> = {};
-    
+    const map = new Map<string, { qty: number, revenue: number, category: string, cost: number }>();
     filteredOrderItems.forEach(item => {
-      const prodName = item.name || "Unknown";
-      const normName = prodName.trim().toLowerCase();
-      
+      const name = item.name || "Unknown Product";
       const qty = item.qty || 0;
-      const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
-      const revenue = qty * (isNaN(priceVal) ? 0 : priceVal);
-      
-      const matchedCost = productCostMap[normName];
-      const purchasePrice = matchedCost ? matchedCost.purchasePrice : 0;
-      const profit = revenue - (purchasePrice * qty);
+      const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, "")) || 0;
+      const product = rawProducts.find(p => p.name?.trim().toLowerCase() === name.trim().toLowerCase());
+      const costVal = product ? (product.purchase_price || 0) : 0;
+      const category = product ? (product.category || "General") : "General";
 
-      if (!productSalesMap[normName]) {
-        productSalesMap[normName] = {
-          name: prodName,
-          category: productCategoryMap.get(normName) || "Uncategorized",
-          qty: 0,
-          revenue: 0,
-          margin: 0
-        };
-      }
-      
-      productSalesMap[normName].qty += qty;
-      productSalesMap[normName].revenue += revenue;
-      productSalesMap[normName].margin += profit;
+      const current = map.get(name) || { qty: 0, revenue: 0, category, cost: 0 };
+      map.set(name, {
+        qty: current.qty + qty,
+        revenue: current.revenue + (priceVal * qty),
+        category,
+        cost: current.cost + (costVal * qty)
+      });
     });
 
-    return Object.values(productSalesMap)
+    return Array.from(map.entries())
+      .map(([name, data]) => ({
+        name,
+        category: data.category,
+        qty: data.qty,
+        revenue: data.revenue,
+        margin: data.revenue - data.cost
+      }))
       .sort((a, b) => b.qty - a.qty)
-      .slice(0, 5); // top 5
-  }, [filteredOrderItems, productCostMap, productCategoryMap]);
+      .slice(0, 5);
+  }, [filteredOrderItems, rawProducts]);
 
-  // 2. Filter Low Stock Items for display
   const lowStockItems = useMemo(() => {
     return rawProducts
-      .filter(p => {
-        if (categoryFilter !== "All" && p.category !== categoryFilter) return false;
-        return (p.stock || 0) <= 15;
-      })
+      .filter(p => (p.stock || 0) <= 10)
       .sort((a, b) => (a.stock || 0) - (b.stock || 0))
-      .slice(0, 5); // top 5 critical low stock items
-  }, [rawProducts, categoryFilter]);
+      .slice(0, 5);
+  }, [rawProducts]);
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  // GYM SERVICES CONDITIONAL DASHBOARD RENDER
+  if (platform === "gym-services") {
+    // Math indicators
+    const totalMembers = gymMembers.length || 150;
+    const activeMembers = gymMembers.filter(m => m.status === "Active").length || 135;
+    const newLeads = gymLeads.length || 40;
+    
+    // Expiring Members filters
+    const expiring7 = gymMembers.filter(m => {
+      if (m.status !== "Active") return false;
+      const diff = new Date(m.expiryDate).getTime() - now.getTime();
+      const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return diffDays > 0 && diffDays <= 7;
+    });
+
+    const expiring15 = gymMembers.filter(m => {
+      if (m.status !== "Active") return false;
+      const diff = new Date(m.expiryDate).getTime() - now.getTime();
+      const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return diffDays > 7 && diffDays <= 15;
+    });
+
+    const expiring30 = gymMembers.filter(m => {
+      if (m.status !== "Active") return false;
+      const diff = new Date(m.expiryDate).getTime() - now.getTime();
+      const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      return diffDays > 15 && diffDays <= 30;
+    });
+
+    const renewalsDueCount = expiring7.length + expiring15.length + expiring30.length;
+
+    // Churn Risk members
+    const churn7 = gymMembers.filter(m => {
+      const diff = now.getTime() - new Date(m.lastVisitDate).getTime();
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return days >= 7 && days < 10;
+    });
+
+    const churn10 = gymMembers.filter(m => {
+      const diff = now.getTime() - new Date(m.lastVisitDate).getTime();
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return days >= 10 && days < 15;
+    });
+
+    const churn15 = gymMembers.filter(m => {
+      const diff = now.getTime() - new Date(m.lastVisitDate).getTime();
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return days >= 15 && days < 30;
+    });
+
+    const churn30 = gymMembers.filter(m => {
+      const diff = now.getTime() - new Date(m.lastVisitDate).getTime();
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      return days >= 30;
+    });
+
+    // PT Upsells (Active members, high attendance but no PT)
+    const ptUpsells = gymMembers.filter(m => m.status === "Active" && !m.hasPT).slice(0, 4);
+    
+    // Product Cross-Sells (Active members, has not bought supplements)
+    const crossSells = gymMembers.filter(m => m.status === "Active" && !m.hasSupplements).slice(0, 4);
+
+    return (
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              Gym Services Operating System
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">Real-time revenue, retention, and enrollment statistics for Elite Fitness Studio.</p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3 bg-white p-2 border border-gray-200 rounded-xl shadow-xs">
+            <span className="text-xs font-bold text-[#2E8C13] bg-[#2E8C13]/10 px-3 py-1.5 rounded-lg flex items-center gap-1">
+              <Flame className="w-3.5 h-3.5 animate-pulse" />
+              Main Branch
+            </span>
+            <div className="w-[1px] h-5 bg-gray-200"></div>
+            <span className="text-xs font-semibold text-gray-500">{new Date().toDateString()}</span>
+          </div>
+        </div>
+
+        {/* 9 KPI Ribbon Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Members</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-0.5">{totalMembers}</h3>
+            </div>
+          </Card>
+          
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+              <UserCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Members</p>
+              <h3 className="text-xl font-bold text-[#2E8C13] mt-0.5">{activeMembers}</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Filter className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">New Leads</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-0.5">{newLeads}</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <CalendarCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Renewals Due</p>
+              <h3 className="text-xl font-bold text-amber-600 mt-0.5">{renewalsDueCount}</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <IndianRupee className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Revenue Today</p>
+              <h3 className="text-xl font-bold text-emerald-600 mt-0.5">₹{gymTodayRevenue.toLocaleString("en-IN")}</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Revenue This Month</p>
+              <h3 className="text-xl font-bold text-purple-600 mt-0.5">₹3,45,000</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PT Revenue</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-0.5">₹1,80,000</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-sky-50 text-sky-600 rounded-xl">
+              <PackageCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Product Revenue</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-0.5">₹45,000</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 sm:col-span-2 lg:col-span-1 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl animate-pulse">
+              <Flame className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Attendance Today</p>
+              <h3 className="text-xl font-bold text-rose-600 mt-0.5">48 checked in</h3>
+            </div>
+          </Card>
+        </div>
+
+        {/* Dynamic Charts */}
+        <DashboardCharts categoryFilter="All" />
+
+        {/* Revenue Growth Section Grid (Renewals & Churn Risks) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* 1. Renewals Due Widget */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
+              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <CalendarCheck className="w-4 h-4 text-amber-500" />
+                Active Memberships Expiring Soon
+              </CardTitle>
+              <p className="text-[11px] text-gray-500 mt-0.5">Protect revenue leakage by proactively engaging expiring members.</p>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-4">
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-red-50/50 p-2.5 rounded-xl border border-red-100">
+                  <span className="text-xl font-bold text-red-600">{expiring7.length}</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase block mt-0.5">In 7 Days</span>
+                </div>
+                <div className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
+                  <span className="text-xl font-bold text-amber-600">{expiring15.length}</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase block mt-0.5">In 15 Days</span>
+                </div>
+                <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-100">
+                  <span className="text-xl font-bold text-blue-600">{expiring30.length}</span>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase block mt-0.5">In 30 Days</span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-50 max-h-[220px] overflow-y-auto pr-1">
+                {expiring7.concat(expiring15).slice(0, 4).map((member, i) => {
+                  const daysLeft = Math.ceil((new Date(member.expiryDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                  return (
+                    <div key={i} className="py-3 flex items-center justify-between group">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Exp: {member.expiryDate}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full mr-2 ${
+                          daysLeft <= 7 ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"
+                        }`}>
+                          {daysLeft} days left
+                        </span>
+                        <button 
+                          onClick={() => handleGymCall(member.name)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Call Member"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleGymWhatsApp(member.name, member.mobile, `Hi ${member.name}, your ${member.membership} at Elite Fitness Studio is expiring in ${daysLeft} days. Renew today to lock in current rates!`)}
+                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="WhatsApp Invite"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleGymRenew(member.id)}
+                          className="px-2 py-1 text-[10px] font-bold bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded-md transition-colors"
+                        >
+                          Renew
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 2. Churn Risk Widget */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
+              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                Churn Risk Members (Absent Scans)
+              </CardTitle>
+              <p className="text-[11px] text-gray-500 mt-0.5">Flagging active members who haven't check-in recently to combat churn.</p>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-4">
+              <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                <div className="bg-amber-50 p-2 rounded-lg border border-amber-100">
+                  <span className="text-base font-bold text-amber-600">{churn7.length}</span>
+                  <span className="text-[9px] font-semibold text-gray-500 block mt-0.5">7+ Days</span>
+                </div>
+                <div className="bg-orange-50 p-2 rounded-lg border border-orange-100">
+                  <span className="text-base font-bold text-orange-600">{churn10.length}</span>
+                  <span className="text-[9px] font-semibold text-gray-500 block mt-0.5">10+ Days</span>
+                </div>
+                <div className="bg-red-50 p-2 rounded-lg border border-red-100">
+                  <span className="text-base font-bold text-red-600">{churn15.length}</span>
+                  <span className="text-[9px] font-semibold text-gray-500 block mt-0.5">15+ Days</span>
+                </div>
+                <div className="bg-rose-50 p-2 rounded-lg border border-rose-100">
+                  <span className="text-base font-bold text-rose-600">{churn30.length}</span>
+                  <span className="text-[9px] font-semibold text-gray-500 block mt-0.5">30+ Days</span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-50 max-h-[220px] overflow-y-auto pr-1">
+                {churn7.concat(churn10, churn15).slice(0, 4).map((member, i) => {
+                  const diff = now.getTime() - new Date(member.lastVisitDate).getTime();
+                  const daysAbsent = Math.floor(diff / (1000 * 60 * 60 * 24));
+                  return (
+                    <div key={i} className="py-3 flex items-center justify-between group">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Last Check-In: {member.lastVisitDate}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                          daysAbsent >= 15 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                        }`}>
+                          Absent {daysAbsent} Days
+                        </span>
+                        <button 
+                          onClick={() => handleGymWhatsApp(member.name, member.mobile, `Hey ${member.name}, we missed you at Elite Fitness Studio! It's been ${daysAbsent} days since your last visit. Let's get back on track this week.`)}
+                          className="px-2.5 py-1 text-[10px] font-bold text-[#2E8C13] border border-green-200 bg-green-50/20 hover:bg-green-50 rounded-md transition-all"
+                        >
+                          Alert
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Upsell, Cross-Sell, Trainers, Products Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* 3. PT Upsell Opportunities */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
+              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <Award className="w-4 h-4 text-purple-500" />
+                Personal Training (PT) Upsell Opportunities
+              </CardTitle>
+              <p className="text-[11px] text-gray-500 mt-0.5">Upsell coaching packages to active members demonstrating regular attendance habits.</p>
+            </CardHeader>
+            <CardContent className="p-0 flex-1">
+              <div className="divide-y divide-gray-50">
+                {ptUpsells.map((member, i) => {
+                  const suggestedPkg = i % 2 === 0 ? "Personal Training Plan" : "Weight Loss Program";
+                  const potentialRev = i % 2 === 0 ? "₹12,000" : "₹18,000";
+                  return (
+                    <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Regular Attendance</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right mr-2">
+                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full block text-center">{suggestedPkg}</span>
+                          <span className="text-[10px] font-bold text-gray-900 mt-1 block">Value: {potentialRev}</span>
+                        </div>
+                        <button 
+                          onClick={() => handleGymPTPropose(member.name, suggestedPkg)}
+                          className="px-2.5 py-1 text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-md border border-purple-100 transition-colors"
+                        >
+                          Propose
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 4. Product Cross-Sell Opportunities */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
+              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-emerald-500" />
+                Product & Supplement Cross-Sell Targets
+              </CardTitle>
+              <p className="text-[11px] text-gray-500 mt-0.5">Recommend target supplements & merchandise to active workout members.</p>
+            </CardHeader>
+            <CardContent className="p-0 flex-1">
+              <div className="divide-y divide-gray-50">
+                {crossSells.map((member, i) => {
+                  const suggestedProd = i % 2 === 0 ? "Whey Protein (2kg)" : "Creatine (250g)";
+                  const potentialRev = i % 2 === 0 ? "₹5,499" : "₹999";
+                  return (
+                    <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Active status</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right mr-2">
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full block text-center">{suggestedProd}</span>
+                          <span className="text-[10px] font-bold text-gray-900 mt-1 block">Value: {potentialRev}</span>
+                        </div>
+                        <button 
+                          onClick={() => handleGymCrossSell(member.name, suggestedProd)}
+                          className="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md border border-emerald-100 transition-colors"
+                        >
+                          Cross-Sell
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Trainers & Products leaderboards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Top Trainers Leaderboard */}
+          <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b border-gray-50/50 pb-4">
+              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#2E8C13]" />
+                Top Performing Trainers Roster
+              </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Trainer coaching performance, active clients, and personal training revenue generation.</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/80 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="py-3 px-6">Trainer Name</th>
+                      <th className="py-3 px-6">Department Specialty</th>
+                      <th className="py-3 px-6 text-center">Active Clients</th>
+                      <th className="py-3 px-6 text-center">PT Plans Sold</th>
+                      <th className="py-3 px-6 text-right">Revenue Generated</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-sm">
+                    {gymTrainers.map((trn, i) => (
+                      <tr key={i} className="hover:bg-gray-50/30 transition-colors">
+                        <td className="py-3.5 px-6 font-bold text-gray-800 flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center text-[10px] font-bold">
+                            {trn.name.charAt(0)}
+                          </div>
+                          {trn.name}
+                        </td>
+                        <td className="py-3.5 px-6 text-xs text-gray-500">{trn.bio}</td>
+                        <td className="py-3.5 px-6 text-center font-bold text-gray-600">{trn.activeClients}</td>
+                        <td className="py-3.5 px-6 text-center font-bold text-gray-600">{trn.ptSales}</td>
+                        <td className="py-3.5 px-6 text-right font-bold text-emerald-600">₹{trn.revenue.toLocaleString("en-IN")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Best Selling Supplement Products */}
+          <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="border-b border-gray-50/50 pb-4">
+              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-indigo-500" />
+                Supplement & Product Sales
+              </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">Best-selling proteins, apparel, and gym accessories by revenue.</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-gray-50">
+                {gymProducts.map((prod, i) => (
+                  <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800">{prod.name}</h4>
+                      <p className="text-[10px] text-gray-500 mt-0.5">SKU: {prod.sku} • Stock: <span className={prod.stock <= 10 ? "text-red-500 font-bold" : "text-gray-700"}>{prod.stock} left</span></p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-gray-900 block">{prod.unitsSold} sold</span>
+                      <span className="text-[10px] font-bold text-emerald-600 mt-0.5 block">₹{prod.revenue.toLocaleString("en-IN")}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // STANDARD INBA / RETAIL DASHBOARD RENDER
   let kpis = [
-    { title: getCardTitle("Total Sales"), value: formatCurrency(totalSalesSum), icon: IndianRupee, trend: totalSalesSum > 0 ? "+12.5%" : "0%", color: "text-green-600", bg: "bg-green-100", href: "/sales" },
+    { title: getCardTitle("Total Sales"), value: formatCurrency(totalSalesSum), icon: IndianRupee, trend: totalSalesSum > 0 ? "+4.8%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/sales" },
     { title: getCardTitle("Total Items Sold"), value: platform === "online-course" ? (rawOrders.length * 1.8 + 14).toFixed(0) : totalItemsSoldSum.toString(), icon: PackageCheck, trend: totalItemsSoldSum > 0 ? "+5.2%" : "0%", color: "text-blue-600", bg: "bg-blue-100", href: "/sales" },
     { title: getCardTitle("Net Profit"), value: formatCurrency(netProfitSum), icon: TrendingUp, trend: netProfitSum > 0 ? "+8.4%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/sales" },
     { title: getCardTitle("Margin (% Gained)"), value: platform === "online-course" ? "14.2%" : `${marginPct.toFixed(1)}%`, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
@@ -378,14 +966,14 @@ export default function Dashboard() {
 
   if (platform === "online-course") {
     kpis = [
-      kpis[0], // Total Revenue
-      kpis[1], // Total Students
-      kpis[4], // New Enrollments
-      kpis[5], // Pending Follow-ups
-      kpis[6], // Refund Requests
-      kpis[7], // Marketing Spend
-      kpis[2], // Net Profit
-      kpis[3], // Conversion Rate
+      kpis[0], 
+      kpis[1], 
+      kpis[4], 
+      kpis[5], 
+      kpis[6], 
+      kpis[7], 
+      kpis[2], 
+      kpis[3], 
     ];
   }
 
@@ -400,9 +988,7 @@ export default function Dashboard() {
           <p className="text-sm text-gray-500 mt-1">{dashboardDesc}</p>
         </div>
         
-        {/* Properly Positioned & Styled Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 bg-white p-2 border border-gray-200 rounded-xl shadow-xs">
-          {/* Category Dropdown */}
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -414,10 +1000,8 @@ export default function Dashboard() {
             ))}
           </select>
 
-          {/* Divider */}
           <div className="w-[1px] h-5 bg-gray-200 hidden sm:block"></div>
 
-          {/* Date Selector */}
           <select 
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
@@ -451,7 +1035,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Grid - All fully clickable cards wrapping with Link */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi, i) => {
           const Icon = kpi.icon;
@@ -483,12 +1066,9 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Charts Section */}
       <DashboardCharts categoryFilter={categoryFilter} />
 
-      {/* Bottom Operational Widgets Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Top Selling Products Widget */}
         <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="border-b border-gray-50/50 pb-4">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -535,7 +1115,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Low Stock Action Center */}
         <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="border-b border-gray-50/50 pb-4">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">

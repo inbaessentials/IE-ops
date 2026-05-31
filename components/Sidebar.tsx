@@ -47,7 +47,7 @@ export default function Sidebar() {
   }, [config.sidebar]);
 
   const menuItems = useMemo(() => {
-    const list = [...navItems];
+    let list = [...navItems];
     if (platform === "online-course") {
       // Insert Leads & Followups after Sales (index 3)
       list.splice(3, 0, 
@@ -59,6 +59,27 @@ export default function Sidebar() {
       if (custIndex !== -1) {
         list.splice(custIndex + 1, 0, { name: "Team", href: "/team", icon: ShieldCheck });
       }
+    } else if (platform === "gym-services") {
+      // For Gym Services, we want a very simple, tailored sidebar:
+      // Dashboard, Members (Customers), Memberships (Inventory), Attendance (/attendance), Revenue (Sales), Reports, Goals, Settings.
+      const dashboard = list.find(item => item.name === "Dashboard")!;
+      const members = list.find(item => item.name === "Customers")!;
+      const memberships = list.find(item => item.name === "Inventory")!;
+      const revenue = list.find(item => item.name === "Sales")!;
+      const reports = list.find(item => item.name === "Reports")!;
+      const goals = list.find(item => item.name === "Goals")!;
+      const settings = list.find(item => item.name === "Settings")!;
+      
+      list = [
+        dashboard,
+        members,
+        memberships,
+        { name: "Attendance", href: "/attendance", icon: CalendarCheck },
+        revenue,
+        reports,
+        goals,
+        settings
+      ];
     }
     return list;
   }, [platform]);

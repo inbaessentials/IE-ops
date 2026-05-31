@@ -72,6 +72,153 @@ export default function GoalsPage() {
   const loadDataAndGoals = async () => {
     try {
       setLoading(true);
+
+      if (platform === "gym-services") {
+        const gymMembersStr = localStorage.getItem("inba_gym_members") || "[]";
+        const gymMembers = JSON.parse(gymMembersStr);
+        const gymProdsStr = localStorage.getItem("inba_gym_products") || "[]";
+        const gymProducts = JSON.parse(gymProdsStr);
+        const gymPlansStr = localStorage.getItem("inba_gym_memberships") || "[]";
+        const gymPlans = JSON.parse(gymPlansStr);
+        const gymExpStr = localStorage.getItem("inba_gym_expenses") || "[]";
+        const gymExpenses = JSON.parse(gymExpStr);
+
+        // Map plans + supplement products
+        const planProducts = gymPlans.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: "Membership Plans",
+          price: p.price,
+          purchase_price: 0,
+          stock: 999,
+          status: p.status
+        }));
+        const supplementProducts = gymProducts.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category || "Supplements",
+          price: p.price,
+          purchase_price: Math.round(p.price * 0.6),
+          stock: p.stock,
+          status: "Active"
+        }));
+        setProducts([...planProducts, ...supplementProducts]);
+        setExpenses(gymExpenses);
+
+        const mappedOrders: any[] = [];
+        const mappedOrderItems: any[] = [];
+
+        gymMembers.forEach((m: any, idx: number) => {
+          let amount = 2999;
+          if (m.membership === "Quarterly Plan") amount = 7999;
+          else if (m.membership === "Half Yearly") amount = 13999;
+          else if (m.membership === "Annual Plan") amount = 24999;
+
+          const orderId = `REC-${1000 + idx}`;
+          mappedOrders.push({
+            id: orderId,
+            customer: m.name,
+            amount: `₹${amount}`,
+            created_at: m.joinDate,
+            date: m.joinDate,
+            payment: "Paid"
+          });
+          mappedOrderItems.push({
+            id: `ITEM-${1000 + idx}`,
+            order_id: orderId,
+            name: m.membership,
+            qty: 1,
+            price: `₹${amount}`
+          });
+
+          if (m.trainer !== "None") {
+            const ptOrderId = `PT-INV-${500 + idx}`;
+            const isWeightLoss = idx % 3 === 0;
+            const ptPrice = isWeightLoss ? 18000 : 12000;
+            const ptName = isWeightLoss ? "Weight Loss Program" : "Personal Training";
+
+            mappedOrders.push({
+              id: ptOrderId,
+              customer: m.name,
+              amount: `₹${ptPrice}`,
+              created_at: m.joinDate,
+              date: m.joinDate,
+              payment: "Paid"
+            });
+            mappedOrderItems.push({
+              id: `PT-ITEM-${500 + idx}`,
+              order_id: ptOrderId,
+              name: ptName,
+              qty: 1,
+              price: `₹${ptPrice}`
+            });
+          }
+        });
+
+        gymProducts.forEach((p: any, idx: number) => {
+          if (p.unitsSold > 0) {
+            const prodOrderId = `PROD-INV-${300 + idx}`;
+            mappedOrders.push({
+              id: prodOrderId,
+              customer: "Gym Member",
+              amount: `₹${p.revenue}`,
+              created_at: new Date().toISOString(),
+              date: new Date().toISOString(),
+              payment: "Paid"
+            });
+            mappedOrderItems.push({
+              id: `PROD-ITEM-${300 + idx}`,
+              order_id: prodOrderId,
+              name: p.name,
+              qty: p.unitsSold,
+              price: `₹${p.price}`
+            });
+          }
+        });
+
+        setOrders(mappedOrders);
+        setOrderItems(mappedOrderItems);
+
+        // Load Gym Goals
+        const cachedGoals = localStorage.getItem("inba_gym_goals");
+        let gymGoals: Goal[] = [];
+        if (cachedGoals) {
+          const rawGoals = JSON.parse(cachedGoals);
+          gymGoals = rawGoals.map((g: any) => {
+            let type: Goal["type"] = "revenue";
+            if (g.type === "Membership Goal" || g.type === "gym_members" || g.type === "units") type = "units";
+            else if (g.type === "Renewal Goal" || g.type === "gym_renewals" || g.type === "category") type = "category";
+            else if (g.type === "PT Revenue Goal" || g.type === "gym_pt" || g.type === "product") type = "product";
+            else if (g.type === "Product Revenue Goal" || g.type === "gym_products" || g.type === "stock_reduction") type = "stock_reduction";
+
+            return {
+              id: g.id || "GYM-GOL-" + Math.random(),
+              name: g.name || g.type || "Gym Target",
+              type,
+              target_amount: g.target || g.target_amount || 10000,
+              period: g.period || "monthly",
+              start_date: g.start_date || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+              end_date: g.end_date || new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString(),
+              priority: g.priority || "medium"
+            };
+          });
+        }
+        setGoals(gymGoals);
+        const now = new Date();
+        const active = gymGoals.find(g => new Date(g.end_date) >= now);
+        setActiveGoal(active || null);
+
+        if (active) {
+          setFocusGoal(prev => prev && gymGoals.some(g => g.id === prev.id) ? gymGoals.find(g => g.id === prev.id) || active : active);
+        } else if (gymGoals.length > 0) {
+          setFocusGoal(prev => prev && gymGoals.some(g => g.id === prev.id) ? gymGoals.find(g => g.id === prev.id) || gymGoals[0] : gymGoals[0]);
+        } else {
+          setFocusGoal(null);
+        }
+        setLoading(false);
+        return;
+      }
+
       const [ordersRes, itemsRes, productsRes, expensesRes] = await Promise.all([
         supabase.from("orders").select("*"),
         supabase.from("order_items").select("*"),
@@ -246,6 +393,9 @@ export default function GoalsPage() {
     if (!confirm(`Are you sure you want to delete this ${goalSingular.toLowerCase()} configuration?`)) return;
     
     try {
+      if (platform === "gym-services") {
+        throw new Error("Gym Local Storage Only");
+      }
       const { error } = await supabase.from("goals").delete().eq("id", goalId);
       if (!error) {
         toast(`${goalSingular} deleted successfully from database!`, "success");
@@ -256,11 +406,12 @@ export default function GoalsPage() {
       console.warn("Supabase delete failed, using LocalStorage.", e);
     }
     
-    const cached = localStorage.getItem("inba_goals");
+    const goalsKey = platform === "gym-services" ? "inba_gym_goals" : "inba_goals";
+    const cached = localStorage.getItem(goalsKey);
     if (cached) {
       const localGoals: Goal[] = JSON.parse(cached);
-      const filtered = localGoals.filter(g => g.id !== goalId);
-      localStorage.setItem("inba_goals", JSON.stringify(filtered));
+      const filtered = localGoals.filter((g: any) => g.id !== goalId);
+      localStorage.setItem(goalsKey, JSON.stringify(filtered));
       toast(`${goalSingular} deleted successfully!`, "success");
       loadDataAndGoals();
     } else {
@@ -285,6 +436,9 @@ export default function GoalsPage() {
     };
 
     try {
+      if (platform === "gym-services") {
+        throw new Error("Gym Local Storage Only");
+      }
       if (editingGoal && editingGoal.id) {
         const { data, error } = await supabase
           .from("goals")
@@ -314,7 +468,8 @@ export default function GoalsPage() {
       console.warn("Supabase save failed, using LocalStorage.", e);
     }
 
-    const cached = localStorage.getItem("inba_goals");
+    const goalsKey = platform === "gym-services" ? "inba_gym_goals" : "inba_goals";
+    const cached = localStorage.getItem(goalsKey);
     let currentGoals: Goal[] = [];
     if (cached) {
       try {
@@ -324,20 +479,36 @@ export default function GoalsPage() {
 
     const goalSingular = getModuleProp('Goals', 'singularDisplayName') || 'Goal';
     if (editingGoal && editingGoal.id) {
-      currentGoals = currentGoals.map(g => g.id === editingGoal.id ? { ...payload, id: editingGoal.id, created_at: editingGoal.created_at } : g);
-      localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
+      currentGoals = currentGoals.map(g => g.id === editingGoal.id ? { 
+        ...g,
+        name: payload.name,
+        type: payload.type,
+        target: payload.target_amount,
+        target_amount: payload.target_amount,
+        period: payload.period,
+        start_date: payload.start_date,
+        end_date: payload.end_date,
+        priority: payload.priority
+      } : g);
+      localStorage.setItem(goalsKey, JSON.stringify(currentGoals));
       toast(`${goalSingular} updated locally!`, "success");
     } else {
       const goalWithId = {
-        ...payload,
         id: Math.random().toString(36).substring(2, 9),
+        name: payload.name,
+        type: payload.type,
+        target: payload.target_amount,
+        target_amount: payload.target_amount,
+        period: payload.period,
+        start_date: payload.start_date,
+        end_date: payload.end_date,
+        priority: payload.priority,
         created_at: new Date().toISOString()
       };
       currentGoals.push(goalWithId);
-      localStorage.setItem("inba_goals", JSON.stringify(currentGoals));
+      localStorage.setItem(goalsKey, JSON.stringify(currentGoals));
       toast(`${goalSingular} saved locally!`, "success");
     }
-
     loadDataAndGoals();
     setIsDrawerOpen(false);
     setEditingGoal(null);
@@ -1007,9 +1178,9 @@ export default function GoalsPage() {
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                  <Coins className="w-4 h-4 text-indigo-500" /> {platform === "online-course" ? "Inactive Course Costs" : platform === "wholesale" ? "Pallet Stock Cash Ties" : "Overstock Cash Blocks"}
+                  <Coins className="w-4 h-4 text-indigo-500" /> {platform === "gym-services" ? "Trainer Commissions Paid" : platform === "online-course" ? "Inactive Course Costs" : platform === "wholesale" ? "Pallet Stock Cash Ties" : "Overstock Cash Blocks"}
                 </CardTitle>
-                <p className="text-[11px] text-gray-500 mt-0.5">{platform === "online-course" ? "Slow courses with significant production cost" : "Slow products with high cash locked up"}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{platform === "gym-services" ? "Trainer revenue shares and coaching margins" : platform === "online-course" ? "Slow courses with significant production cost" : "Slow products with high cash locked up"}</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
                 {cashBlocks.length > 0 ? (
@@ -1032,9 +1203,9 @@ export default function GoalsPage() {
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
                 <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-rose-500" /> {platform === "online-course" ? "Capacity Limit Risks" : "Stockout Risks (Top Movers)"}
+                  <ShieldAlert className="w-4 h-4 text-rose-500" /> {platform === "gym-services" ? "Supplement Stock Depletions" : platform === "online-course" ? "Capacity Limit Risks" : "Stockout Risks (Top Movers)"}
                 </CardTitle>
-                <p className="text-[11px] text-gray-500 mt-0.5">{platform === "online-course" ? "High velocity courses needing instructor attention" : "High velocity products nearing depletion"}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{platform === "gym-services" ? "High velocity gym supplements nearing depletion" : platform === "online-course" ? "High velocity courses needing instructor attention" : "High velocity products nearing depletion"}</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
                 {stockoutWarnings.length > 0 ? (
@@ -1173,7 +1344,9 @@ export default function GoalsPage() {
                       <td className="p-3 pl-6 font-semibold text-gray-800">{g.name}</td>
                       <td className="p-3 text-gray-500 font-semibold">{histStart} — {histEnd}</td>
                       <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">
-                        {platform === "online-course" 
+                        {platform === "gym-services"
+                          ? (g.type === "revenue" ? "Revenue Goal" : g.type === "units" ? "Membership Goal" : g.type === "category" ? "Renewal Goal" : g.type === "product" ? "PT Goal" : "Product Sales Goal")
+                          : platform === "online-course" 
                           ? (g.type === "revenue" ? "Revenue Goal" : g.type === "units" ? "Enrollment Goal" : "Acquisition Goal") 
                           : g.type.replace("_", " ")}
                       </td>
@@ -1253,7 +1426,15 @@ export default function GoalsPage() {
                 }}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-sm text-gray-800 font-semibold bg-white"
               >
-                {platform === "online-course" ? (
+                {platform === "gym-services" ? (
+                  <>
+                    <option value="revenue">Monthly Revenue Goal (₹)</option>
+                    <option value="units">Active Members Goal (Qty)</option>
+                    <option value="category">Renewal Goal (Qty)</option>
+                    <option value="product">Personal Coaching (PT) Goal (₹)</option>
+                    <option value="stock_reduction">Supplement Sales Goal (₹)</option>
+                  </>
+                ) : platform === "online-course" ? (
                   <>
                     <option value="revenue">Monthly Revenue Goal (₹)</option>
                     <option value="units">Enrollment Goal (Qty)</option>

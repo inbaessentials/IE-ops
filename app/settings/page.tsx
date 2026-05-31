@@ -565,6 +565,7 @@ export default function SettingsPage() {
                       <option value="fashion">Fashion</option>
                       <option value="online-course">Online Course</option>
                       <option value="wholesale">Wholesale</option>
+                      <option value="gym-services">Gym Services</option>
                       <option value="other">Other</option>
                     </select>
                   </div>

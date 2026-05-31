@@ -2,6 +2,7 @@ import { InbaConfig } from "./inba";
 import { FashionConfig } from "./fashion";
 import { OnlineCourseConfig } from "./online-course";
 import { WholesaleConfig } from "./wholesale";
+import { GymServicesConfig } from "./gym-services";
 import { OtherConfig } from "./other";
 
 export interface SidebarItem {
@@ -45,13 +46,14 @@ export interface PlatformConfig {
   helperText: HelperText[];
 }
 
-export type BusinessPlatform = "inba" | "fashion" | "online-course" | "wholesale" | "other";
+export type BusinessPlatform = "inba" | "fashion" | "online-course" | "wholesale" | "gym-services" | "other";
 
 export const platformConfigs: Record<BusinessPlatform, PlatformConfig> = {
   inba: InbaConfig,
   fashion: FashionConfig,
   "online-course": OnlineCourseConfig,
   wholesale: WholesaleConfig,
+  "gym-services": GymServicesConfig,
   other: OtherConfig,
 };
 
@@ -66,5 +68,6 @@ export const platformOptions = [
   { value: "fashion", label: "Fashion" },
   { value: "online-course", label: "Online Course" },
   { value: "wholesale", label: "Wholesale" },
+  { value: "gym-services", label: "Gym Services" },
   { value: "other", label: "Other" }
 ];

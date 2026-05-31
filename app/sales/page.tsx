@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Card } from "@/components/ui/Card";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw, Check, ImagePlus, User, ShoppingBag, CreditCard } from "lucide-react";
+import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw, Check, ImagePlus, User, ShoppingBag, CreditCard, Award, Wallet, IndianRupee, Users, TrendingUp, Flame, AlertCircle } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -769,6 +769,13 @@ export default function SalesPage() {
         .reduce((itemSum: number, item: any) => itemSum + (item.qty || 0), 0) : 0;
       return sum + itemsQty;
     }, 0);
+
+  // ==========================================
+  // GYM SERVICES PLATFORM REVENUE VIEW (PRD 1.0)
+  // ==========================================
+  if (platform === "gym-services") {
+    return <GymRevenueView />;
+  }
 
   return (
     <>
@@ -2310,5 +2317,450 @@ export default function SalesPage() {
         </div>
       )}
     </>
+  );
+}
+
+// ==========================================
+// GYM SERVICES REVENUE COMPONENT (PRD 1.0)
+// ==========================================
+function GymRevenueView() {
+  const [activeTab, setActiveTab] = useState<"membership" | "pt" | "products" | "expenses">("membership");
+  
+  // Local Database States
+  const [members, setMembers] = useState<any[]>([]);
+  const [trainers, setTrainers] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+
+  const loadData = () => {
+    if (typeof window === "undefined") return;
+    const m = localStorage.getItem("inba_gym_members");
+    const t = localStorage.getItem("inba_gym_trainers");
+    const p = localStorage.getItem("inba_gym_products");
+    const e = localStorage.getItem("inba_gym_expenses");
+
+    if (m) setMembers(JSON.parse(m));
+    if (t) setTrainers(JSON.parse(t));
+    if (p) setProducts(JSON.parse(p));
+    if (e) setExpenses(JSON.parse(e));
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Membership Invoices lists
+  const membershipInvoices = useMemo(() => {
+    return members.map((m: any, i: number) => {
+      let amount = 2999;
+      if (m.membership === "Quarterly Plan") amount = 7999;
+      else if (m.membership === "Half Yearly") amount = 13999;
+      else if (m.membership === "Annual Plan") amount = 24999;
+
+      return {
+        id: `REC-${1000 + i}`,
+        member: m.name,
+        memberId: m.id,
+        plan: m.membership,
+        date: m.joinDate,
+        amount,
+        payment: i % 2 === 0 ? "UPI" : (i % 3 === 0 ? "Card" : "Cash"),
+        status: m.status === "Active" ? "Paid" : "Overdue"
+      };
+    });
+  }, [members]);
+
+  // PT Packages list
+  const ptInvoices = useMemo(() => {
+    // Generate PT invoices based on trainers assigned
+    const list: any[] = [];
+    members.filter(m => m.trainer !== "None").forEach((m: any, i: number) => {
+      const isWeightLoss = i % 3 === 0;
+      list.push({
+        id: `PT-INV-${500 + i}`,
+        member: m.name,
+        trainer: m.trainer,
+        package: isWeightLoss ? "Weight Loss Program" : "Personal Training",
+        sessions: isWeightLoss ? "36 Sessions" : "12 Sessions",
+        revenue: isWeightLoss ? 18000 : 12000,
+        status: "Paid",
+        date: m.joinDate
+      });
+    });
+    return list;
+  }, [members]);
+
+  // Math indicators
+  const stats = useMemo(() => {
+    // Membership
+    const totalMemRev = membershipInvoices.reduce((sum: number, item: any) => sum + (item.status === "Paid" ? item.amount : 0), 0);
+    const amv = Math.round(totalMemRev / (members.filter((m: any) => m.status === "Active").length || 1)) || 7850;
+
+    // PT
+    const totalPtRev = ptInvoices.reduce((sum: number, item: any) => sum + item.revenue, 0);
+
+    // Products
+    const totalProdRev = products.reduce((sum: number, p: any) => sum + p.revenue, 0);
+
+    // Expenses
+    const totalExp = expenses.reduce((sum: number, e: any) => sum + e.amount, 0);
+
+    return {
+      membershipRev: totalMemRev,
+      amv,
+      renewalRate: 84.2,
+      ptRev: totalPtRev,
+      activePtClients: ptInvoices.length,
+      ptConvRate: 23.3,
+      productRev: totalProdRev,
+      totalExpenses: totalExp
+    };
+  }, [membershipInvoices, ptInvoices, products, expenses, members]);
+
+  return (
+    <div className="space-y-6 font-sans">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gym Revenue & Accounts</h1>
+          <p className="text-sm text-gray-500 mt-1">Consolidated ledger for memberships checkout, personal coaching collections, supplement sales, and operations expenses.</p>
+        </div>
+        
+        {/* Dynamic tabs switcher */}
+        <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
+          <button 
+            onClick={() => setActiveTab("membership")}
+            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+              activeTab === "membership" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            Membership Dues
+          </button>
+          <button 
+            onClick={() => setActiveTab("pt")}
+            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+              activeTab === "pt" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <Award className="w-3.5 h-3.5" />
+            Coaching PT
+          </button>
+          <button 
+            onClick={() => setActiveTab("products")}
+            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+              activeTab === "products" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            Supplements Shop
+          </button>
+          <button 
+            onClick={() => setActiveTab("expenses")}
+            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+              activeTab === "expenses" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            Studio Expenses
+          </button>
+        </div>
+      </div>
+
+      {/* TAB CONTENT 1: MEMBERSHIP REVENUE */}
+      {activeTab === "membership" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Ribbon */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross Membership Revenue</p>
+                <h3 className="text-2xl font-bold tracking-tight text-emerald-600">₹{stats.membershipRev.toLocaleString("en-IN")}</h3>
+              </div>
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <IndianRupee className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Average Member Value (AMV)</p>
+                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">₹{stats.amv.toLocaleString("en-IN")}</h3>
+              </div>
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Users className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Renewal Conversion Rate</p>
+                <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.renewalRate}%</h3>
+              </div>
+              <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Transactions List */}
+          <Card className="overflow-hidden border border-gray-100 shadow-xs">
+            <CardHeader className="border-b border-gray-50/50 pb-4">
+              <CardTitle className="text-sm font-bold text-gray-900">Membership checkout receipts</CardTitle>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Receipt #</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Member Name</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Plan Subscribed</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date Logged</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Payment channel</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Dues Status</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Receipt Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {membershipInvoices.slice(0, 10).map((inv: any) => (
+                    <tr key={inv.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-4 pl-6 font-bold text-xs text-gray-500 font-mono">{inv.id}</td>
+                      <td className="p-4 text-xs font-bold text-gray-900">{inv.member}</td>
+                      <td className="p-4 text-xs font-semibold text-gray-700">{inv.plan}</td>
+                      <td className="p-4 text-xs text-gray-500">{inv.date}</td>
+                      <td className="p-4 text-xs text-gray-600 font-bold">{inv.payment}</td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          inv.status === "Paid" 
+                            ? "bg-green-50 text-green-700 border-green-200" 
+                            : "bg-red-50 text-red-700 border-red-200"
+                        }`}>
+                          {inv.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right pr-6 font-bold text-gray-900">₹{inv.amount.toLocaleString("en-IN")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* TAB CONTENT 2: PERSONAL TRAINING */}
+      {activeTab === "pt" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Ribbon */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross PT & Coaching Revenue</p>
+                <h3 className="text-2xl font-bold tracking-tight text-purple-600">₹{stats.ptRev.toLocaleString("en-IN")}</h3>
+              </div>
+              <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                <Award className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Coaching Clients</p>
+                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.activePtClients} Members</h3>
+              </div>
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Users className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Coaching Conversion Share</p>
+                <h3 className="text-2xl font-bold tracking-tight text-emerald-600">{stats.ptConvRate}%</h3>
+              </div>
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Coaching Plans List */}
+          <Card className="overflow-hidden border border-gray-100 shadow-xs">
+            <CardHeader className="border-b border-gray-50/50 pb-4">
+              <CardTitle className="text-sm font-bold text-gray-900">Personal Training coaching receipts</CardTitle>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Invoice #</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Member Name</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Assigned Trainer</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">PT Package Type</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Sessions Duration</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Invoice Date</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">PT Fees</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {ptInvoices.slice(0, 10).map((inv: any) => (
+                    <tr key={inv.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-4 pl-6 font-bold text-xs text-gray-500 font-mono">{inv.id}</td>
+                      <td className="p-4 text-xs font-bold text-gray-900">{inv.member}</td>
+                      <td className="p-4 text-xs font-bold text-amber-600">{inv.trainer}</td>
+                      <td className="p-4 text-xs font-semibold text-gray-700">{inv.package}</td>
+                      <td className="p-4 text-xs text-gray-500 font-bold">{inv.sessions}</td>
+                      <td className="p-4 text-xs text-gray-500">{inv.date}</td>
+                      <td className="p-4 text-right pr-6 font-bold text-gray-900">₹{inv.revenue.toLocaleString("en-IN")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* TAB CONTENT 3: SUPPLEMENTS & PRODUCTS */}
+      {activeTab === "products" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Ribbon */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross Supplement Sales</p>
+                <h3 className="text-2xl font-bold tracking-tight text-indigo-600">₹{stats.productRev.toLocaleString("en-IN")}</h3>
+              </div>
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Selling Supplement</p>
+                <h3 className="text-lg font-bold tracking-tight text-gray-900 mt-1">Whey Protein (2kg)</h3>
+              </div>
+              <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+                <Flame className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Critical Low Stock Items</p>
+                <h3 className="text-2xl font-bold tracking-tight text-red-600">{products.filter(p => p.stock <= 10).length} Items</h3>
+              </div>
+              <div className="p-3 bg-red-50 text-red-600 rounded-xl animate-pulse">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Supplement Stock Roster */}
+          <Card className="overflow-hidden border border-gray-100 shadow-xs">
+            <CardHeader className="border-b border-gray-50/50 pb-4">
+              <CardTitle className="text-sm font-bold text-gray-900">Supplement & Product Stock Registry</CardTitle>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Product Name</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">SKU Code</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">In Stock</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Units Sold</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Retail Unit Price</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Revenue Generated</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {products.map((prod: any) => (
+                    <tr key={prod.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-4 pl-6 font-bold text-xs text-gray-900">{prod.name}</td>
+                      <td className="p-4 text-xs font-mono text-gray-500">{prod.sku}</td>
+                      <td className="p-4 text-xs">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                          {prod.category}
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs font-bold text-center">
+                        <span className={prod.stock <= 10 ? "text-red-600 bg-red-50 px-2 py-0.5 rounded" : "text-gray-700"}>
+                          {prod.stock} units
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs font-bold text-gray-600 text-center">{prod.unitsSold} units</td>
+                      <td className="p-4 text-xs font-bold text-right text-gray-900">₹{prod.price.toLocaleString("en-IN")}</td>
+                      <td className="p-4 text-right pr-6 font-bold text-emerald-600">₹{prod.revenue.toLocaleString("en-IN")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* TAB CONTENT 4: EXPENSES */}
+      {activeTab === "expenses" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Ribbon */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Gym Monthly Expenses</p>
+                <h3 className="text-2xl font-bold tracking-tight text-red-600">₹{stats.totalExpenses.toLocaleString("en-IN")}</h3>
+              </div>
+              <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+                <Wallet className="w-5 h-5" />
+              </div>
+            </Card>
+            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Expense category</p>
+                <h3 className="text-xl font-bold tracking-tight text-gray-900 mt-1">Premises Rent (₹1,20,000)</h3>
+              </div>
+              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+            </Card>
+          </div>
+
+          {/* Expenses breakdown */}
+          <Card className="overflow-hidden border border-gray-100 shadow-xs">
+            <CardHeader className="border-b border-gray-50/50 pb-4">
+              <CardTitle className="text-sm font-bold text-gray-900">Gym Premises & operational expenses</CardTitle>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Expense display ID</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Expense Category</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Details / Notes</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date Logged</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Debit Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {expenses.map((exp: any) => (
+                    <tr key={exp.display_id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="p-4 pl-6 font-bold text-xs text-gray-500 font-mono">{exp.display_id}</td>
+                      <td className="p-4 text-xs">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          exp.category === "Rent" ? "bg-red-50 text-red-700" :
+                          exp.category === "Salaries" ? "bg-blue-50 text-blue-700" :
+                          exp.category === "Equipment" ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-600"
+                        }`}>
+                          {exp.category}
+                        </span>
+                      </td>
+                      <td className="p-4 text-xs text-gray-700 font-semibold">{exp.notes}</td>
+                      <td className="p-4 text-xs text-gray-500">{exp.date}</td>
+                      <td className="p-4 text-right pr-6 font-bold text-red-600">₹{exp.amount.toLocaleString("en-IN")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
   );
 }

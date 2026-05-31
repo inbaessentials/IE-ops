@@ -1,7 +1,7 @@
 "use client";
 // trigger vercel redeploy
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -743,6 +743,13 @@ export default function InventoryPage() {
   const totalInventoryValue = filteredProducts.reduce((sum, p) => {
     return sum + ((p.stock || 0) * (p.price || 0));
   }, 0);
+
+  // ==========================================
+  // GYM SERVICES PLATFORM PLANS SUITE (PRD 1.0)
+  // ==========================================
+  if (platform === "gym-services") {
+    return <GymMembershipsView />;
+  }
 
   return (
     <div className="space-y-6">
@@ -1854,6 +1861,352 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ==========================================
+// GYM MEMBERSHIPS CATALOG VIEW (PRD 1.0)
+// ==========================================
+function GymMembershipsView() {
+  const [plans, setPlans] = useState<any[]>([]);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<any>(null);
+  
+  // Filtering & search
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  // Form fields
+  const [name, setName] = useState("");
+  const [duration, setDuration] = useState("1 Month");
+  const [price, setPrice] = useState("");
+  const [gst, setGst] = useState("18");
+  const [freezeAllowed, setFreezeAllowed] = useState(true);
+  const [status, setStatus] = useState("Active");
+
+  const loadPlans = () => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("inba_gym_memberships");
+    if (saved) {
+      setPlans(JSON.parse(saved));
+    }
+  };
+
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  const savePlans = (updated: any[]) => {
+    localStorage.setItem("inba_gym_memberships", JSON.stringify(updated));
+    setPlans(updated);
+  };
+
+  const handleOpenAdd = () => {
+    setEditingPlan(null);
+    setName("");
+    setDuration("1 Month");
+    setPrice("");
+    setGst("18");
+    setFreezeAllowed(true);
+    setStatus("Active");
+    setIsAddOpen(true);
+  };
+
+  const handleOpenEdit = (plan: any) => {
+    setEditingPlan(plan);
+    setName(plan.name);
+    setDuration(plan.duration);
+    setPrice(plan.price.toString());
+    setGst(plan.gst.toString());
+    setFreezeAllowed(plan.freezeAllowed);
+    setStatus(plan.status);
+    setIsAddOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const planPrice = Number(price);
+    const planGst = Number(gst);
+
+    if (editingPlan) {
+      // Edit
+      const updated = plans.map(p => {
+        if (p.id === editingPlan.id) {
+          return {
+            ...p,
+            name,
+            duration,
+            price: planPrice,
+            gst: planGst,
+            freezeAllowed,
+            status
+          };
+        }
+        return p;
+      });
+      savePlans(updated);
+      alert("Plan modifications saved successfully!");
+    } else {
+      // Add
+      const newId = `GYM-PLN-${100 + plans.length + 1}`;
+      const newPlan = {
+        id: newId,
+        name,
+        duration,
+        price: planPrice,
+        gst: planGst,
+        freezeAllowed,
+        status
+      };
+      savePlans([...plans, newPlan]);
+      alert("Membership Plan published successfully!");
+    }
+    setIsAddOpen(false);
+  };
+
+  const handleDeletePlan = (planId: string, planName: string) => {
+    const confirm = window.confirm(`Are you sure you want to delete the plan "${planName}"?`);
+    if (!confirm) return;
+    const updated = plans.filter(p => p.id !== planId);
+    savePlans(updated);
+  };
+
+  const filteredPlans = useMemo(() => {
+    return plans.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.id.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "All" || p.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [plans, search, statusFilter]);
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Memberships Plan Catalog</h1>
+          <p className="text-sm text-gray-500 mt-1">Configure subscription plans, personal coaching fees, and duration packages.</p>
+        </div>
+        <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
+          <Plus className="w-4 h-4" />
+          Add Membership Plan
+        </Button>
+      </div>
+
+      {/* Metrics Ribbon */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Plans</p>
+            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.filter(p => p.status === "Active").length}</h3>
+          </div>
+          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Package className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
+            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">135</h3>
+          </div>
+          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Conversion Rate</p>
+            <h3 className="text-2xl font-bold tracking-tight text-purple-600">88.4%</h3>
+          </div>
+          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+            <Sliders className="w-5 h-5" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Expired plans</p>
+            <h3 className="text-2xl font-bold tracking-tight text-red-600">8</h3>
+          </div>
+          <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="relative flex-1 w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Search plans by name or catalog ID..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+          />
+        </div>
+        
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+          <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
+          >
+            <option value="All">All Plans</option>
+            <option value="Active">Active only</option>
+            <option value="Inactive">Inactive only</option>
+          </select>
+        </div>
+      </Card>
+
+      {/* Memberships Card Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredPlans.map((plan: any) => (
+          <Card key={plan.id} className="overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-200 flex flex-col">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{plan.id}</span>
+                <h3 className="text-base font-bold text-gray-900 mt-1 truncate">{plan.name}</h3>
+              </div>
+              <Badge className={plan.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                {plan.status}
+              </Badge>
+            </div>
+
+            <div className="p-6 flex-1 space-y-4">
+              <div className="flex items-baseline justify-center py-4 bg-gray-50 rounded-xl border border-gray-100/50">
+                <span className="text-3xl font-extrabold text-gray-900">₹{plan.price.toLocaleString("en-IN")}</span>
+                <span className="text-xs text-gray-400 font-semibold ml-1">/ {plan.duration}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs font-medium text-gray-600">
+                <div className="bg-gray-50 p-2.5 rounded-lg text-center">
+                  <span className="text-gray-400 block mb-0.5 text-[9px] uppercase tracking-wider">GST Charge</span>
+                  <span className="font-bold text-gray-800">{plan.gst || 18}%</span>
+                </div>
+                <div className="bg-gray-50 p-2.5 rounded-lg text-center">
+                  <span className="text-gray-400 block mb-0.5 text-[9px] uppercase tracking-wider">Freeze Support</span>
+                  <span className={`font-bold ${plan.freezeAllowed ? "text-[#2E8C13]" : "text-red-500"}`}>
+                    {plan.freezeAllowed ? "Allowed" : "No Support"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs font-semibold text-gray-600 hover:text-gray-900"
+                onClick={() => handleOpenEdit(plan)}
+              >
+                Edit Parameters
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                onClick={() => handleDeletePlan(plan.id, plan.name)}
+              >
+                Delete Plan
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Plan Drawer form */}
+      <Drawer isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editingPlan ? "Modify Plan Specifications" : "Publish New Plan Offer"}>
+        <form className="space-y-4 font-sans" onSubmit={handleSubmit}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Plan / Package Name</label>
+              <input 
+                required 
+                type="text" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Quarterly Plan"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Plan Validity Duration</label>
+                <select 
+                  value={duration}
+                  onChange={e => setDuration(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm"
+                >
+                  <option value="1 Month">1 Month</option>
+                  <option value="3 Months">3 Months</option>
+                  <option value="6 Months">6 Months</option>
+                  <option value="12 Months">12 Months</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">GST Tax Rate (%)</label>
+                <select 
+                  value={gst}
+                  onChange={e => setGst(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm"
+                >
+                  <option value="18">18% GST (Standard)</option>
+                  <option value="12">12% GST</option>
+                  <option value="0">0% Exempt</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Base Price (INR)</label>
+                <input 
+                  required 
+                  type="number" 
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="e.g. 7999"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Plan Offering Status</label>
+                <select 
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm"
+                >
+                  <option value="Active">Active (Publish)</option>
+                  <option value="Inactive">Inactive (Draft)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={freezeAllowed}
+                  onChange={e => setFreezeAllowed(e.target.checked)}
+                  className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary/20"
+                />
+                Allow Members to Freeze this Plan validity
+              </label>
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">
+              {editingPlan ? "Update Plan" : "Publish Offer"}
+            </Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 }
