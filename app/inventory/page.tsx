@@ -2321,6 +2321,7 @@ function CourseManagementView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [timeFrame, setTimeFrame] = useState("last-30");
 
   // Form & Drawer visibility
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -2658,14 +2659,25 @@ function CourseManagementView() {
           <p className="text-sm text-gray-500 mt-1">Manage your courses, enrollments, revenue and performance.</p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="ghost" className="gap-2 border border-gray-200 font-semibold" onClick={() => alert("Mock Bulk Course CSV upload activated!")}>
-            <UploadCloud className="w-4 h-4" />
-            Bulk Upload
-          </Button>
-          <Button variant="ghost" className="gap-2 border border-gray-200 text-[#2E8C13] hover:text-[#257310] hover:bg-green-50 font-semibold" onClick={handleOpenAdd}>
-            <Sliders className="w-4 h-4" />
-            Bulk Edit
-          </Button>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <select
+              value={timeFrame}
+              onChange={(e) => setTimeFrame(e.target.value)}
+              className="pl-9 pr-8 py-2 border border-gray-200 rounded-lg text-sm bg-white outline-none cursor-pointer font-semibold text-gray-700 hover:bg-gray-50 transition-colors appearance-none"
+            >
+              <option value="today">Today</option>
+              <option value="last-7">Last 7 Days</option>
+              <option value="last-30">Last 30 Days</option>
+              <option value="this-month">This Month</option>
+              <option value="last-month">Last Month</option>
+              <option value="this-year">This Year</option>
+              <option value="all-time">All Time</option>
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
           <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" />
             Add Course
@@ -2690,21 +2702,15 @@ function CourseManagementView() {
           iconTextClass="text-purple-600" 
         />
         <KpiCard 
-          title={`New Enrollments (${stats.currentMonthStr})`}
-          value={stats.newEnrollments}
+          title="Total Enrollments"
+          value={stats.students}
           icon={<CalendarCheck />} 
           iconBgClass="bg-indigo-50" 
           iconTextClass="text-indigo-600"
-          subText={
-            <span className="text-[10px] font-medium text-emerald-600">
-              +{stats.enrollmentGrowth}% vs {stats.lastMonthStr}
-            </span>
-          }
         />
         <KpiCard 
-          title="Pending Payments" 
-          value={`₹${stats.pendingPayments.toLocaleString("en-IN")}`} 
-          valueClass="text-amber-600"
+          title="Active Students" 
+          value={stats.students}
           icon={<Award />} 
           iconBgClass="bg-amber-50" 
           iconTextClass="text-amber-600" 
@@ -3392,93 +3398,31 @@ function CourseManagementView() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
-                <input 
-                  type="text" 
-                  value={duration} 
-                  onChange={(e) => setDuration(e.target.value)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
-                  placeholder="e.g. 10 Weeks" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Course Type</label>
-                <select 
-                  value={courseType} 
-                  onChange={(e) => setCourseType(e.target.value as any)} 
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-normal text-gray-700 text-sm"
-                >
-                  <option value="Live Cohort">Live Cohort</option>
-                  <option value="Recorded Course">Recorded Course</option>
-                  <option value="Hybrid Program">Hybrid Program</option>
-                  <option value="Coaching Program">Coaching Program</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Course Type *</label>
+              <select 
+                value={courseType} 
+                onChange={(e) => setCourseType(e.target.value as any)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white font-normal text-gray-700 text-sm"
+              >
+                <option value="Live Cohort">Live Cohort</option>
+                <option value="Recorded Course">Recorded Course</option>
+                <option value="Hybrid Program">Hybrid Program</option>
+                <option value="Coaching Program">Coaching Program</option>
+              </select>
             </div>
 
-            {/* DYNAMIC COURSE TYPE FIELDS */}
+                        {/* DYNAMIC COURSE TYPE FIELDS */}
             <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 space-y-6">
               <h4 className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2">
-                {courseType === "Live Cohort" && "Cohort Specific Settings"}
+                {courseType === "Live Cohort" && "Live Cohort Settings"}
                 {courseType === "Recorded Course" && "Recorded Content Settings"}
                 {courseType === "Hybrid Program" && "Hybrid Program Settings"}
-                {courseType === "Coaching Program" && "Coaching Settings"}
+                {courseType === "Coaching Program" && "Coaching Program Settings"}
               </h4>
 
-              {(courseType === "Live Cohort" || courseType === "Hybrid Program") && (
+              {courseType === "Recorded Course" && (
                 <div className="space-y-6 animate-in fade-in">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Name</label>
-                      <input type="text" value={batchName} onChange={(e) => setBatchName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Digital Marketing Cohort 2026" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Seats Available</label>
-                      <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 50" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
-                      <input type="text" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 June" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
-                      <input type="text" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 August" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Days</label>
-                      <input type="text" value={sessionDays} onChange={(e) => setSessionDays(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Mon, Wed, Fri" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Timing</label>
-                      <input type="text" value={sessionTiming} onChange={(e) => setSessionTiming(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 7:00 PM - 9:00 PM" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Live Sessions</label>
-                      <input type="number" value={liveSessions} onChange={(e) => setLiveSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 24" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Zoom Link</label>
-                      <input type="url" value={zoomLink} onChange={(e) => setZoomLink(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="https://zoom.us/j/..." />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Enrollment Deadline</label>
-                    <input type="text" value={enrollmentDeadline} onChange={(e) => setEnrollmentDeadline(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 10 June 2026" />
-                  </div>
-                </div>
-              )}
-
-              {(courseType === "Recorded Course" || courseType === "Hybrid Program") && (
-                <div className="space-y-6 animate-in fade-in">
-                  {courseType === "Hybrid Program" && <div className="border-t border-gray-200 pt-4 mt-2"></div>}
                   <div className="grid grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Total Modules</label>
@@ -3489,7 +3433,7 @@ function CourseManagementView() {
                       <input type="number" value={lessons} onChange={(e) => setLessons(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 48" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Video Hours</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Video Hours</label>
                       <input type="number" value={videoHours} onChange={(e) => setVideoHours(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 20" />
                     </div>
                   </div>
@@ -3498,8 +3442,107 @@ function CourseManagementView() {
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Access Duration</label>
                       <select value={accessDuration} onChange={(e) => setAccessDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
                         <option value="Lifetime Access">Lifetime Access</option>
-                        <option value="6 Months Access">6 Months Access</option>
-                        <option value="12 Months Access">12 Months Access</option>
+                        <option value="3 Months">3 Months</option>
+                        <option value="6 Months">6 Months</option>
+                        <option value="12 Months">12 Months</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Certificate</label>
+                      <select value={hasCertificate} onChange={(e) => setHasCertificate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {courseType === "Live Cohort" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Start Date</label>
+                      <input type="text" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 June" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Batch End Date</label>
+                      <input type="text" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 August" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration (Weeks)</label>
+                      <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 8 Weeks" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Available Seats</label>
+                      <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 50" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Schedule</label>
+                      <input type="text" value={sessionDays} onChange={(e) => setSessionDays(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Mon, Wed, Fri 7pm" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Live Platform</label>
+                      <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Zoom">Zoom</option>
+                        <option value="Google Meet">Google Meet</option>
+                        <option value="Offline">Offline</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Certificate</label>
+                      <select value={hasCertificate} onChange={(e) => setHasCertificate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {courseType === "Hybrid Program" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Start Date</label>
+                      <input type="text" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 June" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Batch End Date</label>
+                      <input type="text" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 August" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration</label>
+                      <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 12 Weeks" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Video Hours</label>
+                      <input type="number" value={videoHours} onChange={(e) => setVideoHours(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 20" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Live Sessions</label>
+                      <input type="number" value={liveSessions} onChange={(e) => setLiveSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 24" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Available Seats</label>
+                      <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 50" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Live Platform</label>
+                      <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Zoom">Zoom</option>
+                        <option value="Google Meet">Google Meet</option>
+                        <option value="Offline">Offline</option>
                       </select>
                     </div>
                     <div>
@@ -3521,36 +3564,40 @@ function CourseManagementView() {
                       <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. John Doe" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Type</label>
-                      <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-                        <option value="1:1">1:1 Coaching</option>
-                        <option value="Group Coaching">Group Coaching</option>
-                      </select>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration</label>
+                      <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 6 Months" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Sessions</label>
-                      <input type="number" value={numSessions} onChange={(e) => setNumSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 8" />
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Sessions</label>
+                      <input type="number" value={numSessions} onChange={(e) => setNumSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 24" />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Duration</label>
-                      <input type="text" value={sessionDuration} onChange={(e) => setSessionDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 60 Minutes" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Max Clients</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Capacity</label>
                       <input type="number" value={maxClients} onChange={(e) => setMaxClients(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 20" />
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Calendly Link</label>
-                      <input type="url" value={calendlyLink} onChange={(e) => setCalendlyLink(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="https://calendly.com/..." />
-                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Zoom Link (Optional)</label>
-                    <input type="url" value={zoomLink} onChange={(e) => setZoomLink(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="https://zoom.us/j/..." />
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Frequency</label>
+                      <input type="text" value={sessionDays} onChange={(e) => setSessionDays(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Weekly" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Mode</label>
+                      <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Online">Online</option>
+                        <option value="Offline">Offline</option>
+                        <option value="Hybrid">Hybrid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Certificate</label>
+                      <select value={hasCertificate} onChange={(e) => setHasCertificate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               )}

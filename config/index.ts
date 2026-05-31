@@ -46,7 +46,7 @@ export interface PlatformConfig {
   helperText: HelperText[];
 }
 
-export type BusinessPlatform = "inba" | "fashion" | "online-course" | "wholesale" | "gym-services" | "other";
+export type BusinessPlatform = "inba" | "fashion" | "online-course" | "wholesale" | "gym-services" | "clinic" | "other";
 
 export const platformConfigs: Record<BusinessPlatform, PlatformConfig> = {
   inba: InbaConfig,
@@ -54,6 +54,7 @@ export const platformConfigs: Record<BusinessPlatform, PlatformConfig> = {
   "online-course": OnlineCourseConfig,
   wholesale: WholesaleConfig,
   "gym-services": GymServicesConfig,
+  clinic: OtherConfig, // Using OtherConfig as fallback for now
   other: OtherConfig,
 };
 
@@ -69,5 +70,6 @@ export const platformOptions = [
   { value: "online-course", label: "Online Course" },
   { value: "wholesale", label: "Wholesale" },
   { value: "gym-services", label: "Gym Services" },
+  { value: "clinic", label: "Clinic" },
   { value: "other", label: "Other" }
 ];

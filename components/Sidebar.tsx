@@ -19,7 +19,8 @@ import {
   Filter,
   CalendarCheck,
   ShieldCheck,
-  ShoppingBag
+  ShoppingBag,
+  Lock
 } from "lucide-react";
 
 const navItems = [
@@ -32,7 +33,6 @@ const navItems = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Goals", href: "/goals", icon: Target },
-  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -65,7 +65,6 @@ export default function Sidebar() {
         list.splice(custIndex + 1, 0, { name: "Team", href: "/team", icon: ShieldCheck });
       }
     } else if (platform === "gym-services") {
-      // For Gym Services, we want a very simple, tailored sidebar:
       const dashboard = list.find(item => item.name === "Dashboard")!;
       const members = list.find(item => item.name === "Customers")!;
       const memberships = list.find(item => item.name === "Inventory")!;
@@ -73,7 +72,6 @@ export default function Sidebar() {
       const expenses = list.find(item => item.name === "Expenses")!;
       const reports = list.find(item => item.name === "Reports")!;
       const goals = list.find(item => item.name === "Goals")!;
-      const settings = list.find(item => item.name === "Settings")!;
       
       list = [
         dashboard,
@@ -84,8 +82,7 @@ export default function Sidebar() {
         revenue,
         expenses,
         reports,
-        goals,
-        settings
+        goals
       ];
     }
     return list;
@@ -126,6 +123,32 @@ export default function Sidebar() {
         })}
       </nav>
       
+      <div className="border-t border-gray-200 p-3 space-y-1">
+        <Link
+          href="/settings"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+            pathname.startsWith("/settings") 
+              ? "bg-[#2E8C13]/10 text-[#2E8C13]" 
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          }`}
+        >
+          <Settings className={`w-5 h-5 ${pathname.startsWith("/settings") ? "text-[#2E8C13]" : "text-gray-400"}`} />
+          Settings
+        </Link>
+        <div className="h-px bg-gray-200 my-2 mx-2"></div>
+        <Link
+          href="/admin"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+            pathname.startsWith("/admin") 
+              ? "bg-primary/10 text-primary" 
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          }`}
+        >
+          <Lock className={`w-5 h-5 ${pathname.startsWith("/admin") ? "text-primary" : "text-gray-400"}`} />
+          Admin
+        </Link>
+      </div>
+
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-xs">
