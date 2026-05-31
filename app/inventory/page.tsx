@@ -2240,6 +2240,28 @@ interface Course {
   tags: string[];
   leads: number;
   students: number;
+  metadata?: {
+    batchName?: string;
+    startDate?: string;
+    endDate?: string;
+    seats?: number;
+    liveSessions?: number;
+    zoomLink?: string;
+    sessionDays?: string;
+    sessionTiming?: string;
+    enrollmentDeadline?: string;
+    modules?: number;
+    lessons?: number;
+    videoHours?: number;
+    accessDuration?: string;
+    hasCertificate?: string;
+    coachName?: string;
+    numSessions?: number;
+    sessionDuration?: string;
+    deliveryType?: string;
+    maxClients?: number;
+    calendlyLink?: string;
+  };
 }
 
 const seedCourses = (): Course[] => [
@@ -2331,6 +2353,28 @@ function CourseManagementView() {
   const [status, setStatus] = useState<Course["status"]>("Draft");
   const [tags, setTags] = useState("");
 
+  // Dynamic Metadata Form States
+  const [batchName, setBatchName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [seats, setSeats] = useState("");
+  const [liveSessions, setLiveSessions] = useState("");
+  const [zoomLink, setZoomLink] = useState("");
+  const [sessionDays, setSessionDays] = useState("");
+  const [sessionTiming, setSessionTiming] = useState("");
+  const [enrollmentDeadline, setEnrollmentDeadline] = useState("");
+  const [modules, setModules] = useState("");
+  const [lessons, setLessons] = useState("");
+  const [videoHours, setVideoHours] = useState("");
+  const [accessDuration, setAccessDuration] = useState("Lifetime Access");
+  const [hasCertificate, setHasCertificate] = useState("Yes");
+  const [coachName, setCoachName] = useState("");
+  const [numSessions, setNumSessions] = useState("");
+  const [sessionDuration, setSessionDuration] = useState("");
+  const [deliveryType, setDeliveryType] = useState("1:1");
+  const [maxClients, setMaxClients] = useState("");
+  const [calendlyLink, setCalendlyLink] = useState("");
+
   const loadData = () => {
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem("inba_courses");
@@ -2365,6 +2409,12 @@ function CourseManagementView() {
     setWhatsappCtaLink("");
     setStatus("Draft");
     setTags("");
+    // Clear dynamic fields
+    setBatchName(""); setStartDate(""); setEndDate(""); setSeats(""); setLiveSessions("");
+    setZoomLink(""); setSessionDays(""); setSessionTiming(""); setEnrollmentDeadline("");
+    setModules(""); setLessons(""); setVideoHours(""); setAccessDuration("Lifetime Access");
+    setHasCertificate("Yes"); setCoachName(""); setNumSessions(""); setSessionDuration("");
+    setDeliveryType("1:1"); setMaxClients(""); setCalendlyLink("");
     setIsAddOpen(true);
   };
 
@@ -2380,6 +2430,27 @@ function CourseManagementView() {
     setWhatsappCtaLink(course.whatsappCtaLink);
     setStatus(course.status);
     setTags(course.tags.join(", "));
+    // Populate dynamic fields
+    setBatchName(course.metadata?.batchName || "");
+    setStartDate(course.metadata?.startDate || "");
+    setEndDate(course.metadata?.endDate || "");
+    setSeats(course.metadata?.seats?.toString() || "");
+    setLiveSessions(course.metadata?.liveSessions?.toString() || "");
+    setZoomLink(course.metadata?.zoomLink || "");
+    setSessionDays(course.metadata?.sessionDays || "");
+    setSessionTiming(course.metadata?.sessionTiming || "");
+    setEnrollmentDeadline(course.metadata?.enrollmentDeadline || "");
+    setModules(course.metadata?.modules?.toString() || "");
+    setLessons(course.metadata?.lessons?.toString() || "");
+    setVideoHours(course.metadata?.videoHours?.toString() || "");
+    setAccessDuration(course.metadata?.accessDuration || "Lifetime Access");
+    setHasCertificate(course.metadata?.hasCertificate || "Yes");
+    setCoachName(course.metadata?.coachName || "");
+    setNumSessions(course.metadata?.numSessions?.toString() || "");
+    setSessionDuration(course.metadata?.sessionDuration || "");
+    setDeliveryType(course.metadata?.deliveryType || "1:1");
+    setMaxClients(course.metadata?.maxClients?.toString() || "");
+    setCalendlyLink(course.metadata?.calendlyLink || "");
     setIsAddOpen(true);
   };
 
@@ -2415,6 +2486,28 @@ function CourseManagementView() {
     }
 
     const cleanTags = tags.split(",").map(t => t.trim()).filter(Boolean);
+    const metadata = {
+      batchName: batchName.trim(),
+      startDate: startDate.trim(),
+      endDate: endDate.trim(),
+      seats: seats ? parseInt(seats) : undefined,
+      liveSessions: liveSessions ? parseInt(liveSessions) : undefined,
+      zoomLink: zoomLink.trim(),
+      sessionDays: sessionDays.trim(),
+      sessionTiming: sessionTiming.trim(),
+      enrollmentDeadline: enrollmentDeadline.trim(),
+      modules: modules ? parseInt(modules) : undefined,
+      lessons: lessons ? parseInt(lessons) : undefined,
+      videoHours: videoHours ? parseFloat(videoHours) : undefined,
+      accessDuration: accessDuration,
+      hasCertificate: hasCertificate,
+      coachName: coachName.trim(),
+      numSessions: numSessions ? parseInt(numSessions) : undefined,
+      sessionDuration: sessionDuration.trim(),
+      deliveryType: deliveryType,
+      maxClients: maxClients ? parseInt(maxClients) : undefined,
+      calendlyLink: calendlyLink.trim(),
+    };
 
     if (editingCourse) {
       const updated = courses.map(c => {
@@ -2430,7 +2523,8 @@ function CourseManagementView() {
             landingPageUrl: landingPageUrl.trim(),
             whatsappCtaLink: whatsappCtaLink.trim(),
             status,
-            tags: cleanTags
+            tags: cleanTags,
+            metadata
           };
         }
         return c;
@@ -2452,7 +2546,8 @@ function CourseManagementView() {
         status,
         tags: cleanTags,
         leads: 0,
-        students: 0
+        students: 0,
+        metadata
       };
       const updated = [...courses, newCourse];
       saveCourses(updated);
@@ -3297,6 +3392,144 @@ function CourseManagementView() {
                   <option value="Coaching Program">Coaching Program</option>
                 </select>
               </div>
+            </div>
+
+            {/* DYNAMIC COURSE TYPE FIELDS */}
+            <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 space-y-6">
+              <h4 className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2">
+                {courseType === "Live Cohort" && "Cohort Specific Settings"}
+                {courseType === "Recorded Course" && "Recorded Content Settings"}
+                {courseType === "Hybrid Program" && "Hybrid Program Settings"}
+                {courseType === "Coaching Program" && "Coaching Settings"}
+              </h4>
+
+              {(courseType === "Live Cohort" || courseType === "Hybrid Program") && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Name</label>
+                      <input type="text" value={batchName} onChange={(e) => setBatchName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Digital Marketing Cohort 2026" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Seats Available</label>
+                      <input type="number" value={seats} onChange={(e) => setSeats(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 50" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
+                      <input type="text" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 June" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
+                      <input type="text" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 15 August" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Days</label>
+                      <input type="text" value={sessionDays} onChange={(e) => setSessionDays(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Mon, Wed, Fri" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Timing</label>
+                      <input type="text" value={sessionTiming} onChange={(e) => setSessionTiming(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 7:00 PM - 9:00 PM" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Live Sessions</label>
+                      <input type="number" value={liveSessions} onChange={(e) => setLiveSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 24" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Zoom Link</label>
+                      <input type="url" value={zoomLink} onChange={(e) => setZoomLink(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="https://zoom.us/j/..." />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Enrollment Deadline</label>
+                    <input type="text" value={enrollmentDeadline} onChange={(e) => setEnrollmentDeadline(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 10 June 2026" />
+                  </div>
+                </div>
+              )}
+
+              {(courseType === "Recorded Course" || courseType === "Hybrid Program") && (
+                <div className="space-y-6 animate-in fade-in">
+                  {courseType === "Hybrid Program" && <div className="border-t border-gray-200 pt-4 mt-2"></div>}
+                  <div className="grid grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Modules</label>
+                      <input type="number" value={modules} onChange={(e) => setModules(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 12" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Total Lessons</label>
+                      <input type="number" value={lessons} onChange={(e) => setLessons(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 48" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Video Hours</label>
+                      <input type="number" value={videoHours} onChange={(e) => setVideoHours(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 20" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Access Duration</label>
+                      <select value={accessDuration} onChange={(e) => setAccessDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Lifetime Access">Lifetime Access</option>
+                        <option value="6 Months Access">6 Months Access</option>
+                        <option value="12 Months Access">12 Months Access</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Certificate</label>
+                      <select value={hasCertificate} onChange={(e) => setHasCertificate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {courseType === "Coaching Program" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Coach Name</label>
+                      <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. John Doe" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Type</label>
+                      <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="1:1">1:1 Coaching</option>
+                        <option value="Group Coaching">Group Coaching</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Sessions</label>
+                      <input type="number" value={numSessions} onChange={(e) => setNumSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 8" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Duration</label>
+                      <input type="text" value={sessionDuration} onChange={(e) => setSessionDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 60 Minutes" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Max Clients</label>
+                      <input type="number" value={maxClients} onChange={(e) => setMaxClients(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 20" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Calendly Link</label>
+                      <input type="url" value={calendlyLink} onChange={(e) => setCalendlyLink(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="https://calendly.com/..." />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Zoom Link (Optional)</label>
+                    <input type="url" value={zoomLink} onChange={(e) => setZoomLink(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="https://zoom.us/j/..." />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
