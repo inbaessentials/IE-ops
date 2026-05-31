@@ -2398,10 +2398,20 @@ function CourseManagementView() {
   };
 
   // Handlers
-  const handleOpenAdd = () => {
+  const generateCourseId = (existingCourses: Course[]) => {
+    const ids = existingCourses
+      .map(c => {
+        const match = c.display_id?.match(/CRS-(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+    const maxId = ids.length > 0 ? Math.max(...ids) : 0;
+    return `CRS-${String(maxId + 1).padStart(4, '0')}`;
+  };
+
+  const handleOpenAdd = (defaultCat?: string | any) => {
     setEditingCourse(null);
     setName("");
-    setCategory("Marketing");
+    setCategory(typeof defaultCat === 'string' ? defaultCat : "Marketing");
     setDescription("");
     setPrice("");
     setDuration("8 Weeks");
@@ -2459,7 +2469,7 @@ function CourseManagementView() {
     const duplicated: Course = {
       ...course,
       id: `c-${Date.now()}`,
-      display_id: `CRS-${Math.floor(Math.random() * 900) + 100}`,
+      display_id: generateCourseId(courses),
       name: `${course.name} (Copy)`,
       status: "Draft",
       leads: 0,
@@ -2535,7 +2545,7 @@ function CourseManagementView() {
     } else {
       const newCourse: Course = {
         id: `c-${Date.now()}`,
-        display_id: `CRS-${Math.floor(Math.random() * 900) + 100}`,
+        display_id: generateCourseId(courses),
         name: name.trim(),
         category: category.trim(),
         description: description.trim(),
@@ -2865,8 +2875,8 @@ function CourseManagementView() {
                               onClick={() => { setSelectedCourse(course); setActiveTab("overview"); }}
                               className="text-left outline-none"
                             >
-                              <p className="text-sm font-semibold text-gray-900 hover:text-primary transition-colors">{course.name}</p>
-                              <span className="text-[10px] font-mono font-medium text-gray-500">{course.display_id} • {course.courseType}</span>
+                              <p className="text-base font-bold text-gray-900 hover:text-primary transition-colors">{course.name}</p>
+                              <span className="text-xs font-medium text-gray-500">{course.display_id} • {course.courseType}</span>
                             </button>
                           </td>
                           <td className="p-4">
@@ -2987,6 +2997,14 @@ function CourseManagementView() {
                     {editingCatIdx !== idx && (
                       <div className="flex items-center gap-1">
                         <button
+                          onClick={() => handleOpenAdd(cat)}
+                          className="px-2.5 py-1.5 text-gray-600 hover:text-primary bg-white hover:bg-gray-50 border border-gray-200 rounded-lg shadow-sm transition-colors mr-2 flex items-center gap-1.5"
+                          title="Add Course"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span className="text-xs font-semibold">Add Course</span>
+                        </button>
+                        <button
                           onClick={() => { setEditingCatIdx(idx); setEditingCatVal(cat); }}
                           className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
                           title="Edit category"
@@ -3026,8 +3044,8 @@ function CourseManagementView() {
                         {catCourses.map(course => (
                           <tr key={course.id} className="hover:bg-gray-50/40 transition-colors">
                             <td className="px-5 py-4">
-                              <p className="text-sm font-semibold text-gray-900">{course.name}</p>
-                              <span className="text-[11px] font-medium text-gray-400">{course.display_id}</span>
+                              <p className="text-base font-bold text-gray-900">{course.name}</p>
+                              <span className="text-xs font-medium text-gray-400">{course.display_id}</span>
                             </td>
                             <td className="px-5 py-4 text-center text-sm font-medium text-gray-600">{course.students}</td>
                             <td className="px-5 py-4 text-sm font-medium text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
