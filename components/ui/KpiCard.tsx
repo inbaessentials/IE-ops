@@ -36,7 +36,7 @@ export function KpiCard({
         </h3>
       </div>
       <div className={`p-2.5 rounded-xl ${iconBgClass} ${iconTextClass} flex items-center justify-center`}>
-        <div className="w-4 h-4 flex items-center justify-center">
+        <div className="w-4 h-4 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4">
           {icon}
         </div>
       </div>
