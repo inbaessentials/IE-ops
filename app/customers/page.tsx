@@ -1544,48 +1544,15 @@ function GymMembersView() {
         </div>
         
         <div className="flex gap-2">
-          {/* Tabs Selector */}
-          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
-            <button 
-              onClick={() => setActiveTab("members")}
-              className={`p-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-                activeTab === "members" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              Active Members
-            </button>
-            <button 
-              onClick={() => setActiveTab("leads")}
-              className={`p-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-                activeTab === "leads" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <Filter className="w-3.5 h-3.5" />
-              Acquisition Leads ({leads.length})
-            </button>
-            <button 
-              onClick={() => setActiveTab("renewals")}
-              className={`p-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-                activeTab === "renewals" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <CalendarCheck className="w-3.5 h-3.5" />
-              Renewals Center
-            </button>
-          </div>
-
-          {activeTab === "members" && (
-            <Button className="gap-2 font-semibold" onClick={() => setIsAddMemberOpen(true)}>
-              <Plus className="w-4 h-4" />
-              Register Member
-            </Button>
-          )}
-
-          {activeTab === "leads" && (
-            <Button className="gap-2" onClick={() => setIsAddLeadOpen(true)}>
+          {activeTab === "leads" ? (
+            <Button className="gap-2 font-semibold" onClick={() => setIsAddLeadOpen(true)}>
               <Plus className="w-4 h-4" />
               Log New Lead
+            </Button>
+          ) : (
+            <Button className="gap-2 font-semibold bg-[#2E8C13] hover:bg-[#257310] text-white" onClick={() => setIsAddMemberOpen(true)}>
+              <Plus className="w-4 h-4" />
+              Register Member
             </Button>
           )}
         </div>
@@ -1631,25 +1598,54 @@ function GymMembersView() {
         </Card>
       </div>
 
-      {/* TAB CONTENT 1: ACTIVE MEMBERS DIRECTORY */}
-      {activeTab === "members" && (
-        <div className="space-y-4 animate-in fade-in duration-250">
-          {/* Filters Bar */}
-          <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
-            <div className="relative flex-1 w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* Directory Mode & Filters Bar */}
+      <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs bg-white">
+        <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Directory View:</span>
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as any)}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold bg-[#2E8C13]/5 text-[#2E8C13] outline-none cursor-pointer hover:bg-[#2E8C13]/10 transition-colors"
+            >
+              <option value="members">Active Members Directory</option>
+              <option value="leads">Acquisition Leads ({leads.length})</option>
+              <option value="renewals">Renewals Center</option>
+            </select>
+          </div>
+
+          {activeTab === "members" && (
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
               <input 
                 type="text" 
                 placeholder="Search gym members by name, mobile, email or ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
               />
             </div>
-            
-            <div className="flex items-center gap-4 w-full sm:w-auto shrink-0 justify-end flex-wrap">
+          )}
+
+          {activeTab === "leads" && (
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search leads by name, mobile number or counselor..."
+                value={leadSearch}
+                onChange={(e) => setLeadSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4 w-full sm:w-auto shrink-0 justify-end flex-wrap">
+          {activeTab === "members" && (
+            <>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -1664,7 +1660,7 @@ function GymMembersView() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-semibold uppercase">Trainer:</span>
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Trainer:</span>
                 <select
                   value={trainerFilter}
                   onChange={(e) => setTrainerFilter(e.target.value)}
@@ -1678,16 +1674,22 @@ function GymMembersView() {
                   <option value="None">None (General Workout)</option>
                 </select>
               </div>
-              
-              <Button 
-                onClick={() => setIsAddMemberOpen(true)}
-                className="gap-1.5 text-xs font-bold bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white shrink-0 shadow-xs h-8 px-3"
-              >
-                <Plus className="w-4 h-4" />
-                Register Member
-              </Button>
-            </div>
-          </Card>
+            </>
+          )}
+
+          {activeTab === "leads" && (
+            <span className="text-xs font-semibold text-gray-500">Pipeline Grid (Change Stage using dropdowns)</span>
+          )}
+          
+          {activeTab === "renewals" && (
+            <span className="text-xs font-semibold text-gray-500">Follow-up reminders for memberships expiring or overdue</span>
+          )}
+        </div>
+      </Card>
+
+      {/* TAB CONTENT 1: ACTIVE MEMBERS DIRECTORY */}
+      {activeTab === "members" && (
+        <div className="space-y-4 animate-in fade-in duration-250">
 
           {/* Members Table */}
           <Card className="overflow-hidden border border-gray-100 shadow-sm">
@@ -1793,23 +1795,8 @@ function GymMembersView() {
         </div>
       )}
 
-      {/* TAB CONTENT 2: ACQUISITION LEADS & KANBAN PIPELINE */}
       {activeTab === "leads" && (
         <div className="space-y-4 animate-in fade-in duration-250">
-          {/* Leads Search */}
-          <Card className="p-4 border border-gray-100 flex items-center justify-between gap-4 shadow-xs">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search leads by name, mobile number or counselor..."
-                value={leadSearch}
-                onChange={(e) => setLeadSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-              />
-            </div>
-            <span className="text-xs font-semibold text-gray-500">Pipeline Grid (Change Stage using dropdowns)</span>
-          </Card>
 
           {/* Kanban Board columns */}
           <div className="overflow-x-auto pb-4">

@@ -18,7 +18,8 @@ import {
   Target,
   Filter,
   CalendarCheck,
-  ShieldCheck
+  ShieldCheck,
+  ShoppingBag
 } from "lucide-react";
 
 const navItems = [
@@ -61,11 +62,11 @@ export default function Sidebar() {
       }
     } else if (platform === "gym-services") {
       // For Gym Services, we want a very simple, tailored sidebar:
-      // Dashboard, Members (Customers), Memberships (Inventory), Attendance (/attendance), Revenue (Sales), Reports, Goals, Settings.
       const dashboard = list.find(item => item.name === "Dashboard")!;
       const members = list.find(item => item.name === "Customers")!;
       const memberships = list.find(item => item.name === "Inventory")!;
       const revenue = list.find(item => item.name === "Sales")!;
+      const expenses = list.find(item => item.name === "Expenses")!;
       const reports = list.find(item => item.name === "Reports")!;
       const goals = list.find(item => item.name === "Goals")!;
       const settings = list.find(item => item.name === "Settings")!;
@@ -74,8 +75,10 @@ export default function Sidebar() {
         dashboard,
         members,
         memberships,
+        { name: "Supplements", href: "/products", icon: ShoppingBag },
         { name: "Attendance", href: "/attendance", icon: CalendarCheck },
         revenue,
+        expenses,
         reports,
         goals,
         settings

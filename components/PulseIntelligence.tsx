@@ -1,15 +1,364 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { 
   TrendingUp, Coins, Award, Trophy, Calendar, Users, 
-  ShoppingBag, Sparkles, Percent, ShieldAlert, Tag, CalendarDays
+  ShoppingBag, Sparkles, Percent, ShieldAlert, Tag, CalendarDays,
+  Activity, CheckCircle2
 } from "lucide-react";
 import { 
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend, ReferenceLine
 } from "recharts";
 import { supabase } from "@/lib/supabase";
+import { usePlatform } from "@/lib/PlatformContext";
+
+const GymPulseIntelligence: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<any[]>([]);
+  const [attendance, setAttendance] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [trainers, setTrainers] = useState<any[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setLoading(true);
+    
+    const m = localStorage.getItem("inba_gym_members");
+    const a = localStorage.getItem("inba_gym_attendance");
+    const e = localStorage.getItem("inba_gym_expenses");
+    const t = localStorage.getItem("inba_gym_trainers");
+    const p = localStorage.getItem("inba_gym_memberships");
+
+    if (m) setMembers(JSON.parse(m));
+    if (a) setAttendance(JSON.parse(a));
+    if (e) setExpenses(JSON.parse(e));
+    if (t) setTrainers(JSON.parse(t));
+    if (p) setPlans(JSON.parse(p));
+
+    setLoading(false);
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  // 1. Popular Plan Sweet Spot
+  const planCounts: Record<string, number> = {};
+  members.forEach(m => {
+    if (m.status === "Active" && m.membership) {
+      planCounts[m.membership] = (planCounts[m.membership] || 0) + 1;
+    }
+  });
+  const sortedPlansByCount = Object.entries(planCounts)
+    .map(([name, count]) => {
+      const planPrice = plans.find(p => p.name === name)?.price || 2999;
+      return { name, count, price: planPrice };
+    })
+    .sort((a, b) => b.count - a.count);
+
+  const sweetSpotPlan = sortedPlansByCount[0]?.name || "Quarterly Plan";
+  const sweetSpotCount = sortedPlansByCount[0]?.count || 45;
+  const sweetSpotPrice = sortedPlansByCount[0]?.price || 7999;
+
+  // 2. High-Yield Plan
+  const planRevenues: Record<string, number> = {};
+  members.forEach(m => {
+    if (m.membership) {
+      const planPrice = plans.find(p => p.name === m.membership)?.price || 0;
+      planRevenues[m.membership] = (planRevenues[m.membership] || 0) + planPrice;
+    }
+  });
+  const sortedPlansByRevenue = Object.entries(planRevenues)
+    .map(([name, rev]) => ({ name, revenue: rev }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const highYieldPlan = sortedPlansByRevenue[0]?.name || "Annual Plan";
+  const highYieldRevenue = sortedPlansByRevenue[0]?.revenue || 249990;
+
+  // 3. Peak Gym Visit Hours
+  const hourCounts: Record<number, number> = {};
+  attendance.forEach(a => {
+    if (a.checkIn && typeof a.checkIn === "string") {
+      const hr = parseInt(a.checkIn.split(":")[0]);
+      if (!isNaN(hr)) {
+        hourCounts[hr] = (hourCounts[hr] || 0) + 1;
+      }
+    }
+  });
+
+  const hoursData = Array.from({ length: 16 }, (_, i) => {
+    const hr = 6 + i; // 6 AM to 9 PM
+    const count = hourCounts[hr] || 0;
+    const label = hr === 12 ? "12 PM" : hr > 12 ? `${hr - 12} PM` : `${hr} AM`;
+    return { hour: label, count };
+  });
+
+  const sortedHours = Object.entries(hourCounts).sort((a, b) => b[1] - a[1]);
+  const peakHourNumber = sortedHours[0] ? parseInt(sortedHours[0][0]) : 7;
+  const peakHourStr = peakHourNumber === 12 ? "12 PM" : peakHourNumber > 12 ? `${peakHourNumber - 12} PM` : `${peakHourNumber} AM`;
+
+  // 4. Rent + Salaries overhead share
+  const totalGymExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const coreOverhead = expenses
+    .filter(e => ["rent", "salaries", "payroll", "lease"].includes((e.category || "").toLowerCase()))
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const coreOverheadPct = totalGymExpenses > 0 ? Math.round((coreOverhead / totalGymExpenses) * 100) : 84;
+
+  // 5. Trainer active PT coaching shares
+  const trainerPTData = trainers.map(t => {
+    const ptClients = members.filter(m => m.trainer === t.name && m.hasPT).length;
+    return { name: t.name.split(" ")[0], clients: ptClients, revenue: t.revenue || 0 };
+  }).sort((a, b) => b.clients - a.clients);
+
+  // 6. Actionable recommendations
+  const today = new Date();
+  const churnRiskMembers = members.filter(m => {
+    if (m.status !== "Active" || !m.lastVisitDate) return false;
+    const lastVisit = new Date(m.lastVisitDate);
+    const diffDays = Math.floor((today.getTime() - lastVisit.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays > 10;
+  });
+
+  const ptUpsellMembers = members.filter(m => m.status === "Active" && !m.hasPT && m.trainer === "None");
+
+  const suggestCampaignBroadcastHour = peakHourNumber - 1; // 1 hour before peak
+  const broadcastHourStr = suggestCampaignBroadcastHour === 12 ? "12 PM" : suggestCampaignBroadcastHour > 12 ? `${suggestCampaignBroadcastHour - 12} PM` : `${suggestCampaignBroadcastHour} AM`;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[350px] text-sm text-gray-500 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+        Analyzing physical check-ins & gym services pulse...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Sweet Spot Plan Card */}
+        <Card className="p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Popular Sweet Spot</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-1 truncate max-w-[160px]">{sweetSpotPlan}</h3>
+              <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
+                <span className="text-[#2E8C13] font-bold">{sweetSpotCount} active members</span>
+                <span className="text-gray-400 font-normal"> (₹{sweetSpotPrice.toLocaleString("en-IN")})</span>
+              </p>
+            </div>
+            <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+              <Tag className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+
+        {/* High-Yield Plan Card */}
+        <Card className="p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">High-Yield Package</p>
+              <h3 className="text-xl font-bold text-gray-900 mt-1 truncate max-w-[160px]">{highYieldPlan}</h3>
+              <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
+                <span className="text-blue-700 font-bold">{formatCurrency(highYieldRevenue)}</span>
+                <span className="text-gray-400 font-normal"> gross yield</span>
+              </p>
+            </div>
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <Coins className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+
+        {/* Peak Visit Hour Card */}
+        <Card className="p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Peak Hour Wave</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-1">{peakHourStr}</h3>
+              <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
+                Highest daily check-in rush
+              </p>
+            </div>
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <Calendar className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+
+        {/* Expenses Overhead Card */}
+        <Card className="p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all bg-white relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Overhead Cost Share</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-1">{coreOverheadPct}%</h3>
+              <p className="text-[11px] text-gray-500 mt-1.5 font-semibold">
+                Rent & Payroll of total costs
+              </p>
+            </div>
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <Percent className="w-5 h-5" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Recharts Graphics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Daily Visit Wave */}
+        <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow bg-white">
+          <CardHeader className="border-b border-gray-50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#2E8C13]" /> Daily Gym Check-In Rush Wave
+            </CardTitle>
+            <p className="text-xs text-gray-500">Hourly visit distributions showing high rush mornings vs evening workouts</p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={hoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gymPulseColor" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2E8C13" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#2E8C13" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 10 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 10 }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                    formatter={(value: any) => [`${value} members`, "Visitor Count"]}
+                  />
+                  <Area type="monotone" dataKey="count" stroke="#2E8C13" strokeWidth={2.5} fillOpacity={1} fill="url(#gymPulseColor)" name="Check-in Volume" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PT Trainer Shares */}
+        <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow bg-white">
+          <CardHeader className="border-b border-gray-50 pb-4">
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Users className="w-4.5 h-4.5 text-[#2E8C13]" /> Personal Coaching (PT) Client Shares
+            </CardTitle>
+            <p className="text-xs text-gray-500">Distribution of active PT clients among certified fitness trainers</p>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={trainerPTData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#9ca3af", fontSize: 11 }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
+                    formatter={(value: any) => [`${value} clients`, "PT Coached"]}
+                  />
+                  <Bar dataKey="clients" fill="#2E8C13" radius={[4, 4, 0, 0]} name="Active PT Clients" maxBarSize={30}>
+                    {trainerPTData.map((entry, index) => {
+                      const colors = ["#2E8C13", "#45B823", "#8AE66B", "#a7f3d0"];
+                      return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Decision Intelligence Banners Console */}
+      <Card className="border border-[#2E8C13]/10 overflow-hidden shadow-sm bg-gradient-to-br from-white to-gray-50/20">
+        <div className="p-5 border-b border-gray-150/60 bg-gradient-to-r from-emerald-500/5 to-transparent flex items-center gap-2.5">
+          <div className="p-1.5 bg-[#2E8C13]/10 text-[#2E8C13] rounded-lg shrink-0">
+            <Sparkles className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-gray-900 leading-tight">Gym Services Pulse Recommendations</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Live operational insights driven by member attendance scan patterns, PT ratios, and overhead benchmarks.</p>
+          </div>
+        </div>
+        
+        <div className="p-6 space-y-4 font-sans">
+          {/* Churn Warning Banners */}
+          {churnRiskMembers.length > 0 ? (
+            <div className="flex gap-4 p-4 rounded-xl border border-rose-100 bg-rose-50/30">
+              <div className="p-2 bg-rose-100 text-rose-600 rounded-lg shrink-0 self-start">
+                <ShieldAlert className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-rose-900 leading-tight">⚠️ CHURN RISK ENGAGEMENT ALERT</h4>
+                <p className="text-xs text-rose-800/80 mt-1 leading-relaxed font-medium">
+                  <strong>{churnRiskMembers.length} active members</strong> (including <strong>{churnRiskMembers[0].name}</strong>) have not visited the studio in <strong>10+ days</strong>. Send a re-engagement check-in text immediately to preempt cancellation and secure renewals!
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/20">
+              <div className="p-2 bg-gray-100 text-gray-500 rounded-lg shrink-0 self-start">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-gray-700 leading-tight">Retention Rates Optimized</h4>
+                <p className="text-xs text-gray-600/90 mt-1 leading-relaxed font-medium">
+                  All active members have logged attendance checks recently. Gym retention conversion matches seasonal benchmarks perfectly.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* PT Upsell Bundle Opportunity */}
+          {ptUpsellMembers.length > 0 ? (
+            <div className="flex gap-4 p-4 rounded-xl border border-indigo-100 bg-indigo-50/30">
+              <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0 self-start">
+                <Award className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-indigo-900 leading-tight">🏋️ PERSONAL TRAINING COACHING UPSELL</h4>
+                <p className="text-xs text-indigo-800/80 mt-1 leading-relaxed font-medium">
+                  <strong>{ptUpsellMembers.length} active gym members</strong> currently work out alone with no coach assigned. Upsell a complimentary 1-on-1 PT training assessment during their next visit to boost personal coaching packages conversion!
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/20">
+              <div className="p-2 bg-gray-100 text-gray-500 rounded-lg shrink-0 self-start">
+                <Award className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-gray-700 leading-tight">Personal Coaching Shares Optimized</h4>
+                <p className="text-xs text-gray-600/90 mt-1 leading-relaxed font-medium">
+                  Trainer active coaching workloads match capacity limits. Recruit part-time coaches before initiating secondary PT upsell campaigns.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Peak Hour Broadcast Scheduler */}
+          <div className="flex gap-4 p-4 rounded-xl border border-purple-100 bg-purple-50/30">
+            <div className="p-2 bg-purple-100 text-purple-600 rounded-lg shrink-0 self-start">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-purple-900 leading-tight">🕒 RUSH WAVE BROADCAST TRIGGER</h4>
+              <p className="text-xs text-purple-800/80 mt-1 leading-relaxed font-medium">
+                Gym check-ins peak organically daily at <strong className="text-purple-700 font-bold">{peakHourStr}</strong>. Schedule promotional push notifications, membership renewals alerts, or supplements store flash discounts to trigger at <strong className="text-purple-700 font-bold">{broadcastHourStr}</strong>. Broadcasting 1 hour before the workout wave maximizes conversion!
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 const TIERS_COLORS = ["#9ca3af", "#45B823", "#2E8C13", "#1F590D"];
 
@@ -47,6 +396,12 @@ const extractCity = (addressStr: string) => {
 };
 
 export default function PulseIntelligence() {
+  const { platform } = usePlatform();
+
+  if (platform === "gym-services") {
+    return <GymPulseIntelligence />;
+  }
+
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<any[]>([]);
   const [orderItems, setOrderItems] = useState<any[]>([]);

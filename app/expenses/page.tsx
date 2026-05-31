@@ -80,6 +80,17 @@ export default function ExpensesPage() {
   };
 
   const fetchExpenses = async () => {
+    if (platform === "gym-services") {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("inba_gym_expenses");
+        if (saved) {
+          setExpenses(JSON.parse(saved));
+        } else {
+          setExpenses([]);
+        }
+      }
+      return;
+    }
     const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
     if (!error && data) {
       setExpenses(data);
@@ -88,21 +99,28 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [platform]);
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
-    setCategory(platform === "online-course" ? "Technology" : platform === "wholesale" ? "Logistics" : "Courier");
+    setCategory(platform === "gym-services" ? "Salaries" : platform === "online-course" ? "Technology" : platform === "wholesale" ? "Logistics" : "Courier");
     setIsDrawerOpen(true);
   };
 
   const handleOpenEdit = (expense: any) => {
     setEditingExpense(expense);
-    setCategory(expense.category || (platform === "online-course" ? "Technology" : platform === "wholesale" ? "Logistics" : "Courier"));
+    setCategory(expense.category || (platform === "gym-services" ? "Salaries" : platform === "online-course" ? "Technology" : platform === "wholesale" ? "Logistics" : "Courier"));
     setIsDrawerOpen(true);
   };
 
   const handleDelete = async (id: string) => {
+    if (platform === "gym-services") {
+      const updated = expenses.filter(e => e.id !== id && e.display_id !== id);
+      localStorage.setItem("inba_gym_expenses", JSON.stringify(updated));
+      setExpenses(updated);
+      toast("Gym Expense Deleted Successfully", "error");
+      return;
+    }
     const { error } = await supabase.from('expenses').delete().eq('id', id);
     if (!error) {
       setExpenses(expenses.filter(e => e.id !== id));
@@ -122,6 +140,31 @@ export default function ExpensesPage() {
         notes: formData.get("notes") as string,
         date: new Date().toISOString()
     };
+
+    if (platform === "gym-services") {
+      try {
+        if (editingExpense) {
+          payload.display_id = editingExpense.display_id || generateNextDisplayId(expenses);
+          payload.id = editingExpense.id || editingExpense.display_id;
+          const updated = expenses.map(exp => (exp.id === editingExpense.id || exp.display_id === editingExpense.display_id) ? { ...exp, ...payload } : exp);
+          localStorage.setItem("inba_gym_expenses", JSON.stringify(updated));
+          setExpenses(updated);
+          toast("Gym Expense Updated Successfully", "success");
+        } else {
+          const nextId = generateNextDisplayId(expenses);
+          payload.display_id = nextId;
+          payload.id = `G-EXP-${Date.now()}`;
+          const updated = [payload, ...expenses];
+          localStorage.setItem("inba_gym_expenses", JSON.stringify(updated));
+          setExpenses(updated);
+          toast("Gym Expense Added Successfully", "success");
+        }
+        setIsDrawerOpen(false);
+      } catch (err: any) {
+        toast("Failed to save gym expense", "error");
+      }
+      return;
+    }
 
     try {
       if (editingExpense) {
@@ -221,7 +264,9 @@ export default function ExpensesPage() {
   });
 
   // Dynamic category options aggregate static defaults with actual recorded categories
-  const defaultCategories = platform === "online-course" 
+  const defaultCategories = platform === "gym-services"
+    ? ["Rent", "Salaries", "Equipment", "Utilities", "Software", "Other"]
+    : platform === "online-course" 
     ? ["Technology", "Marketing", "Salaries", "Other"]
     : platform === "wholesale"
     ? ["Logistics", "Office Supplies", "Rent", "Other"]

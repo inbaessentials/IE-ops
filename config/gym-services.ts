@@ -2,9 +2,11 @@ export const GymServicesConfig = {
   sidebar: [
     { name: "Dashboard", label: "Dashboard" },
     { name: "Customers", label: "Members" },
-    { name: "Inventory", label: "Memberships & Products" },
+    { name: "Inventory", label: "Memberships" },
+    { name: "Supplements", label: "Supplements & Products" },
     { name: "Attendance", label: "Attendance" },
     { name: "Sales", label: "Revenue" },
+    { name: "Expenses", label: "Expenses" },
     { name: "Reports", label: "Reports" },
     { name: "Goals", label: "Goals" },
     { name: "Settings", label: "Settings" }
