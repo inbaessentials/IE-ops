@@ -14,11 +14,11 @@ import { supabase } from "@/lib/supabase";
 import { usePlatform } from "@/lib/PlatformContext";
 
 const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
-  New: { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
-  Packed: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-500" },
-  Shipped: { bg: "bg-indigo-50/80", text: "text-indigo-700", border: "border-indigo-200", dot: "bg-indigo-500" },
-  Delivered: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
-  Cancelled: { bg: "bg-rose-50/80", text: "text-rose-700", border: "border-rose-200", dot: "bg-rose-500" },
+  Paid: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
+  Pending: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-500" },
+  Failed: { bg: "bg-rose-50/80", text: "text-rose-700", border: "border-rose-200", dot: "bg-rose-500" },
+  Refunded: { bg: "bg-gray-50/80", text: "text-gray-700", border: "border-gray-200", dot: "bg-gray-500" },
+  "Partial Payment": { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
 };
 
 function StatusDropdown({ value, onChange }: { value: string, onChange: (val: string) => void }) {
@@ -754,8 +754,8 @@ export default function SalesPage() {
       }
     }, 0);
 
-  const pendingOrdersCount = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
-  const completedOrdersCount = filteredOrders.filter(o => o.status === "Delivered" || o.status === "Shipped").length;
+  const pendingOrdersCount = filteredOrders.filter(o => o.status === "Pending").length;
+  const completedOrdersCount = filteredOrders.filter(o => o.status === "Paid" || o.status === "Partial Payment").length;
 
   // Sum up quantities of all items in filtered orders (excluding cancelled orders)
   const totalItemsSold = filteredOrders
@@ -850,7 +850,7 @@ export default function SalesPage() {
             }}
           />
           <KpiCard 
-            title={platform === 'online-course' ? 'Provisioned / Active' : 'Shipped / Delivered'}
+            title={platform === 'online-course' ? 'Provisioned / Active' : 'Paid / Enrolled'}
             value={completedOrdersCount}
             valueClass="text-indigo-600"
             icon={<CheckCircle2 />}
@@ -893,7 +893,7 @@ export default function SalesPage() {
               {/* Status Select Filter */}
               <div className="w-[125px] shrink-0">
                 <Select 
-                  options={["All", "New", "Packed", "Shipped", "Delivered", "Cancelled"]}
+                  options={["All", "Paid", "Pending", "Failed", "Refunded", "Partial Payment"]}
                   value={statusFilter}
                   onChange={setStatusFilter}
                   placeholder="All Statuses"
@@ -1861,24 +1861,19 @@ export default function SalesPage() {
                       </div>
                       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2">
                         <h4 className="text-sm font-medium text-gray-800 flex items-center gap-2">
-                          <Package className="w-4 h-4 text-gray-400" /> Fulfillment
+                          <CheckCircle2 className="w-4 h-4 text-gray-400" /> Course Access
                         </h4>
-                        {viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered" ? (
+                        {viewingOrder.status === "Paid" || viewingOrder.status === "Partial Payment" ? (
                           <>
-                            <p className="text-sm text-gray-700">Courier: <strong>{viewingOrder.courier_partner || "Delhivery"}</strong></p>
-                            <p className="text-sm text-gray-700 truncate">AWB: {viewingOrder.tracking_link ? (
-                              <a href={viewingOrder.tracking_link} target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">
-                                {viewingOrder.tracking_id}
-                              </a>
-                            ) : (
-                              <span className="text-gray-900 font-medium">{viewingOrder.tracking_id}</span>
-                            )}</p>
+                            <p className="text-sm text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-md inline-block">Access Granted</p>
+                            <p className="text-sm text-gray-700 mt-2">Platform: <strong>Inba Academy LMS</strong></p>
+                            <p className="text-sm text-gray-500">Student login credentials dispatched.</p>
                           </>
                         ) : (
-                          <p className="text-sm text-gray-500 italic">Not shipped yet</p>
+                          <p className="text-sm text-gray-500 italic">Access pending payment.</p>
                         )}
                         <Button variant="outline" className="w-full mt-2 h-8 text-xs gap-1" onClick={() => handlePrint(viewingOrder)}>
-                          <Printer className="w-3 h-3" /> Print Slip
+                          <Printer className="w-3 h-3" /> Print Receipt
                         </Button>
                       </div>
                     </div>
@@ -1936,72 +1931,54 @@ export default function SalesPage() {
                         </div>
                       </div>
                     </div>
-                  </>
-                );
-              })()}
-
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <h4 className="text-sm font-medium text-gray-800 mb-4">Order Timeline</h4>
+                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <h4 className="text-sm font-medium text-gray-800 mb-4">Enrollment Timeline</h4>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent">
                   
                   <div className="relative flex items-start gap-4">
-                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-green-100 text-green-600 shadow shrink-0 z-10">
-                      <CheckCircle2 className="w-4 h-4" />
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 z-10">
+                      <User className="w-4 h-4" />
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="font-semibold text-gray-900 text-sm">Order Placed</p>
+                        <p className="font-semibold text-gray-900 text-sm">Enrollment Initiated</p>
                         <span className="text-xs text-gray-500">{viewingOrder.date ? viewingOrder.date.split(',')[1] || viewingOrder.date : "Today"}</span>
                       </div>
-                      <p className="text-xs text-gray-500">Customer placed the order.</p>
+                      <p className="text-xs text-gray-500">Student initiated checkout.</p>
                     </div>
                   </div>
 
-                  {(viewingOrder.status === "Packed" || viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered") && (
+                  {(viewingOrder.status === "Paid" || viewingOrder.status === "Partial Payment") && (
                     <div className="relative flex items-start gap-4">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 z-10">
-                        <Package className="w-4 h-4" />
+                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-emerald-100 text-emerald-600 shadow shrink-0 z-10">
+                        <CreditCard className="w-4 h-4" />
                       </div>
                       <div className="flex-1 pb-4">
                         <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-gray-900 text-sm">Packed</p>
+                          <p className="font-semibold text-gray-900 text-sm">Payment Processed</p>
                           <span className="text-xs text-gray-500">Today</span>
                         </div>
-                        <p className="text-xs text-gray-500">Packing slip generated.</p>
+                        <p className="text-xs text-gray-500">Fee successfully collected.</p>
                       </div>
                     </div>
                   )}
 
-                  {(viewingOrder.status === "Shipped" || viewingOrder.status === "Delivered") && (
+                  {(viewingOrder.status === "Paid" || viewingOrder.status === "Partial Payment") && (
                     <div className="relative flex items-start gap-4">
                       <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-indigo-100 text-indigo-600 shadow shrink-0 z-10">
-                        <Truck className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-gray-900 text-sm">Shipped</p>
-                          <span className="text-xs text-gray-500">Today</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Courier partner: {viewingOrder.courier_partner || "Delhivery"} (AWB: {viewingOrder.tracking_id})</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {viewingOrder.status === "Delivered" && (
-                    <div className="relative flex items-start gap-4">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-green-100 text-green-600 shadow shrink-0 z-10">
                         <CheckCircle2 className="w-4 h-4" />
                       </div>
                       <div className="flex-1 pb-2">
                         <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-gray-900 text-sm">Delivered</p>
+                          <p className="font-semibold text-gray-900 text-sm">Course Provisioned</p>
                           <span className="text-xs text-gray-500">Today</span>
                         </div>
-                        <p className="text-xs text-gray-500">Order successfully handed over to customer.</p>
+                        <p className="text-xs text-gray-500">LMS access granted to student.</p>
                       </div>
                     </div>
                   )}
-
+                </div>
+              </div>
                 </div>
               </div>
 
@@ -2148,9 +2125,9 @@ export default function SalesPage() {
                     {customerOrders.map((order, idx) => (
                       <div key={order.id} className="relative flex items-start gap-4 animate-in slide-in-from-bottom-2 duration-100">
                         <div className={`flex items-center justify-center w-9 h-9 rounded-full border-4 border-white shadow shrink-0 z-10 text-xs font-bold ${
-                          order.status === "Delivered" ? "bg-green-50 text-green-600 border-green-100" :
-                          order.status === "Shipped" ? "bg-indigo-50 text-indigo-600 border-indigo-100" :
-                          order.status === "Packed" ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-blue-50 text-blue-600 border-blue-100"
+                          order.status === "Paid" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                          order.status === "Partial Payment" ? "bg-blue-50 text-blue-600 border-blue-100" :
+                          order.status === "Pending" ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-gray-50 text-gray-600 border-gray-100"
                         }`}>
                           {idx + 1}
                         </div>
@@ -2172,9 +2149,9 @@ export default function SalesPage() {
                               <span className="text-sm font-black text-gray-900">{order.amount}</span>
                               <div className="mt-1 flex items-center justify-end gap-1">
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                                  order.status === "Delivered" ? "bg-green-100 text-green-700" :
-                                  order.status === "Shipped" ? "bg-indigo-100 text-indigo-700" :
-                                  order.status === "Packed" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                                  order.status === "Paid" ? "bg-emerald-100 text-emerald-700" :
+                                  order.status === "Partial Payment" ? "bg-blue-100 text-blue-700" :
+                                  order.status === "Pending" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-700"
                                 }`}>
                                   {order.status}
                                 </span>
