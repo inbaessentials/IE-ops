@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 import { usePlatform } from "@/lib/PlatformContext";
+import { UnifiedStudentDrawer } from "@/components/UnifiedStudentDrawer";
 
 const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
   Paid: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
@@ -304,10 +305,6 @@ export default function SalesPage() {
 
   const handleCreateEnrollment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (createStep < 3) {
-      setCreateStep(createStep + 1);
-      return;
-    }
 
     const finalAmount = courseFee - discount;
     const sName = studentMode === "existing" ? "Selected Student" : newStudentName; // In real app, fetch name by ID
@@ -455,28 +452,29 @@ export default function SalesPage() {
           {filteredEnrollments.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  <th className="p-4 pl-6">Enrollment ID</th>
-                  <th className="p-4">Student Name</th>
-                  <th className="p-4">Course</th>
-                  <th className="p-4">Course Type</th>
-                  <th className="p-4">Amount</th>
-                  <th className="p-4">Payment Status</th>
-                  <th className="p-4">Payment Method</th>
-                  <th className="p-4">Enrollment Date</th>
-                  <th className="p-4">Source</th>
-                  <th className="p-4 text-right pr-6">Actions</th>
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="p-4 pl-6 text-xs font-medium text-gray-600 uppercase tracking-wider">Student & Enrollment</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course Type</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment Date</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
                 {filteredEnrollments.map((enr) => (
                   <tr key={enr.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     <td className="p-4 pl-6 whitespace-nowrap">
-                      <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors cursor-pointer" onClick={() => setViewingEnrollment(enr)}>
-                        {enr.id}
-                      </span>
+                      <div className="flex flex-col cursor-pointer" onClick={() => setViewingEnrollment(enr)}>
+                        <span className="font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">
+                          {enr.studentName}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-semibold">{enr.id}</span>
+                      </div>
                     </td>
-                    <td className="p-4 whitespace-nowrap text-gray-900 font-medium">{enr.studentName}</td>
                     <td className="p-4 whitespace-nowrap text-gray-600 font-semibold">{enr.course}</td>
                     <td className="p-4 whitespace-nowrap text-xs text-gray-500">{enr.courseType}</td>
                     <td className="p-4 whitespace-nowrap text-gray-900">₹{enr.amount.toLocaleString("en-IN")}</td>
@@ -509,166 +507,131 @@ export default function SalesPage() {
         </div>
       </Card>
 
-      {/* Create Enrollment Drawer - Multi Step */}
+      {/* Create Enrollment Drawer - Single Page Layout */}
       <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Enrollment" size="xl">
         <form className="space-y-4 h-full flex flex-col" onSubmit={handleCreateEnrollment}>
-          <div className="flex-1 bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6 overflow-y-auto">
+          <div className="flex-1 bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-8 overflow-y-auto">
             
-            {/* Step Indicators */}
-            <div className="flex items-center mb-8">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${createStep >= 1 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'} font-semibold text-sm`}>1</div>
-              <div className={`flex-1 h-1 mx-2 ${createStep >= 2 ? 'bg-primary' : 'bg-gray-100'}`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${createStep >= 2 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'} font-semibold text-sm`}>2</div>
-              <div className={`flex-1 h-1 mx-2 ${createStep >= 3 ? 'bg-primary' : 'bg-gray-100'}`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${createStep >= 3 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'} font-semibold text-sm`}>3</div>
+            {/* Student Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">1. Student Information</h3>
+              <div className="flex gap-4 mb-4">
+                <button type="button" onClick={() => setStudentMode("existing")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${studentMode === "existing" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>Existing Student</button>
+                <button type="button" onClick={() => setStudentMode("new")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${studentMode === "new" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>Create New Student</button>
+              </div>
+
+              {studentMode === "existing" ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Search Student</label>
+                  <select required value={selectedStudentId} onChange={e => setSelectedStudentId(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white">
+                    <option value="">-- Select a student --</option>
+                    <option value="STU-001">Arun Kumar (+91 9876543210)</option>
+                    <option value="STU-002">Priya S (+91 9123456789)</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input required type="text" value={newStudentName} onChange={e => setNewStudentName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="e.g. John Doe" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <input required type="text" value={newStudentPhone} onChange={e => setNewStudentPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="+91 9876543210" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" value={newStudentEmail} onChange={e => setNewStudentEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="john@example.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" value={newStudentCity} onChange={e => setNewStudentCity(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="Bangalore" />
+                  </div>
+                </div>
+              )}
             </div>
 
-            {createStep === 1 && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Step 1: Student Information</h3>
-                
-                <div className="flex gap-4">
-                  <button type="button" onClick={() => setStudentMode("existing")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${studentMode === "existing" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>Existing Student</button>
-                  <button type="button" onClick={() => setStudentMode("new")} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${studentMode === "new" ? "bg-primary text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>Create New Student</button>
+            {/* Course Selection Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">2. Course Selection</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                  <select required value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
+                    <option value="">-- Select Course --</option>
+                    <option value="Digital Marketing Masterclass">Digital Marketing Masterclass</option>
+                    <option value="UI/UX Bootcamp">UI/UX Bootcamp</option>
+                    <option value="AI For Business">AI For Business</option>
+                  </select>
                 </div>
-
-                {studentMode === "existing" ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Search Student</label>
-                    <select required value={selectedStudentId} onChange={e => setSelectedStudentId(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white">
-                      <option value="">-- Select a student --</option>
-                      <option value="STU-001">Arun Kumar (+91 9876543210)</option>
-                      <option value="STU-002">Priya S (+91 9123456789)</option>
-                    </select>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                      <input required type="text" value={newStudentName} onChange={e => setNewStudentName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="e.g. John Doe" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                      <input required type="text" value={newStudentPhone} onChange={e => setNewStudentPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="+91 9876543210" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                      <input type="email" value={newStudentEmail} onChange={e => setNewStudentEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="john@example.com" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                      <input type="text" value={newStudentCity} onChange={e => setNewStudentCity(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="Bangalore" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {createStep === 2 && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Step 2: Course Selection</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
-                    <select required value={selectedCourse} onChange={e => setSelectedCourse(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
-                      <option value="">-- Select Course --</option>
-                      <option value="Digital Marketing Masterclass">Digital Marketing Masterclass</option>
-                      <option value="UI/UX Bootcamp">UI/UX Bootcamp</option>
-                      <option value="AI For Business">AI For Business</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
-                    <select required value={selectedCourseType} onChange={e => setSelectedCourseType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
-                      {["Live Cohort", "Recorded Course", "Hybrid Program", "Coaching Program"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Batch / Intake</label>
-                    <input type="text" value={batchName} onChange={e => setBatchName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="e.g. Summer Cohort 2026" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Enrollment Date</label>
-                    <input required type="date" value={enrollmentDate} onChange={e => setEnrollmentDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Type</label>
+                  <select required value={selectedCourseType} onChange={e => setSelectedCourseType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
+                    {["Live Cohort", "Recorded Course", "Hybrid Program", "Coaching Program"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Batch / Intake</label>
+                  <input type="text" value={batchName} onChange={e => setBatchName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="e.g. Summer Cohort 2026" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Enrollment Date</label>
+                  <input required type="date" value={enrollmentDate} onChange={e => setEnrollmentDate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" />
                 </div>
               </div>
-            )}
+            </div>
 
-            {createStep === 3 && (
-              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Step 3: Payment Setup</h3>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Fee (₹)</label>
-                    <input required type="number" value={courseFee} onChange={e => setCourseFee(Number(e.target.value))} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="0" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Discount (₹)</label>
-                    <input type="number" value={discount} onChange={e => setDiscount(Number(e.target.value))} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="0" />
-                  </div>
-                  <div className="col-span-2 p-4 bg-gray-50 border border-gray-200 rounded-lg flex justify-between items-center">
-                    <span className="font-semibold text-gray-700">Final Amount:</span>
-                    <span className="text-xl font-bold text-gray-900">₹{(courseFee - discount).toLocaleString("en-IN")}</span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
-                    <select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
-                      {["Paid", "Pending", "Partial Payment", "Failed", "Refunded"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                    <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
-                      {["UPI", "Credit Card", "Debit Card", "Net Banking", "Razorpay", "Cash"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Transaction ID</label>
-                    <textarea value={paymentNotes} onChange={e => setPaymentNotes(e.target.value)} rows={2} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="Add transaction ID or remarks..." />
-                  </div>
+            {/* Payment Setup Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">3. Payment Setup</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course Fee (₹)</label>
+                  <input required type="number" value={courseFee} onChange={e => setCourseFee(Number(e.target.value))} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="0" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Discount (₹)</label>
+                  <input type="number" value={discount} onChange={e => setDiscount(Number(e.target.value))} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="0" />
+                </div>
+                <div className="col-span-2 p-4 bg-gray-50 border border-gray-200 rounded-lg flex justify-between items-center">
+                  <span className="font-semibold text-gray-700">Final Amount:</span>
+                  <span className="text-xl font-bold text-gray-900">₹{(courseFee - discount).toLocaleString("en-IN")}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                  <select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
+                    {["Paid", "Pending", "Partial Payment", "Failed", "Refunded"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                  <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 bg-white">
+                    {["UPI", "Credit Card", "Debit Card", "Net Banking", "Razorpay", "Cash"].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Transaction ID</label>
+                  <textarea value={paymentNotes} onChange={e => setPaymentNotes(e.target.value)} rows={2} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" placeholder="Add transaction ID or remarks..." />
                 </div>
               </div>
-            )}
+            </div>
+            
           </div>
 
-          <div className="pt-4 flex justify-between border-t border-gray-200 mt-6 bg-gray-50 p-4 rounded-b-xl">
-            {createStep > 1 ? (
-              <Button type="button" variant="outline" onClick={() => setCreateStep(createStep - 1)}>Back</Button>
-            ) : (
-              <Button type="button" variant="ghost" onClick={() => setIsAddDrawerOpen(false)}>Cancel</Button>
-            )}
-            
-            <Button type="submit" variant="primary">
-              {createStep < 3 ? "Continue to Next Step" : "Complete Enrollment"}
-            </Button>
+          <div className="pt-4 flex justify-end gap-3 border-t border-gray-200 mt-6 bg-gray-50 p-4 rounded-b-xl">
+            <Button type="button" variant="ghost" onClick={() => setIsAddDrawerOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Create Enrollment</Button>
           </div>
         </form>
       </Drawer>
 
       {/* View Enrollment Drawer */}
-      <Drawer isOpen={!!viewingEnrollment} onClose={() => setViewingEnrollment(null)} title={`Enrollment: ${viewingEnrollment?.id}`} size="xl">
-        {viewingEnrollment && (
-          <div className="space-y-6">
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{viewingEnrollment.studentName}</h3>
-                <p className="text-sm text-gray-600 mt-1">{viewingEnrollment.course}</p>
-                <div className="mt-2 text-xs text-gray-500 font-medium">Enrollment Date: {new Date(viewingEnrollment.enrollmentDate).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-xl font-bold text-gray-900">₹{viewingEnrollment.amount.toLocaleString("en-IN")}</div>
-                <Badge variant="default" className="mt-2">{viewingEnrollment.paymentStatus}</Badge>
-              </div>
-            </div>
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              [ ENROLLMENT DETAILS & TIMELINE CONTINUED... ]
-            </div>
-          </div>
-        )}
-      </Drawer>
+      <UnifiedStudentDrawer 
+        isOpen={!!viewingEnrollment} 
+        onClose={() => setViewingEnrollment(null)} 
+        record={viewingEnrollment} 
+        defaultTab="enrollment" 
+      />
     </div>
   );
 }

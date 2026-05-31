@@ -15,6 +15,7 @@ import { DropdownMenu } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 import { usePlatform } from "@/lib/PlatformContext";
+import { UnifiedStudentDrawer } from "@/components/UnifiedStudentDrawer";
 
 export default function CustomersPage() {
   const { platform } = usePlatform();
@@ -337,36 +338,12 @@ export default function CustomersPage() {
       </Drawer>
       
       {/* View Student Profile Drawer */}
-      <Drawer isOpen={!!viewingStudent} onClose={() => setViewingStudent(null)} title={viewingStudent?.name || "Student Profile"} size="xl">
-        {viewingStudent && (
-          <div className="space-y-6">
-            <div className="flex bg-gray-100 p-1 rounded-lg w-max mb-6">
-              {["Overview", "Enrollments", "Payments", "Follow-Ups", "Notes", "Activity Timeline"].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveProfileTab(tab.toLowerCase().replace(" ", "-") as any)}
-                  className={`px-4 py-1.5 text-sm rounded-md transition-all whitespace-nowrap ${
-                    activeProfileTab === tab.toLowerCase().replace(" ", "-")
-                      ? "bg-white text-primary font-semibold shadow-sm"
-                      : "text-gray-500 hover:text-gray-800 font-medium"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <h3 className="text-lg font-semibold">{viewingStudent.name}</h3>
-              <p className="text-sm text-gray-600">{viewingStudent.email} | {viewingStudent.phone}</p>
-              <p className="text-sm text-gray-600 mt-2">Status: <Badge>{viewingStudent.status}</Badge></p>
-              <p className="text-sm text-gray-600 mt-2">Notes: {viewingStudent.notes || "None"}</p>
-            </div>
-            <div className="h-[400px] flex items-center justify-center text-gray-400">
-              [ {activeProfileTab.replace("-", " ").toUpperCase()} VIEW CONTINUED... ]
-            </div>
-          </div>
-        )}
-      </Drawer>
+      <UnifiedStudentDrawer 
+        isOpen={!!viewingStudent} 
+        onClose={() => setViewingStudent(null)} 
+        record={viewingStudent} 
+        defaultTab="student" 
+      />
     </div>
   );
 }
