@@ -50,11 +50,15 @@ export default function Sidebar() {
   const menuItems = useMemo(() => {
     let list = [...navItems];
     if (platform === "online-course") {
-      // Insert Leads & Followups after Sales (index 3)
-      list.splice(3, 0, 
-        { name: "Leads", href: "/leads", icon: Filter },
-        { name: "Followups", href: "/followups", icon: CalendarCheck }
-      );
+      // Hide Marketing Spend (Purchases)
+      list = list.filter(item => item.name !== "Purchases");
+      
+      // Insert Leads after Sales
+      const salesIdx = list.findIndex(item => item.name === "Sales");
+      if (salesIdx !== -1) {
+        list.splice(salesIdx + 1, 0, { name: "Leads", href: "/leads", icon: Filter });
+      }
+
       // Insert Team after Customers (find index of Customers first)
       const custIndex = list.findIndex(item => item.href === "/customers");
       if (custIndex !== -1) {

@@ -277,47 +277,47 @@ export default function ReturnsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">
+                <tr className="bg-gray-50/30 border-b border-gray-100">
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider pl-6">
                     {platform === "online-course" ? "Refund ID" : "Return ID"}
                   </th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Date</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     {platform === "online-course" ? "Student" : "Customer"}
                   </th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     {platform === "online-course" ? "Course" : "Product Return"}
                   </th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Amount</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Reason</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status Resolution</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Reason</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status Resolution</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredRefunds.map((ref) => (
                   <tr key={ref.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="p-4 pl-6 font-semibold text-gray-900">{ref.refund_id}</td>
-                    <td className="p-4 text-sm text-gray-500">
+                    <td className="p-4 text-sm text-gray-600 font-medium">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-gray-400" />
                         {ref.date}
                       </div>
                     </td>
-                    <td className="p-4 text-sm font-medium text-gray-800">
+                    <td className="p-4 text-sm font-semibold text-gray-900">
                       <div className="flex items-center gap-1.5">
                         <User className="w-4 h-4 text-gray-400" />
                         {ref.student}
                       </div>
                     </td>
-                    <td className="p-4 text-sm text-gray-600 max-w-xs truncate" title={ref.course}>
+                    <td className="p-4 text-sm font-medium text-gray-600 max-w-xs truncate" title={ref.course}>
                       <div className="flex items-center gap-1.5">
                         <BookOpen className="w-4 h-4 text-gray-400" />
                         {ref.course}
                       </div>
                     </td>
                     <td className="p-4 text-sm font-medium text-gray-800">₹{ref.amount.toLocaleString("en-IN")}</td>
-                    <td className="p-4 text-sm font-medium text-gray-500">{ref.reason}</td>
+                    <td className="p-4 text-sm font-medium text-gray-600">{ref.reason}</td>
                     <td className="p-4">
                       <select
                         value={ref.status}

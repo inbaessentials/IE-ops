@@ -426,13 +426,13 @@ export default function ExpensesPage() {
           <div className="overflow-x-auto min-h-[300px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Notes / Details</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                <tr className="bg-gray-50/30 border-b border-gray-100">
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider pl-6">ID</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date & Time</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Notes / Details</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Amount</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -440,16 +440,16 @@ export default function ExpensesPage() {
                   const d = new Date(exp.date);
                   return (
                     <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="p-4 whitespace-nowrap">
-                        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-gray-50 border border-gray-250 text-gray-600 shadow-sm">
+                      <td className="p-4 pl-6 whitespace-nowrap">
+                        <span className="text-sm font-semibold text-gray-900">
                           {exp.display_id || `EXP-${exp.id.substring(0, 4).toUpperCase()}`}
                         </span>
                       </td>
                       <td className="p-4 whitespace-nowrap">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-600">
                           {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5 font-semibold">{getRelativeTime(exp.date)}</p>
+                        <p className="text-xs text-gray-400 mt-0.5 font-medium">{getRelativeTime(exp.date)}</p>
                       </td>
                       <td className="p-4 whitespace-nowrap">
                         <Badge variant="default" className={`${getCategoryBadgeStyles(exp.category)} shrink-0 px-2.5 py-0.5 font-semibold`}>
@@ -457,12 +457,12 @@ export default function ExpensesPage() {
                         </Badge>
                       </td>
                       <td className="p-4 max-w-sm">
-                        <p className="text-sm text-gray-700 truncate font-medium">{exp.notes || "—"}</p>
+                        <p className="text-sm text-gray-600 truncate font-medium">{exp.notes || "—"}</p>
                       </td>
                       <td className="p-4 whitespace-nowrap text-right">
-                        <span className="text-base font-bold text-gray-900">₹{exp.amount?.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-semibold text-gray-900">₹{exp.amount?.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                       </td>
-                      <td className="p-4 whitespace-nowrap text-right">
+                      <td className="p-4 whitespace-nowrap text-right pr-6">
                         <DropdownMenu items={getDropdownItems(exp)} />
                       </td>
                     </tr>
