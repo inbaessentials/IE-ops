@@ -442,7 +442,7 @@ export default function ReportsPage() {
                 <Card key={idx} className="p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{kpi.title}</p>
+                      <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{kpi.title}</p>
                       <h3 className="text-2xl font-semibold tracking-tight text-gray-900 mt-2">{kpi.value}</h3>
                     </div>
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.color}`}>
@@ -486,12 +486,12 @@ export default function ReportsPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50/50 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
                     <tr>
-                      <th className="p-4 pl-6">Category</th>
-                      <th className="p-4">{salesTitle} Sold</th>
-                      <th className="p-4">Gross Revenue</th>
-                      <th className="p-4">Exact Net Profit</th>
-                      <th className="p-4">Profit Margin</th>
-                      <th className="p-4 pr-6">{salesTitle} Share (%)</th>
+                      <th className="p-4 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{salesTitle} Sold</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Gross Revenue</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Exact Net Profit</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit Margin</th>
+                      <th className="p-4 pr-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{salesTitle} Share (%)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -500,12 +500,12 @@ export default function ReportsPage() {
                       return (
                         <tr key={index} className="hover:bg-gray-50/30 transition-colors">
                           <td className="p-4 pl-6">
-                            <span className="font-semibold text-gray-800">{cat.name}</span>
+                            <span className="font-semibold text-gray-900">{cat.name}</span>
                           </td>
-                          <td className="p-4 text-xs font-medium text-gray-500">
+                          <td className="p-4 text-sm font-medium text-gray-500">
                             {cat.units} {salesPlural.toLowerCase()}
                           </td>
-                        <td className="p-4 text-sm font-semibold text-gray-800">
+                        <td className="p-4 text-sm font-semibold text-gray-900">
                           {cat.revenueFormatted}
                         </td>
                         <td className="p-4 text-sm font-semibold text-[#2E8C13]">
@@ -516,7 +516,7 @@ export default function ReportsPage() {
                         </td>
                         <td className="p-4 pr-6 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <span className="font-semibold text-gray-700 w-8 text-right">{cat.share}%</span>
+                            <span className="font-semibold text-gray-900 w-8 text-right">{cat.share}%</span>
                             <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden shrink-0">
                               <div 
                                 className="h-full bg-[#2E8C13] rounded-full" 
@@ -558,12 +558,12 @@ export default function ReportsPage() {
                   <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50/50 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
                       <tr>
-                        <th className="p-4 pl-6">Rank</th>
-                        <th className="p-4">{inventorySingular} Info</th>
-                        <th className="p-4">{salesTitle} Sold</th>
-                        <th className="p-4">Gross Revenue</th>
-                        <th className="p-4">Growth</th>
-                        <th className="p-4 pr-6">Status</th>
+                        <th className="p-4 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                        <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{inventorySingular} Info</th>
+                        <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{salesTitle} Sold</th>
+                        <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Gross Revenue</th>
+                        <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Growth</th>
+                        <th className="p-4 pr-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -573,11 +573,11 @@ export default function ReportsPage() {
                           <tr key={prod.rank} className="hover:bg-gray-50/30 transition-colors">
                             <td className="p-4 pl-6 font-semibold text-gray-400">#{prod.rank}</td>
                             <td className="p-4">
-                              <div className="font-semibold text-gray-800">{prod.name}</div>
+                              <div className="font-semibold text-gray-900">{prod.name}</div>
                               <div className="text-xs text-gray-400 mt-0.5">{prod.sku}</div>
                             </td>
-                            <td className="p-4 text-xs font-medium text-gray-500">{prod.units} {salesPlural.toLowerCase()}</td>
-                            <td className="p-4 text-sm font-semibold text-gray-800">{prod.revenue}</td>
+                            <td className="p-4 text-sm font-medium text-gray-500">{prod.units} {salesPlural.toLowerCase()}</td>
+                            <td className="p-4 text-sm font-semibold text-gray-900">{prod.revenue}</td>
                             <td className="p-4 text-emerald-600 font-bold flex items-center gap-0.5 mt-2">
                               <ArrowUpRight className="w-3 h-3" /> {prod.growth}
                             </td>

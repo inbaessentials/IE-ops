@@ -945,7 +945,7 @@ export default function SettingsPage() {
                         {isEditing ? (
                           <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-200/80 flex flex-col gap-3.5 animate-in slide-in-from-top-1">
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Product Name</label>
+                              <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">Product Name</label>
                               <input 
                                 type="text"
                                 value={editProductName}
@@ -955,7 +955,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="grid grid-cols-3 gap-2.5">
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">SKU</label>
+                                <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">SKU</label>
                                 <input 
                                   type="text"
                                   value={editProductSku}
@@ -964,7 +964,7 @@ export default function SettingsPage() {
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Price (₹)</label>
+                                <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">Price (₹)</label>
                                 <input 
                                   type="number"
                                   value={editProductPrice}
@@ -973,7 +973,7 @@ export default function SettingsPage() {
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Stock</label>
+                                <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">Stock</label>
                                 <input 
                                   type="number"
                                   value={editProductStock}

@@ -797,7 +797,7 @@ export default function InventoryPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Inventory', 'displayName')}</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Inventory', 'displayName')}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalProductsCount}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -806,7 +806,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {(platform as string) === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {(platform as string) === 'online-course' ? 'Enrollment Slots' : 'Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-green-600">{totalStockCount} <span className="text-xs font-normal text-gray-400">{(platform as string) === 'online-course' ? 'slots' : 'units'}</span></h3>
           </div>
           <div className="p-3 bg-green-50 text-green-600 rounded-xl">
@@ -815,7 +815,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Inactive Courses' : 'Out of Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-rose-600">{outOfStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
@@ -824,7 +824,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Low Engagement' : 'Low Stock'}</p>
             <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{lowStockCount} <span className="text-xs font-normal text-gray-400">items</span></h3>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -833,7 +833,7 @@ export default function InventoryPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">{(platform as string) === 'online-course' ? 'Academy' : 'Inventory'} Value</p>
             <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">₹{totalInventoryValue.toLocaleString()}</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -948,12 +948,12 @@ export default function InventoryPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Price</p>
-                        <p className="text-sm font-bold text-gray-900 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
+                        <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Price</p>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
                       </div>
                       <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Students</p>
-                        <p className="text-sm font-bold text-gray-900 mt-0.5">{product.stock} enrolled</p>
+                        <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Students</p>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{product.stock} enrolled</p>
                       </div>
                     </div>
                     <div className="bg-[#2E8C13]/5 border border-[#2E8C13]/10 p-3 rounded-lg flex justify-between items-center">
@@ -997,19 +997,19 @@ export default function InventoryPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {(platform as string) === "online-course" ? "Course Name" : "Product Info"}
                   </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                     {(platform as string) === "online-course" ? "Students Enrolled" : "Stock"}
                   </th>
                   {(platform as string) === "online-course" && (
-                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue Generated</th>
+                    <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
                   )}
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1052,7 +1052,7 @@ export default function InventoryPage() {
                       </span>
                     </td>
                     {(platform as string) === "online-course" && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                         ₹{(product.stock * product.price).toLocaleString("en-IN")}
                       </td>
                     )}
@@ -1202,10 +1202,10 @@ export default function InventoryPage() {
           <div className="space-y-6 pb-10">
             {/* Quick adjust Form */}
             <form onSubmit={handleAdjustStock} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-              <h4 className="text-sm font-bold text-gray-900">Adjust Stock Level</h4>
+              <h4 className="text-sm font-semibold text-gray-900">Adjust Stock Level</h4>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Quantity</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Quantity</label>
                   <input 
                     required 
                     type="number" 
@@ -1216,7 +1216,7 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Reason</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Reason</label>
                   <Select 
                     options={["Restock", "Damaged", "Missing", "Correction"]}
                     value={adjustReason}
@@ -1231,7 +1231,7 @@ export default function InventoryPage() {
 
             {/* Vertical Timeline */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <h4 className="text-sm font-bold text-gray-900 mb-4">Stock Ledger Timeline</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Stock Ledger Timeline</h4>
               {timelineEvents.length > 0 ? (
                 <div className="relative border-l border-gray-200 pl-4 ml-2 space-y-6 py-2">
                   {timelineEvents.map((evt, idx) => (
@@ -1318,7 +1318,7 @@ export default function InventoryPage() {
                 <div className="space-y-4">
                   {/* Toolbar */}
                   <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                    <div className="text-xs text-gray-500 font-semibold">
+                    <div className="text-sm text-gray-500 font-medium">
                       💡 Filenames are cleaned as Names. Edit fields inline. Green border indicates image is uploaded.
                     </div>
                     <div className="flex items-center gap-3">
@@ -1369,7 +1369,7 @@ export default function InventoryPage() {
                           )}
 
                           {/* Upload Status Overlay */}
-                          <div className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white text-center p-1 ${
+                          <div className={`absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white text-center p-1 ${
                             item.uploadStatus === 'compressing' ? 'bg-black/60' :
                             item.uploadStatus === 'uploading' ? 'bg-black/60' :
                             item.uploadStatus === 'ready' ? 'bg-green-600/10' :
@@ -1400,7 +1400,7 @@ export default function InventoryPage() {
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 w-full">
                           {/* Name Input */}
                           <div className="lg:col-span-2">
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Product Name</label>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Product Name</label>
                             <input 
                               type="text" 
                               required
@@ -1413,7 +1413,7 @@ export default function InventoryPage() {
 
                           {/* SKU Input */}
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">SKU Code</label>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">SKU Code</label>
                             <input 
                               type="text" 
                               required
@@ -1426,7 +1426,7 @@ export default function InventoryPage() {
 
                           {/* Category Select */}
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Category</label>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Category</label>
                             <Select 
                               options={categories}
                               value={item.category}
@@ -1438,7 +1438,7 @@ export default function InventoryPage() {
 
                           {/* Prices Container (Purchase & Sell Price in columns) */}
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Purchase / Sale (₹)</label>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Purchase / Sale (₹)</label>
                             <div className="flex items-center gap-1">
                               <input 
                                 type="number" 
@@ -1461,7 +1461,7 @@ export default function InventoryPage() {
 
                           {/* Stock Level Input & Availability */}
                           <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Stock Level & Availability</label>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Stock Level & Availability</label>
                             <div className="flex items-center gap-1">
                               <input 
                                 type="number" 
@@ -1474,7 +1474,7 @@ export default function InventoryPage() {
                               <select
                                 value={item.status}
                                 onChange={(e) => handleEditBulkQueueItem(item.id, { status: e.target.value })}
-                                className="w-3/5 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-semibold text-gray-700"
+                                className="w-3/5 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-semibold text-gray-900"
                               >
                                 <option value="Active">Active</option>
                                 <option value="Inactive">Inactive</option>
@@ -1614,7 +1614,7 @@ export default function InventoryPage() {
               {bulkEditProducts.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
                   <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h3 className="text-sm font-bold text-gray-900">No Products Available</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">No Products Available</h3>
                   <p className="text-xs text-gray-400 mt-1">There are no products in the inventory to edit.</p>
                 </div>
               ) : (
@@ -1623,13 +1623,13 @@ export default function InventoryPage() {
                     <table className="w-full text-left border-collapse">
                       <thead className="sticky top-0 bg-gray-50/95 backdrop-blur-sm z-10 border-b border-gray-200 shadow-sm">
                         <tr>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Photo</th>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Product Info (Name & SKU)</th>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-40">Category</th>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-48 text-center">Cost / Sell (₹)</th>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-48 text-center">Stock & Quick Stepper</th>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Status</th>
-                          <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right w-16">Actions</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider w-16">Photo</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Product Info (Name & SKU)</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider w-40">Category</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider w-48 text-center">Cost / Sell (₹)</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider w-48 text-center">Stock & Quick Stepper</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider w-36">Status</th>
+                          <th className="px-4 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right w-16">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -1996,7 +1996,7 @@ function GymMembershipsView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Plans</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Plans</p>
             <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.filter(p => p.status === "Active").length}</h3>
           </div>
           <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -2005,7 +2005,7 @@ function GymMembershipsView() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Packages</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Packages</p>
             <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.length}</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -2014,7 +2014,7 @@ function GymMembershipsView() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Conversion Rate</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Conversion Rate</p>
             <h3 className="text-2xl font-bold tracking-tight text-purple-600">88.4%</h3>
           </div>
           <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -2023,7 +2023,7 @@ function GymMembershipsView() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Tax Standard</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Tax Standard</p>
             <h3 className="text-2xl font-bold tracking-tight text-gray-900">18% <span className="text-xs text-gray-400 font-semibold">GST</span></h3>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -2065,14 +2065,14 @@ function GymMembershipsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/60 border-y border-gray-200/60">
-                <th className="p-3 pl-6 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Plan ID</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Plan Name</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Duration</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Base Price</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Tax Details</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Freeze Policy</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Status</th>
-                <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase text-right pr-6">Actions</th>
+                <th className="p-3 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Plan ID</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Plan Name</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Duration</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Base Price</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Tax Details</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Freeze Policy</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Status</th>
+                <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase text-right pr-6">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
@@ -2080,8 +2080,8 @@ function GymMembershipsView() {
                 filteredPlans.map((plan: any) => (
                   <tr key={plan.id} className="hover:bg-gray-50/40 transition-colors group">
                     <td className="p-3 pl-6 font-mono text-xs font-semibold text-gray-400">{plan.id}</td>
-                    <td className="p-3 text-sm font-semibold text-gray-800">{plan.name}</td>
-                    <td className="p-3 text-xs text-gray-600 font-semibold">{plan.duration}</td>
+                    <td className="p-3 text-sm font-semibold text-gray-900">{plan.name}</td>
+                    <td className="p-3 text-sm text-gray-600 font-medium">{plan.duration}</td>
                     <td className="p-3 text-sm font-bold text-[#2E8C13]">₹{plan.price.toLocaleString("en-IN")}</td>
                     <td className="p-3 text-xs text-gray-500 font-medium">{plan.gst}% GST included</td>
                     <td className="p-3 text-xs font-semibold">
@@ -2129,7 +2129,7 @@ function GymMembershipsView() {
         <form className="space-y-4 font-sans" onSubmit={handleSubmitPlan}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Plan / Package Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Plan / Package Name</label>
               <input 
                 required 
                 type="text" 
@@ -2142,7 +2142,7 @@ function GymMembershipsView() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Plan Validity Duration</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Plan Validity Duration</label>
                 <select 
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
@@ -2155,7 +2155,7 @@ function GymMembershipsView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">GST Tax Rate (%)</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">GST Tax Rate (%)</label>
                 <select 
                   value={gst}
                   onChange={e => setGst(e.target.value)}
@@ -2170,7 +2170,7 @@ function GymMembershipsView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Base Price (INR)</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Base Price (INR)</label>
                 <input 
                   required 
                   type="number" 
@@ -2181,7 +2181,7 @@ function GymMembershipsView() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Plan Offering Status</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Plan Offering Status</label>
                 <select 
                   value={status}
                   onChange={e => setStatus(e.target.value)}
@@ -2194,7 +2194,7 @@ function GymMembershipsView() {
             </div>
 
             <div className="pt-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer">
                 <input 
                   type="checkbox" 
                   checked={freezeAllowed}
@@ -2656,7 +2656,7 @@ function CourseManagementView() {
             </div>
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Category:</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Category:</span>
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
@@ -2667,7 +2667,7 @@ function CourseManagementView() {
                 </select>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status:</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -2690,15 +2690,15 @@ function CourseManagementView() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
-                      <th className="p-4 pl-6 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Course Name</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Category</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Price</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Leads</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Enrolled</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Conv %</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right">Revenue</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Status</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6"></th>
+                      <th className="p-4 pl-6 text-xs font-medium text-gray-600 uppercase tracking-wider">Course Name</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Leads</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Enrolled</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Conv %</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Revenue</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -2892,11 +2892,11 @@ function CourseManagementView() {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-gray-100">
-                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Course Name</th>
-                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Students</th>
-                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Price</th>
-                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider">Course Name</th>
+                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider text-center">Students</th>
+                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider">Price</th>
+                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-2.5 text-xs font-medium text-gray-600 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
@@ -2994,13 +2994,13 @@ function CourseManagementView() {
             {activeTab === "overview" && (
               <div className="space-y-4">
                 <div className="p-4 bg-gray-50 border border-gray-200/50 rounded-2xl">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Course Syllabus Description</span>
-                  <p className="text-sm font-semibold text-gray-800 mt-1 leading-relaxed">{selectedCourse.description}</p>
+                  <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">Course Syllabus Description</span>
+                  <p className="text-sm font-semibold text-gray-900 mt-1 leading-relaxed">{selectedCourse.description}</p>
                   
                   {selectedCourse.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
                       {selectedCourse.tags.map((tag, idx) => (
-                        <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold rounded-full">
+                        <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 text-[10px] font-medium rounded-full">
                           #{tag}
                         </span>
                       ))}
@@ -3045,7 +3045,7 @@ function CourseManagementView() {
                     href={selectedCourse.landingPageUrl || "#"} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-700 rounded-xl transition-all"
+                    className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-900 rounded-xl transition-all"
                   >
                     <span className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-blue-500" />
@@ -3073,18 +3073,18 @@ function CourseManagementView() {
             {/* TAB CONTENT: Enrollments */}
             {activeTab === "enrollments" && (
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Enrollment Registry</h4>
+                <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Active Enrollment Registry</h4>
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-white">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
                         <th className="p-3 pl-4">Student</th>
                         <th className="p-3">Date Enrolled</th>
                         <th className="p-3">Tuition Fee</th>
                         <th className="p-3 text-right pr-4">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
                       {enrollments.map((en, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
                           <td className="p-3 pl-4 font-bold text-gray-900">{en.student}</td>
@@ -3108,18 +3108,18 @@ function CourseManagementView() {
             {/* TAB CONTENT: Leads */}
             {activeTab === "leads" && (
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Counseling Pipelines Interest</h4>
+                <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Counseling Pipelines Interest</h4>
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-white">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
                         <th className="p-3 pl-4">Lead Name</th>
                         <th className="p-3">Ad Source</th>
                         <th className="p-3">CRM Stage</th>
                         <th className="p-3 text-right pr-4">Last Contact</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
                       {leadsList.map((le, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
                           <td className="p-3 pl-4 font-bold text-gray-900">{le.name}</td>
@@ -3141,18 +3141,18 @@ function CourseManagementView() {
             {/* TAB CONTENT: Payments */}
             {activeTab === "payments" && (
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Academy Invoices ledger</h4>
+                <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Academy Invoices ledger</h4>
                 <div className="border border-gray-100 rounded-xl overflow-hidden shadow-xs bg-white">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
                         <th className="p-3 pl-4">Invoice ID</th>
                         <th className="p-3">Amount Billing</th>
                         <th className="p-3">Invoice Date</th>
                         <th className="p-3 text-right pr-4">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                    <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
                       {payments.map((pa, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
                           <td className="p-3 pl-4 font-mono font-bold text-gray-900">{pa.invoice}</td>

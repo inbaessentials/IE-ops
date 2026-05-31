@@ -440,7 +440,7 @@ export default function AttendancePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Attendance Today</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Attendance Today</p>
             <h3 className="text-2xl font-bold tracking-tight text-rose-600">{stats.today}</h3>
           </div>
           <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
@@ -449,7 +449,7 @@ export default function AttendancePage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Avg Weekly Visits</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Avg Weekly Visits</p>
             <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.weeklyAvg}</h3>
           </div>
           <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -458,7 +458,7 @@ export default function AttendancePage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Inactive Members</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Inactive Members</p>
             <h3 className="text-2xl font-bold tracking-tight text-amber-600">{stats.inactive}</h3>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -467,7 +467,7 @@ export default function AttendancePage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Peak Workout Hours</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Peak Workout Hours</p>
             <h3 className="text-base font-bold tracking-tight text-purple-600 mt-1">{stats.peakHour}</h3>
           </div>
           <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -482,7 +482,7 @@ export default function AttendancePage() {
         {/* Chart 1: Attendance Trend Area Chart */}
         <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
           <CardHeader className="border-b border-gray-50 pb-4">
-            <CardTitle className="text-sm font-bold text-gray-900">Attendance Scan Trend</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-900">Attendance Scan Trend</CardTitle>
             <p className="text-xs text-gray-500 mt-0.5">Physical check-in scans frequency compiled over the last 7 workout days.</p>
           </CardHeader>
           <CardContent className="p-6">
@@ -512,7 +512,7 @@ export default function AttendancePage() {
         {/* Chart 2: Member Visit Frequency Pie Chart */}
         <Card className="overflow-hidden border border-gray-100 shadow-sm flex flex-col">
           <CardHeader className="border-b border-gray-50 pb-4">
-            <CardTitle className="text-sm font-bold text-gray-900">Workout Frequency Shares</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-900">Workout Frequency Shares</CardTitle>
             <p className="text-xs text-gray-500 mt-0.5">Segment share of studio members by their weekly attendance metrics.</p>
           </CardHeader>
           <CardContent className="p-6 flex-1 flex flex-col justify-between">
@@ -556,7 +556,7 @@ export default function AttendancePage() {
       {/* Chart 3: Peak Hour Analysis */}
       <Card className="overflow-hidden border border-gray-100 shadow-sm">
         <CardHeader className="border-b border-gray-50 pb-4">
-          <CardTitle className="text-sm font-bold text-gray-900">Peak Hours Rush Analysis</CardTitle>
+          <CardTitle className="text-sm font-semibold text-gray-900">Peak Hours Rush Analysis</CardTitle>
           <p className="text-xs text-gray-500 mt-0.5">Average sign-in scans distributed by gym hours to optimize staff and space capacities.</p>
         </CardHeader>
         <CardContent className="p-6">
@@ -595,7 +595,7 @@ export default function AttendancePage() {
           <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
             <button 
               onClick={() => setActiveView("today")}
-              className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+              className={`px-3 py-1 rounded-md text-[10px] font-medium transition-all ${
                 activeView === "today" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -603,7 +603,7 @@ export default function AttendancePage() {
             </button>
             <button 
               onClick={() => setActiveView("weekly")}
-              className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+              className={`px-3 py-1 rounded-md text-[10px] font-medium transition-all ${
                 activeView === "weekly" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -611,7 +611,7 @@ export default function AttendancePage() {
             </button>
             <button 
               onClick={() => setActiveView("monthly")}
-              className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+              className={`px-3 py-1 rounded-md text-[10px] font-medium transition-all ${
                 activeView === "monthly" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -622,7 +622,7 @@ export default function AttendancePage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+            <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">
               <tr>
                 <th className="p-3 pl-6">Member ID & Name</th>
                 <th className="p-3">Date</th>
@@ -640,19 +640,19 @@ export default function AttendancePage() {
                       {log.memberName.charAt(0)}
                     </div>
                     <div>
-                      <span className="text-sm font-semibold text-gray-800 block leading-tight">{log.memberName}</span>
+                      <span className="text-sm font-semibold text-gray-900 block leading-tight">{log.memberName}</span>
                       <span className="text-[10px] text-gray-400 block font-mono mt-0.5">{log.memberId}</span>
                     </div>
                   </td>
                   <td className="p-3 text-xs text-gray-500 font-normal">{log.date}</td>
                   <td className="p-3">
-                    <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
+                    <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
                       <Clock className="w-3.5 h-3.5 text-green-600" />
                       {log.checkIn}
                     </span>
                   </td>
                   <td className="p-3">
-                    <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                    <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${
                       log.checkOut === "--:--" 
                         ? "bg-amber-50 text-amber-700 border-amber-250 animate-pulse" 
                         : "bg-gray-50 text-gray-600 border-gray-200"
@@ -684,7 +684,7 @@ export default function AttendancePage() {
         <form className="space-y-4 font-sans" onSubmit={handleMockScan}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Select Active Gym Member</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">Select Active Gym Member</label>
               <select
                 required
                 value={scannerMemberId}
@@ -701,9 +701,9 @@ export default function AttendancePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Scan Transaction Type</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">Scan Transaction Type</label>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer">
                   <input 
                     type="radio" 
                     name="scanType"
@@ -714,7 +714,7 @@ export default function AttendancePage() {
                   Check-In Scan (Workout Start)
                 </label>
                 
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer">
                   <input 
                     type="radio" 
                     name="scanType"
@@ -774,7 +774,7 @@ export default function AttendancePage() {
                 <div className="space-y-6">
                   {/* Select Check In / Out */}
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Kiosk Action Type</label>
+                    <label className="block text-xs font-medium text-gray-600 uppercase tracking-widest mb-2.5">Kiosk Action Type</label>
                     <div className="grid grid-cols-2 gap-2 bg-[#1f2937]/50 p-1 rounded-xl border border-gray-800">
                       <button 
                         onClick={() => { playChime("scan"); setKioskCheckType("in"); setKioskStatus("idle"); }}
@@ -801,7 +801,7 @@ export default function AttendancePage() {
 
                   {/* Tab Selector */}
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Biometric Scanner Mode</label>
+                    <label className="block text-xs font-medium text-gray-600 uppercase tracking-widest mb-2.5">Biometric Scanner Mode</label>
                     <div className="flex flex-col gap-2">
                       <button 
                         onClick={() => { playChime("scan"); setKioskTab("phone"); setKioskStatus("idle"); }}
@@ -953,7 +953,7 @@ export default function AttendancePage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 uppercase tracking-wider">Access Granted</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 uppercase tracking-wider">Access Granted</span>
                       <h2 className="text-lg font-bold text-gray-100">{kioskMessage}</h2>
                     </div>
 
@@ -1008,7 +1008,7 @@ export default function AttendancePage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 uppercase tracking-wider">Access Blocked</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 uppercase tracking-wider">Access Blocked</span>
                       <h2 className="text-sm font-bold text-gray-200">{kioskMessage}</h2>
                     </div>
 

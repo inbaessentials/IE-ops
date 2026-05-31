@@ -552,7 +552,7 @@ export default function Dashboard() {
         {/* Page Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
               Gym Services Operating System
             </h1>
             <p className="text-sm text-gray-500 mt-1">Real-time revenue, retention, and enrollment statistics for Elite Fitness Studio.</p>
@@ -564,7 +564,7 @@ export default function Dashboard() {
               Main Branch
             </span>
             <div className="w-[1px] h-5 bg-gray-200"></div>
-            <span className="text-xs font-semibold text-gray-500">{new Date().toDateString()}</span>
+            <span className="text-xs font-medium text-gray-500">{new Date().toDateString()}</span>
           </div>
         </div>
 
@@ -575,8 +575,8 @@ export default function Dashboard() {
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Members</p>
-              <h3 className="text-xl font-bold text-gray-900 mt-0.5">{totalMembers}</h3>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Total Members</p>
+              <h3 className="text-xl font-semibold text-gray-900 mt-0.5">{totalMembers}</h3>
             </div>
           </Card>
           
@@ -585,7 +585,7 @@ export default function Dashboard() {
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Members</p>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Active Members</p>
               <h3 className="text-xl font-bold text-[#2E8C13] mt-0.5">{activeMembers}</h3>
             </div>
           </Card>
@@ -595,8 +595,8 @@ export default function Dashboard() {
               <Filter className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">New Leads</p>
-              <h3 className="text-xl font-bold text-gray-900 mt-0.5">{newLeads}</h3>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">New Leads</p>
+              <h3 className="text-xl font-semibold text-gray-900 mt-0.5">{newLeads}</h3>
             </div>
           </Card>
 
@@ -605,7 +605,7 @@ export default function Dashboard() {
               <CalendarCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Renewals Due</p>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Renewals Due</p>
               <h3 className="text-xl font-bold text-amber-600 mt-0.5">{renewalsDueCount}</h3>
             </div>
           </Card>
@@ -615,7 +615,7 @@ export default function Dashboard() {
               <IndianRupee className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Revenue Today</p>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Revenue Today</p>
               <h3 className="text-xl font-bold text-emerald-600 mt-0.5">₹{gymTodayRevenue.toLocaleString("en-IN")}</h3>
             </div>
           </Card>
@@ -625,7 +625,7 @@ export default function Dashboard() {
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Revenue This Month</p>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Revenue This Month</p>
               <h3 className="text-xl font-bold text-purple-600 mt-0.5">₹3,45,000</h3>
             </div>
           </Card>
@@ -635,8 +635,8 @@ export default function Dashboard() {
               <Award className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PT Revenue</p>
-              <h3 className="text-xl font-bold text-gray-900 mt-0.5">₹1,80,000</h3>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">PT Revenue</p>
+              <h3 className="text-xl font-semibold text-gray-900 mt-0.5">₹1,80,000</h3>
             </div>
           </Card>
 
@@ -645,8 +645,8 @@ export default function Dashboard() {
               <PackageCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Product Revenue</p>
-              <h3 className="text-xl font-bold text-gray-900 mt-0.5">₹45,000</h3>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Product Revenue</p>
+              <h3 className="text-xl font-semibold text-gray-900 mt-0.5">₹45,000</h3>
             </div>
           </Card>
 
@@ -655,7 +655,7 @@ export default function Dashboard() {
               <Flame className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Attendance Today</p>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Attendance Today</p>
               <h3 className="text-xl font-bold text-rose-600 mt-0.5">48 checked in</h3>
             </div>
           </Card>
@@ -670,7 +670,7 @@ export default function Dashboard() {
           {/* 1. Renewals Due Widget */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <CalendarCheck className="w-4 h-4 text-amber-500" />
                 Active Memberships Expiring Soon
               </CardTitle>
@@ -698,7 +698,7 @@ export default function Dashboard() {
                   return (
                     <div key={i} className="py-3 flex items-center justify-between group">
                       <div>
-                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <h4 className="text-xs font-semibold text-gray-900">{member.name}</h4>
                         <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Exp: {member.expiryDate}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -723,7 +723,7 @@ export default function Dashboard() {
                         </button>
                         <button 
                           onClick={() => handleGymRenew(member.id)}
-                          className="px-2 py-1 text-[10px] font-bold bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded-md transition-colors"
+                          className="px-2 py-1 text-[10px] font-medium bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded-md transition-colors"
                         >
                           Renew
                         </button>
@@ -738,7 +738,7 @@ export default function Dashboard() {
           {/* 2. Churn Risk Widget */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
                 Churn Risk Members (Absent Scans)
               </CardTitle>
@@ -771,7 +771,7 @@ export default function Dashboard() {
                   return (
                     <div key={i} className="py-3 flex items-center justify-between group">
                       <div>
-                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <h4 className="text-xs font-semibold text-gray-900">{member.name}</h4>
                         <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Last Check-In: {member.lastVisitDate}</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -782,7 +782,7 @@ export default function Dashboard() {
                         </span>
                         <button 
                           onClick={() => handleGymWhatsApp(member.name, member.mobile, `Hey ${member.name}, we missed you at Elite Fitness Studio! It's been ${daysAbsent} days since your last visit. Let's get back on track this week.`)}
-                          className="px-2.5 py-1 text-[10px] font-bold text-[#2E8C13] border border-green-200 bg-green-50/20 hover:bg-green-50 rounded-md transition-all"
+                          className="px-2.5 py-1 text-[10px] font-medium text-[#2E8C13] border border-green-200 bg-green-50/20 hover:bg-green-50 rounded-md transition-all"
                         >
                           Alert
                         </button>
@@ -801,7 +801,7 @@ export default function Dashboard() {
           {/* 3. PT Upsell Opportunities */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <Award className="w-4 h-4 text-purple-500" />
                 Personal Training (PT) Upsell Opportunities
               </CardTitle>
@@ -815,17 +815,17 @@ export default function Dashboard() {
                   return (
                     <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
                       <div>
-                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <h4 className="text-xs font-semibold text-gray-900">{member.name}</h4>
                         <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Regular Attendance</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right mr-2">
-                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full block text-center">{suggestedPkg}</span>
-                          <span className="text-[10px] font-bold text-gray-900 mt-1 block">Value: {potentialRev}</span>
+                          <span className="text-[10px] font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full block text-center">{suggestedPkg}</span>
+                          <span className="text-[10px] font-semibold text-gray-900 mt-1 block">Value: {potentialRev}</span>
                         </div>
                         <button 
                           onClick={() => handleGymPTPropose(member.name, suggestedPkg)}
-                          className="px-2.5 py-1 text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-md border border-purple-100 transition-colors"
+                          className="px-2.5 py-1 text-[10px] font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-md border border-purple-100 transition-colors"
                         >
                           Propose
                         </button>
@@ -840,7 +840,7 @@ export default function Dashboard() {
           {/* 4. Product Cross-Sell Opportunities */}
           <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
             <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
-              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-emerald-500" />
                 Product & Supplement Cross-Sell Targets
               </CardTitle>
@@ -854,17 +854,17 @@ export default function Dashboard() {
                   return (
                     <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
                       <div>
-                        <h4 className="text-xs font-bold text-gray-900">{member.name}</h4>
+                        <h4 className="text-xs font-semibold text-gray-900">{member.name}</h4>
                         <p className="text-[10px] text-gray-400 mt-0.5">Plan: {member.membership} • Active status</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right mr-2">
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full block text-center">{suggestedProd}</span>
-                          <span className="text-[10px] font-bold text-gray-900 mt-1 block">Value: {potentialRev}</span>
+                          <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full block text-center">{suggestedProd}</span>
+                          <span className="text-[10px] font-semibold text-gray-900 mt-1 block">Value: {potentialRev}</span>
                         </div>
                         <button 
                           onClick={() => handleGymCrossSell(member.name, suggestedProd)}
-                          className="px-2.5 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md border border-emerald-100 transition-colors"
+                          className="px-2.5 py-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-md border border-emerald-100 transition-colors"
                         >
                           Cross-Sell
                         </button>
@@ -883,7 +883,7 @@ export default function Dashboard() {
           {/* Top Trainers Leaderboard */}
           <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#2E8C13]" />
                 Top Performing Trainers Roster
               </CardTitle>
@@ -893,19 +893,19 @@ export default function Dashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      <th className="py-3 px-6">Trainer Name</th>
-                      <th className="py-3 px-6">Department Specialty</th>
-                      <th className="py-3 px-6 text-center">Active Clients</th>
-                      <th className="py-3 px-6 text-center">PT Plans Sold</th>
-                      <th className="py-3 px-6 text-right">Revenue Generated</th>
+                    <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Trainer Name</th>
+                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Department Specialty</th>
+                      <th className="py-3 px-6 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Clients</th>
+                      <th className="py-3 px-6 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">PT Plans Sold</th>
+                      <th className="py-3 px-6 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
                     {gymTrainers.map((trn, i) => (
                       <tr key={i} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="py-3.5 px-6 font-bold text-gray-800 flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center text-[10px] font-bold">
+                        <td className="py-3.5 px-6 font-semibold text-gray-900 flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center text-[10px] font-medium">
                             {trn.name.charAt(0)}
                           </div>
                           {trn.name}
@@ -925,7 +925,7 @@ export default function Dashboard() {
           {/* Best Selling Supplement Products */}
           <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-indigo-500" />
                 Supplement & Product Sales
               </CardTitle>
@@ -936,12 +936,12 @@ export default function Dashboard() {
                 {gymProducts.map((prod, i) => (
                   <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
                     <div>
-                      <h4 className="text-xs font-bold text-gray-800">{prod.name}</h4>
+                      <h4 className="text-xs font-semibold text-gray-900">{prod.name}</h4>
                       <p className="text-[10px] text-gray-500 mt-0.5">SKU: {prod.sku} • Stock: <span className={prod.stock <= 10 ? "text-red-500 font-bold" : "text-gray-700"}>{prod.stock} left</span></p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-bold text-gray-900 block">{prod.unitsSold} sold</span>
-                      <span className="text-[10px] font-bold text-emerald-600 mt-0.5 block">₹{prod.revenue.toLocaleString("en-IN")}</span>
+                      <span className="text-xs font-semibold text-gray-900 block">{prod.unitsSold} sold</span>
+                      <span className="text-[10px] font-medium text-emerald-600 mt-0.5 block">₹{prod.revenue.toLocaleString("en-IN")}</span>
                     </div>
                   </div>
                 ))}
@@ -985,7 +985,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{dashboardTitle}</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">{dashboardTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{dashboardDesc}</p>
         </div>
         
@@ -993,7 +993,7 @@ export default function Dashboard() {
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
+            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-900 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
           >
             <option value="All">All Categories</option>
             {categories.map((cat) => (
@@ -1006,7 +1006,7 @@ export default function Dashboard() {
           <select 
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
+            className="bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-900 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
           >
             <option value="All time">All Time</option>
             <option value="Today">Today</option>
@@ -1017,14 +1017,14 @@ export default function Dashboard() {
 
           {dateRange === "Custom Date Range" && (
             <div className="flex items-center gap-2 animate-in slide-in-from-right-3 duration-150">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">From</span>
+              <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">From</span>
               <input 
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 font-semibold cursor-pointer focus:outline-none focus:border-primary"
               />
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">To</span>
+              <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">To</span>
               <input 
                 type="date"
                 value={endDate}
@@ -1047,11 +1047,11 @@ export default function Dashboard() {
                     <Icon className={`w-6 h-6 ${kpi.color}`} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{getCardTitle(kpi.title)}</p>
+                    <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getCardTitle(kpi.title)}</p>
                     <div className="flex items-baseline gap-2 mt-1">
                       <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{kpi.value}</h3>
                       {totalSalesSum > 0 && (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                           kpi.trend.startsWith('+') ? 'bg-green-50 text-green-700' : 
                           kpi.trend.startsWith('-') ? 'bg-red-50 text-red-700' : 'bg-gray-50 text-gray-700'
                         }`}>
@@ -1102,7 +1102,7 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[#2E8C13]" />
-              <h2 className="text-base font-bold text-gray-900">Course Creator Quick Insights</h2>
+              <h2 className="text-base font-semibold text-gray-900">Course Creator Quick Insights</h2>
               <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-1">LMS Intelligence</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
                     <div className={`w-8 h-8 ${item.bg} ${item.color} rounded-xl flex items-center justify-center mb-3`}>
                       <Icon className="w-4 h-4" />
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">{item.label}</p>
+                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wider leading-tight">{item.label}</p>
                     <h3 className={`text-xl font-bold mt-1 ${item.color}`}>{item.value}</h3>
                     <p className="text-[10px] text-gray-400 mt-0.5 font-medium">{item.sub}</p>
                   </Card>
@@ -1127,7 +1127,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="border-b border-gray-50/50 pb-4">
-            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#2E8C13]" />
               Top Selling {getModuleProp('Inventory', 'displayName')}
             </CardTitle>
@@ -1138,18 +1138,18 @@ export default function Dashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      <th className="py-3 px-6">{getModuleProp('Inventory', 'singularDisplayName')}</th>
-                      <th className="py-3 px-6">Category</th>
-                      <th className="py-3 px-6 text-center">Units Sold</th>
-                      <th className="py-3 px-6 text-right">Revenue</th>
-                      <th className="py-3 px-6 text-right">Profit</th>
+                    <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getModuleProp('Inventory', 'singularDisplayName')}</th>
+                      <th className="py-3 px-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="py-3 px-6 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Units Sold</th>
+                      <th className="py-3 px-6 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="py-3 px-6 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
                     {topProducts.map((prod, i) => (
                       <tr key={i} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="py-3.5 px-6 font-semibold text-gray-800">{prod.name}</td>
+                        <td className="py-3.5 px-6 font-semibold text-gray-900">{prod.name}</td>
                         <td className="py-3.5 px-6">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
                             {prod.category}
@@ -1173,7 +1173,7 @@ export default function Dashboard() {
 
         <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="border-b border-gray-50/50 pb-4">
-            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />
               {getModuleProp('Inventory', 'singularDisplayName')} Action Center
             </CardTitle>
@@ -1187,7 +1187,7 @@ export default function Dashboard() {
                   return (
                     <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-800">{prod.name}</h4>
+                        <h4 className="text-sm font-semibold text-gray-900">{prod.name}</h4>
                         <p className="text-xs text-gray-500 mt-0.5">{prod.category || "Uncategorized"}</p>
                       </div>
                       <div className="flex items-center gap-3">

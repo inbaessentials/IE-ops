@@ -200,7 +200,7 @@ export default function ReturnsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
               Total {platform === "online-course" ? "Refund Claims" : "Returns Registered"}
             </p>
             <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{refunds.length}</h3>
@@ -211,7 +211,7 @@ export default function ReturnsPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
               {platform === "online-course" ? "Refund Value Claimed" : "Return Valuation"}
             </p>
             <h3 className="text-2xl font-semibold tracking-tight text-[#2E8C13]">
@@ -224,7 +224,7 @@ export default function ReturnsPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Resolution</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Pending Resolution</p>
             <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
               {refunds.filter(r => r.status === "Requested" || r.status === "Pending Approval" || r.status === "Approved").length}
             </h3>
@@ -248,7 +248,7 @@ export default function ReturnsPage() {
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-            <span className="text-xs text-gray-500 font-semibold uppercase">Filter Status:</span>
+            <span className="text-sm text-gray-500 font-medium uppercase">Filter Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -278,20 +278,20 @@ export default function ReturnsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">
                     {platform === "online-course" ? "Refund ID" : "Return ID"}
                   </th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
                     {platform === "online-course" ? "Student" : "Customer"}
                   </th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">
                     {platform === "online-course" ? "Course" : "Product Return"}
                   </th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Reason</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status Resolution</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Reason</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status Resolution</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -316,8 +316,8 @@ export default function ReturnsPage() {
                         {ref.course}
                       </div>
                     </td>
-                    <td className="p-4 text-sm font-bold text-gray-900">₹{ref.amount.toLocaleString("en-IN")}</td>
-                    <td className="p-4 text-xs font-medium text-gray-500">{ref.reason}</td>
+                    <td className="p-4 text-sm font-semibold text-gray-900">₹{ref.amount.toLocaleString("en-IN")}</td>
+                    <td className="p-4 text-sm font-medium text-gray-500">{ref.reason}</td>
                     <td className="p-4">
                       <select
                         value={ref.status}

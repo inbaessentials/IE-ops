@@ -515,7 +515,7 @@ export default function CustomersPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Students</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Students</p>
               <h3 className="text-2xl font-bold tracking-tight text-gray-900">{totalCustomersCount}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -524,7 +524,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Students</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Students</p>
               <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{activeStudents}</h3>
             </div>
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl animate-pulse">
@@ -533,7 +533,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Completion Rate</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Completion Rate</p>
               <h3 className="text-2xl font-bold tracking-tight text-emerald-600">{completionRate}%</h3>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -542,7 +542,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Inactive Students</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Inactive Students</p>
               <h3 className="text-2xl font-bold tracking-tight text-amber-600">{inactiveStudents}</h3>
             </div>
             <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -554,7 +554,7 @@ export default function CustomersPage() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Customers', 'displayName')}</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Customers', 'displayName')}</p>
               <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalCustomersCount}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl animate-in zoom-in duration-200">
@@ -563,7 +563,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Loyal {getModuleProp('Customers', 'displayName')}</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Loyal {getModuleProp('Customers', 'displayName')}</p>
               <h3 className="text-2xl font-semibold tracking-tight text-yellow-600">{repeatCustomersCount}</h3>
             </div>
             <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl animate-in zoom-in duration-200">
@@ -572,7 +572,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Avg LTV / Spent</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Avg LTV / Spent</p>
               <h3 className="text-2xl font-semibold tracking-tight text-emerald-600">
                 ₹{avgSpentPerCustomer.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
               </h3>
@@ -583,7 +583,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Spender</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Spender</p>
               {topSpenderCustomer && topSpenderCustomer.totalSpent > 0 ? (
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold text-indigo-700 truncate max-w-[130px] leading-tight">
@@ -603,7 +603,7 @@ export default function CustomersPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total LTV Value</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total LTV Value</p>
               <h3 className="text-2xl font-semibold tracking-tight text-purple-600">
                 ₹{totalSpentAll.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
               </h3>
@@ -644,23 +644,23 @@ export default function CustomersPage() {
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   {platform === "online-course" ? (
                     <>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student Name</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Enrollment Date</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Active</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment Date</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </>
                   ) : (
                     <>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Name</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Orders</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Spent</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
                     </>
                   )}
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -704,7 +704,7 @@ export default function CustomersPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="space-y-1 w-28">
-                            <div className="flex items-center justify-between text-[10px] font-bold">
+                            <div className="flex items-center justify-between text-[10px] font-medium">
                               <span className="text-gray-800">{customer.progress || 40}%</span>
                               <span className={
                                 customer.completionStatus === "Completed" ? "text-green-600" :
@@ -1001,7 +1001,7 @@ export default function CustomersPage() {
                   </div>
                   {cert ? (
                     <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <span className="text-gray-400 font-semibold uppercase block text-[10px]">Certificate ID</span>
                           <span className="font-mono font-bold text-gray-900 mt-1 block">{cert.certificateId}</span>
@@ -1064,7 +1064,7 @@ export default function CustomersPage() {
                   <MessageSquare className="w-4 h-4 text-green-600" />
                   <h4 className="font-bold text-sm text-gray-900">WhatsApp Communications Log</h4>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-400 font-semibold uppercase block text-[10px]">Acquisition Source</span>
                     <span className="font-bold text-gray-900 mt-1 block">{viewingCustomer.source || "Organic Registration"}</span>
@@ -1185,7 +1185,7 @@ export default function CustomersPage() {
               </div>
 
               <div className="space-y-1">
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">Certificate of Completion</h2>
+                <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-800">Certificate of Completion</h2>
                 <p className="text-[10px] text-gray-400 italic">This credential certifies that</p>
               </div>
 
@@ -1599,7 +1599,7 @@ function GymMembersView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
             <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{activeMembersCount}</h3>
           </div>
           <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -1608,7 +1608,7 @@ function GymMembersView() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Frozen Accounts</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Frozen Accounts</p>
             <h3 className="text-2xl font-bold tracking-tight text-blue-600">{frozenCount}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -1617,7 +1617,7 @@ function GymMembersView() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Expired Packages</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Expired Packages</p>
             <h3 className="text-2xl font-bold tracking-tight text-red-600">{expiredCount}</h3>
           </div>
           <div className="p-3 bg-red-50 text-red-600 rounded-xl">
@@ -1626,7 +1626,7 @@ function GymMembersView() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Open Leads Pipeline</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Open Leads Pipeline</p>
             <h3 className="text-2xl font-bold tracking-tight text-purple-600">{leads.filter(l => l.stage !== "Joined" && l.stage !== "Lost").length}</h3>
           </div>
           <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -1715,11 +1715,11 @@ function GymMembersView() {
           )}
 
           {activeTab === "leads" && (
-            <span className="text-xs font-semibold text-gray-500">Pipeline Grid (Change Stage using dropdowns)</span>
+            <span className="text-xs font-medium text-gray-500">Pipeline Grid (Change Stage using dropdowns)</span>
           )}
           
           {activeTab === "renewals" && (
-            <span className="text-xs font-semibold text-gray-500">Follow-up reminders for memberships expiring or overdue</span>
+            <span className="text-xs font-medium text-gray-500">Follow-up reminders for memberships expiring or overdue</span>
           )}
         </div>
       </Card>
@@ -1734,13 +1734,13 @@ function GymMembersView() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/60 border-y border-gray-200/60">
-                    <th className="p-3 pl-6 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Member ID & Name</th>
-                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Contact Info</th>
-                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Coach/Trainer</th>
-                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Active Plan</th>
-                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Validity Period</th>
-                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Membership Status</th>
-                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase text-right pr-6">Actions</th>
+                    <th className="p-3 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Member ID & Name</th>
+                    <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Contact Info</th>
+                    <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Coach/Trainer</th>
+                    <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Active Plan</th>
+                    <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Validity Period</th>
+                    <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">Membership Status</th>
+                    <th className="p-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase text-right pr-6">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
@@ -1754,11 +1754,11 @@ function GymMembersView() {
                           <div>
                             <button 
                               onClick={() => setViewingMember(member)}
-                              className="text-sm font-semibold text-gray-800 hover:text-[#2E8C13] transition-colors outline-none text-left"
+                              className="text-sm font-semibold text-gray-900 hover:text-[#2E8C13] transition-colors outline-none text-left"
                             >
                               {member.name}
                             </button>
-                            <p className="text-[10px] font-medium text-gray-400 font-mono mt-0.5">{member.id}</p>
+                            <p className="text-xs font-medium text-gray-600 font-mono mt-0.5">{member.id}</p>
                           </div>
                         </div>
                       </td>
@@ -1786,7 +1786,7 @@ function GymMembersView() {
                         </div>
                       </td>
                       <td className="p-3">
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${
                           member.status === "Active" ? "bg-green-50 text-green-700 border-green-200" :
                           member.status === "Frozen" ? "bg-blue-50 text-blue-700 border-blue-200 animate-pulse" :
                           member.status === "Expired" ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-50 text-gray-600 border-gray-200"
@@ -1798,14 +1798,14 @@ function GymMembersView() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button 
                             onClick={() => handleRenew(member.id)}
-                            className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold transition-all shadow-xs"
+                            className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-medium transition-all shadow-xs"
                             title="Renew Membership"
                           >
                             Renew
                           </button>
                           <button 
                             onClick={() => handleFreeze(member.id)}
-                            className="px-2 py-1 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[10px] font-bold transition-all"
+                            className="px-2 py-1 border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-[10px] font-medium transition-all"
                             title="Freeze Package"
                           >
                             {member.status === "Frozen" ? "Unfreeze" : "Freeze"}
@@ -1844,7 +1844,7 @@ function GymMembersView() {
                   <div key={stage} className="flex-1 min-w-[220px] bg-gray-50/50 p-3 rounded-2xl border border-gray-200/60 flex flex-col min-h-[520px]">
                     <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-3 px-1">
                       <span className="text-xs font-bold text-gray-700 tracking-wider uppercase">{stage}</span>
-                      <Badge className="font-bold text-[10px]">{stageLeads.length}</Badge>
+                      <Badge className="font-medium text-[10px]">{stageLeads.length}</Badge>
                     </div>
 
                     <div className="flex-1 space-y-3 overflow-y-auto">
@@ -1862,7 +1862,7 @@ function GymMembersView() {
                             <div className="space-y-1.5 text-[11px] text-gray-500">
                               <div className="flex items-center gap-1">
                                 <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
-                                <span className="font-semibold text-gray-700 truncate">Rep: {lead.assignedStaff}</span>
+                                <span className="font-semibold text-gray-900 truncate">Rep: {lead.assignedStaff}</span>
                               </div>
                               <div className="flex items-center gap-1 text-indigo-600 font-semibold">
                                 <Calendar className="w-3 h-3 text-indigo-400" />
@@ -1944,7 +1944,7 @@ function GymMembersView() {
                       </button>
                       <button 
                         onClick={() => handleRenew(member.id)}
-                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold"
+                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-medium"
                       >
                         Renew
                       </button>
@@ -1992,7 +1992,7 @@ function GymMembersView() {
                       </button>
                       <button 
                         onClick={() => handleRenew(member.id)}
-                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold"
+                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-medium"
                       >
                         Renew
                       </button>
@@ -2040,7 +2040,7 @@ function GymMembersView() {
                       </button>
                       <button 
                         onClick={() => handleRenew(member.id)}
-                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-bold"
+                        className="px-2 py-1 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white rounded text-[10px] font-medium"
                       >
                         Re-enroll
                       </button>
@@ -2060,7 +2060,7 @@ function GymMembersView() {
         <form className="space-y-4" onSubmit={handleCreateLead}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Candidate Full Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Candidate Full Name</label>
               <input 
                 required 
                 type="text" 
@@ -2071,7 +2071,7 @@ function GymMembersView() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Mobile Phone Number</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Mobile Phone Number</label>
               <input 
                 required 
                 type="tel" 
@@ -2083,7 +2083,7 @@ function GymMembersView() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Source</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Source</label>
                 <select 
                   value={leadSource}
                   onChange={e => setLeadSource(e.target.value)}
@@ -2097,7 +2097,7 @@ function GymMembersView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Assigned Trainer</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Assigned Trainer</label>
                 <select 
                   value={leadTrainer}
                   onChange={e => setLeadTrainer(e.target.value)}
@@ -2111,7 +2111,7 @@ function GymMembersView() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Trial Session Booking Date</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Trial Session Booking Date</label>
               <input 
                 type="date" 
                 value={leadTrialDate}
@@ -2120,7 +2120,7 @@ function GymMembersView() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Interviewer Notes</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Interviewer Notes</label>
               <textarea 
                 rows={3} 
                 value={leadNotes}
@@ -2142,7 +2142,7 @@ function GymMembersView() {
         <form className="space-y-4 animate-in fade-in duration-200" onSubmit={handleCreateMember}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4 font-sans">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Full Name</label>
               <input 
                 required 
                 type="text" 
@@ -2155,7 +2155,7 @@ function GymMembersView() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Mobile Number</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Mobile Number</label>
                 <input 
                   required
                   type="tel" 
@@ -2166,7 +2166,7 @@ function GymMembersView() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Email Address</label>
                 <input 
                   type="email" 
                   value={newMemberEmail}
@@ -2179,7 +2179,7 @@ function GymMembersView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Select Membership Plan</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Select Membership Plan</label>
                 <select
                   value={newMemberPlan}
                   onChange={(e) => setNewMemberPlan(e.target.value)}
@@ -2192,7 +2192,7 @@ function GymMembersView() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Assign Personal Coach (PT)</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Assign Personal Coach (PT)</label>
                 <select
                   value={newMemberTrainer}
                   onChange={(e) => setNewMemberTrainer(e.target.value)}
@@ -2207,7 +2207,7 @@ function GymMembersView() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Membership Commencement Date</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Membership Commencement Date</label>
               <input 
                 required 
                 type="date" 
@@ -2256,7 +2256,7 @@ function GymMembersView() {
             {/* Plan Info */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs space-y-3.5">
               <h4 className="font-bold text-sm text-gray-900 border-b border-gray-50 pb-2">Membership Details</h4>
-              <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-400 font-semibold uppercase block">Active Plan</span>
                   <span className="font-bold text-gray-900 flex items-center gap-1 mt-1">
@@ -2273,7 +2273,7 @@ function GymMembersView() {
                 </div>
                 <div>
                   <span className="text-gray-400 font-semibold uppercase block">Join Date</span>
-                  <span className="font-semibold text-gray-700 mt-1 block">{viewingMember.joinDate}</span>
+                  <span className="font-semibold text-gray-900 mt-1 block">{viewingMember.joinDate}</span>
                 </div>
                 <div>
                   <span className="text-gray-400 font-semibold uppercase block">Expiry Date</span>

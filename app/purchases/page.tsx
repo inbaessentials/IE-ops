@@ -468,7 +468,7 @@ export default function PurchasesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Promo Offers</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Promo Offers</p>
                 <h3 className="text-2xl font-bold tracking-tight text-gray-900">{coupons.length} coupons</h3>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -477,7 +477,7 @@ export default function PurchasesPage() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Coupon Redemptions</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Coupon Redemptions</p>
                 <h3 className="text-2xl font-bold tracking-tight text-indigo-600">
                   {coupons.reduce((sum, c) => sum + c.usageCount, 0)} times
                 </h3>
@@ -488,7 +488,7 @@ export default function PurchasesPage() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross Revenue Driven</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross Revenue Driven</p>
                 <h3 className="text-2xl font-bold tracking-tight text-emerald-600">
                   ₹{coupons.reduce((sum, c) => sum + c.revenueGenerated, 0).toLocaleString()}
                 </h3>
@@ -502,38 +502,38 @@ export default function PurchasesPage() {
           {/* Coupon directory list */}
           <Card>
             <div className="p-4 border-b border-gray-100">
-              <h3 className="text-sm font-bold text-gray-900">Active Coupons Directory</h3>
+              <h3 className="text-sm font-semibold text-gray-900">Active Coupons Directory</h3>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/70 border-b border-gray-100">
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Coupon Code</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Discount Type</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Discount Value</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Expiry Date</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Redemptions</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Revenue Generated</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">Coupon Code</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Discount Type</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Discount Value</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Expiry Date</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Redemptions</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Revenue Generated</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {coupons.map(c => (
                     <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="p-4 pl-6 font-mono font-bold text-gray-900 tracking-wide text-sm">{c.code}</td>
-                      <td className="p-4 text-xs font-semibold text-gray-500">
+                      <td className="p-4 text-sm font-semibold text-gray-500">
                         <span className={`px-2 py-0.5 rounded-md border ${
                           c.type === "Percentage" ? "bg-purple-50 text-purple-700 border-purple-100" : "bg-blue-50 text-blue-700 border-blue-100"
                         }`}>
                           {c.type}
                         </span>
                       </td>
-                      <td className="p-4 text-sm font-bold text-gray-900">
+                      <td className="p-4 text-sm font-semibold text-gray-900">
                         {c.type === "Percentage" ? `${c.value}%` : `₹${c.value}`}
                       </td>
-                      <td className="p-4 text-xs text-gray-500 font-semibold">{c.expiry}</td>
-                      <td className="p-4 text-xs font-bold text-gray-700">{c.usageCount} times</td>
+                      <td className="p-4 text-sm text-gray-500 font-semibold">{c.expiry}</td>
+                      <td className="p-4 text-sm font-bold text-gray-700">{c.usageCount} times</td>
                       <td className="p-4 text-sm font-bold text-emerald-600">₹{c.revenueGenerated.toLocaleString()}</td>
                       <td className="p-4 text-right pr-6">
                         <button
@@ -557,7 +557,7 @@ export default function PurchasesPage() {
             <form className="space-y-4" onSubmit={handleCreateCoupon}>
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Coupon Code (Uppercase)</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Coupon Code (Uppercase)</label>
                   <input 
                     required
                     type="text"
@@ -570,7 +570,7 @@ export default function PurchasesPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Discount Type</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">Discount Type</label>
                     <select
                       value={formDiscountType}
                       onChange={e => setFormDiscountType(e.target.value as any)}
@@ -581,7 +581,7 @@ export default function PurchasesPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Discount Value</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">Discount Value</label>
                     <input 
                       required
                       type="number"
@@ -594,7 +594,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Expiry Date</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Expiry Date</label>
                   <input 
                     type="date"
                     value={formExpiryDate}
@@ -616,7 +616,7 @@ export default function PurchasesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Purchases', 'displayName')}</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Purchases', 'displayName')}</p>
                 <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -625,7 +625,7 @@ export default function PurchasesPage() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
                 <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">
                   ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString()}
                 </h3>
@@ -636,7 +636,7 @@ export default function PurchasesPage() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending Actions</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Pending Actions</p>
                 <h3 className="text-2xl font-semibold tracking-tight text-amber-600">
                   {purchaseOrders.filter(o => o.status !== "Received").length}
                 </h3>
@@ -661,7 +661,7 @@ export default function PurchasesPage() {
                 />
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-                <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
+                <span className="text-sm text-gray-500 font-medium uppercase">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -682,25 +682,25 @@ export default function PurchasesPage() {
                     <tr className="bg-gray-50/70 border-b border-gray-100">
                       {platform === "online-course" ? (
                         <>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Campaign</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Platform</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Spend</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Leads</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cost Per Lead</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Enrollments</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Cost Per Enrollment</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">Campaign</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Platform</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Spend</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Leads</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Cost Per Lead</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Enrollments</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Cost Per Enrollment</th>
                         </>
                       ) : (
                         <>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">PO Number</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Supplier</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Items Description</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
-                          <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">PO Number</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Supplier</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Items Description</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status</th>
                         </>
                       )}
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -717,13 +717,13 @@ export default function PurchasesPage() {
                         return (
                           <tr key={po.id} className="hover:bg-gray-50/50 transition-colors group">
                             <td className="p-4 pl-6 font-semibold text-gray-900">
-                              <p className="text-sm font-bold text-gray-900">{po.notes || "Summer Cohort Campaign"}</p>
+                              <p className="text-sm font-semibold text-gray-900">{po.notes || "Summer Cohort Campaign"}</p>
                               <span className="text-[10px] font-mono text-gray-400">{po.po_number.replace("PO-", "CAMP-")} • {po.date}</span>
                             </td>
                             <td className="p-4 text-sm font-bold text-gray-800">
                               {po.supplier}
                             </td>
-                            <td className="p-4 text-sm font-bold text-gray-900">
+                            <td className="p-4 text-sm font-semibold text-gray-900">
                               ₹{po.amount.toLocaleString()}
                             </td>
                             <td className="p-4 text-center text-sm font-semibold text-gray-500">
@@ -835,7 +835,7 @@ export default function PurchasesPage() {
             <form className="space-y-4" onSubmit={handleCreatePo}>
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Supplier</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Supplier</label>
                   {suppliers.length > 0 ? (
                     <select 
                       value={selectedSupplier}
@@ -855,7 +855,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Items Description / Raw Materials Notes</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Items Description / Raw Materials Notes</label>
                   <textarea 
                     rows={4}
                     value={poNotes}
@@ -866,7 +866,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Total Cost (₹)</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Total Cost (₹)</label>
                   <input 
                     required 
                     type="number" 
@@ -879,7 +879,7 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Initial Status</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Initial Status</label>
                   <select 
                     value={poStatus}
                     onChange={(e) => setPoStatus(e.target.value as any)}
@@ -904,7 +904,7 @@ export default function PurchasesPage() {
               {editingPo && (
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">PO Number</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">PO Number</label>
                     <input 
                       type="text" 
                       disabled 
@@ -914,7 +914,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Supplier</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">Supplier</label>
                     <select 
                       value={selectedSupplier}
                       onChange={(e) => setSelectedSupplier(e.target.value)}
@@ -927,7 +927,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Items Description / Raw Materials Notes</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">Items Description / Raw Materials Notes</label>
                     <textarea 
                       rows={4}
                       value={poNotes}
@@ -938,7 +938,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Total Cost (₹)</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">Total Cost (₹)</label>
                     <input 
                       required 
                       type="number" 
@@ -950,7 +950,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                    <label className="block text-sm font-semibold text-gray-900 mb-1">Status</label>
                     <select 
                       value={poStatus}
                       onChange={(e) => setPoStatus(e.target.value as any)}

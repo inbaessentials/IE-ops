@@ -305,7 +305,7 @@ export default function ExpensesPage() {
         {/* Total Expenses Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Filtered</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Filtered</p>
             <h3 className="text-2xl font-bold tracking-tight text-rose-600">
               ₹{totalExpensesSum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
@@ -318,7 +318,7 @@ export default function ExpensesPage() {
         {/* Monthly spent Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">This Month Spent</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">This Month Spent</p>
             <h3 className="text-2xl font-bold tracking-tight text-blue-600">
               ₹{thisMonthSum.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
@@ -331,7 +331,7 @@ export default function ExpensesPage() {
         {/* Avg cost Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Average {expenseSingular}</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Average {expenseSingular}</p>
             <h3 className="text-2xl font-bold tracking-tight text-amber-600">
               ₹{averageExpense.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </h3>
@@ -344,7 +344,7 @@ export default function ExpensesPage() {
         {/* Top Category sum Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Category</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Category</p>
             {topCategorySum > 0 ? (
               <div>
                 <h3 className="text-base font-bold text-purple-700 truncate leading-tight">
@@ -366,7 +366,7 @@ export default function ExpensesPage() {
         {/* Single Highest Item Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Highest Single</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Highest Single</p>
             {highestExpenseAmount > 0 ? (
               <div>
                 <h3 className="text-base font-bold text-emerald-700 truncate leading-tight">
@@ -427,12 +427,12 @@ export default function ExpensesPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes / Details</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Amount</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Notes / Details</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Amount</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

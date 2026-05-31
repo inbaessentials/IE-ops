@@ -131,7 +131,7 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Stock</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Stock</p>
             <h3 className="text-2xl font-bold tracking-tight text-gray-900">{totalStockCount} <span className="text-xs text-gray-400 font-semibold">units</span></h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -140,7 +140,7 @@ export default function ProductsPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Out of Stock</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Out of Stock</p>
             <h3 className="text-2xl font-bold tracking-tight text-red-600">{outOfStockCount} <span className="text-xs text-gray-400 font-semibold">items</span></h3>
           </div>
           <div className="p-3 bg-red-50 text-red-600 rounded-xl">
@@ -149,7 +149,7 @@ export default function ProductsPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Sales Volume</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Sales Volume</p>
             <h3 className="text-2xl font-bold tracking-tight text-emerald-600">₹{totalStoreSalesVal.toLocaleString("en-IN")}</h3>
           </div>
           <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -158,7 +158,7 @@ export default function ProductsPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Distinct Products</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Distinct Products</p>
             <h3 className="text-2xl font-bold tracking-tight text-purple-600">{supplements.length}</h3>
           </div>
           <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -220,10 +220,10 @@ export default function ProductsPage() {
                   return (
                     <tr key={supp.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6">
-                        <span className="font-semibold text-gray-800 block">{supp.id}</span>
+                        <span className="font-semibold text-gray-900 block">{supp.id}</span>
                         <span className="text-[10px] text-gray-400 font-mono block mt-0.5">{supp.sku}</span>
                       </td>
-                      <td className="p-3 text-sm font-semibold text-gray-800">{supp.name}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-900">{supp.name}</td>
                       <td className="p-3">
                         <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold border ${
                           supp.category === "Supplements" ? "bg-emerald-50 text-emerald-700 border-emerald-150" :
@@ -233,7 +233,7 @@ export default function ProductsPage() {
                           {supp.category}
                         </span>
                       </td>
-                      <td className="p-3 text-sm font-semibold text-gray-800">₹{supp.price.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-900">₹{supp.price.toLocaleString("en-IN")}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-600">{supp.stock} units</span>
@@ -282,7 +282,7 @@ export default function ProductsPage() {
         <form className="space-y-4 font-sans" onSubmit={handleSubmitSupp}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Product Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Product Name</label>
               <input 
                 required 
                 type="text" 
@@ -295,7 +295,7 @@ export default function ProductsPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Product SKU / Code</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Product SKU / Code</label>
                 <input 
                   required 
                   type="text" 
@@ -306,7 +306,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Category</label>
                 <select 
                   value={suppCategory}
                   onChange={e => setSuppCategory(e.target.value)}
@@ -321,7 +321,7 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Retail Price (INR)</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Retail Price (INR)</label>
                 <input 
                   required 
                   type="number" 
@@ -332,7 +332,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">In Stock Qty</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">In Stock Qty</label>
                 <input 
                   required 
                   type="number" 
@@ -343,7 +343,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Units Sold</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Units Sold</label>
                 <input 
                   required 
                   type="number" 

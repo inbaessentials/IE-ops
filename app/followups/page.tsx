@@ -374,7 +374,7 @@ export default function FollowupsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Follow-ups Today</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Follow-ups Today</p>
                 <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.today} pending</h3>
               </div>
               <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -383,7 +383,7 @@ export default function FollowupsPage() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Missed callbacks</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Missed callbacks</p>
                 <h3 className="text-2xl font-bold tracking-tight text-rose-600">{stats.missed} actions</h3>
               </div>
               <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
@@ -392,7 +392,7 @@ export default function FollowupsPage() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Upcoming Follow-ups</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Upcoming Follow-ups</p>
                 <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.upcoming} queued</h3>
               </div>
               <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -415,7 +415,7 @@ export default function FollowupsPage() {
             </div>
             
             <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-              <span className="text-xs text-gray-500 font-semibold uppercase">Status Resolution:</span>
+              <span className="text-sm text-gray-500 font-medium uppercase">Status Resolution:</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -436,13 +436,13 @@ export default function FollowupsPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Lead</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Course</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Follow-Up Date</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Priority</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">Lead</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Course</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Follow-Up Date</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Priority</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Owner</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -450,14 +450,14 @@ export default function FollowupsPage() {
                       return (
                         <tr key={f.id} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="p-4 pl-6 font-bold text-gray-900">{f.leadName}</td>
-                          <td className="p-4 text-xs font-semibold text-gray-700">{f.course || "UI/UX Bootcamp"}</td>
-                          <td className="p-4 text-xs text-gray-500 font-semibold">{f.date}</td>
-                          <td className="p-4 text-xs">
+                          <td className="p-4 text-sm font-semibold text-gray-900">{f.course || "UI/UX Bootcamp"}</td>
+                          <td className="p-4 text-sm text-gray-500 font-semibold">{f.date}</td>
+                          <td className="p-4 text-sm">
                             <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] border ${PRIORITY_COLORS[f.priority]}`}>
                               {f.priority}
                             </span>
                           </td>
-                          <td className="p-4 text-xs text-gray-600 font-semibold">{f.owner || "Kabir Gupta"}</td>
+                          <td className="p-4 text-sm text-gray-600 font-semibold">{f.owner || "Kabir Gupta"}</td>
                           <td className="p-4">
                             <select
                               value={f.status}
@@ -514,7 +514,7 @@ export default function FollowupsPage() {
                 <BellRing className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-900">Module 9: Automation Dispatch Log</h3>
+                <h3 className="text-sm font-semibold text-gray-900">Module 9: Automation Dispatch Log</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Real-time telemetry logging of simulated reminders sent to candidates via SMS and WhatsApp.</p>
               </div>
             </div>
@@ -537,23 +537,23 @@ export default function FollowupsPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Trigger ID</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Candidate Lead</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Number</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Reminder Template Type</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Channel</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Dispatch Time</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pr-6 text-right">Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">Trigger ID</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Candidate Lead</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Contact Number</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Reminder Template Type</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Channel</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Dispatch Time</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pr-6 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-700">
+                  <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
                     {automations.map(log => (
                       <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="p-4 pl-6 text-gray-400">{log.id.toUpperCase()}</td>
                         <td className="p-4 text-gray-900 font-bold">{log.lead}</td>
                         <td className="p-4 text-gray-500">{log.phone}</td>
                         <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
+                          <span className={`px-2 py-0.5 rounded-md font-medium text-[10px] border ${
                             log.type.includes("Welcome") ? "bg-purple-50 text-purple-700 border-purple-100" :
                             log.type.includes("Payment") ? "bg-amber-50 text-amber-700 border-amber-100" :
                             "bg-blue-50 text-blue-700 border-blue-100"
@@ -589,7 +589,7 @@ export default function FollowupsPage() {
         <form className="space-y-4" onSubmit={handleCreateFollowup}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Lead / Candidate Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Lead / Candidate Name</label>
               <input 
                 required 
                 type="text" 
@@ -602,7 +602,7 @@ export default function FollowupsPage() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Follow-up Date</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Follow-up Date</label>
                 <input 
                   required 
                   type="date" 
@@ -612,7 +612,7 @@ export default function FollowupsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Follow-up Type</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Follow-up Type</label>
                 <select
                   value={formType}
                   onChange={e => setFormType(e.target.value as any)}
@@ -628,7 +628,7 @@ export default function FollowupsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Task Priority Weight</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Task Priority Weight</label>
                 <select
                   value={formPriority}
                   onChange={e => setFormPriority(e.target.value as any)}
@@ -640,7 +640,7 @@ export default function FollowupsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Initial Status</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Initial Status</label>
                 <select
                   value={formStatus}
                   onChange={e => setFormStatus(e.target.value as any)}
@@ -654,7 +654,7 @@ export default function FollowupsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Agenda Notes</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Agenda Notes</label>
               <textarea 
                 rows={3}
                 value={formNotes}
@@ -677,7 +677,7 @@ export default function FollowupsPage() {
           {editingFollowUp && (
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Lead / Candidate Name</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead / Candidate Name</label>
                 <input 
                   required 
                   type="text" 
@@ -689,7 +689,7 @@ export default function FollowupsPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Follow-up Date</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Follow-up Date</label>
                   <input 
                     required 
                     type="date" 
@@ -699,7 +699,7 @@ export default function FollowupsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Follow-up Type</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Follow-up Type</label>
                   <select
                     value={formType}
                     onChange={e => setFormType(e.target.value as any)}
@@ -715,7 +715,7 @@ export default function FollowupsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Priority Weight</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Priority Weight</label>
                   <select
                     value={formPriority}
                     onChange={e => setFormPriority(e.target.value as any)}
@@ -727,7 +727,7 @@ export default function FollowupsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Status</label>
                   <select
                     value={formStatus}
                     onChange={e => setFormStatus(e.target.value as any)}
@@ -741,7 +741,7 @@ export default function FollowupsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Task Notes</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Task Notes</label>
                 <textarea 
                   rows={3}
                   value={formNotes}

@@ -117,7 +117,7 @@ function ProductMultiSelect({
         className="flex items-center justify-between w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg cursor-pointer focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-sm font-semibold text-gray-700">
+        <span className="text-sm font-semibold text-gray-900">
           {selectedProducts.length === 0 
             ? "Select products..." 
             : `${selectedProducts.length} product${selectedProducts.length > 1 ? "s" : ""} selected`}
@@ -816,7 +816,7 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Sales', 'displayName')}</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total {getModuleProp('Sales', 'displayName')}</p>
               <h3 className="text-2xl font-semibold tracking-tight text-gray-900">{totalOrdersCount}</h3>
             </div>
             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -834,7 +834,7 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
                 {config.dashboardCards.find(c => c.key === 'Total Sales')?.title || 'Total Revenue'}
               </p>
               <h3 className="text-2xl font-semibold tracking-tight text-gray-950">₹{totalRevenue.toLocaleString("en-IN")}</h3>
@@ -854,7 +854,7 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Pending {getModuleProp('Sales', 'displayName')}</p>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Pending {getModuleProp('Sales', 'displayName')}</p>
               <h3 className="text-2xl font-semibold tracking-tight text-amber-600">{pendingOrdersCount}</h3>
             </div>
             <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -872,7 +872,7 @@ export default function SalesPage() {
             }}
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
                 {platform === 'online-course' ? 'Provisioned / Active' : 'Shipped / Delivered'}
               </p>
               <h3 className="text-2xl font-semibold tracking-tight text-indigo-600">{completedOrdersCount}</h3>
@@ -883,7 +883,7 @@ export default function SalesPage() {
           </Card>
           <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/inventory'}>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">
                 {config.dashboardCards.find(c => c.key === 'Total Items Sold')?.title || 'Total Items Sold'}
               </p>
               <h3 className="text-2xl font-semibold tracking-tight text-purple-600">{totalItemsSold}</h3>
@@ -931,14 +931,14 @@ export default function SalesPage() {
 
               {/* Date Range Inputs */}
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">From</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">From</span>
                 <input 
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
                 />
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">To</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">To</span>
                 <input 
                   type="date"
                   value={endDate}
@@ -978,33 +978,33 @@ export default function SalesPage() {
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   {platform === "online-course" ? (
                     <>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Enrollment ID</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment Status</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Enrollment ID</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
                     </>
                   ) : (
                     <>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Order ID & Date
                       </th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Customer
                       </th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Items
                       </th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
                         Payment
                       </th>
-                      <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </>
                   )}
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <th className="px-6 py-3 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1033,7 +1033,7 @@ export default function SalesPage() {
                             {order.id}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                           <button 
                             type="button"
                             onClick={() => setViewingCustomerName(order.customer)}
@@ -1042,10 +1042,10 @@ export default function SalesPage() {
                             {order.customer}
                           </button>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-600 font-semibold max-w-[200px] truncate">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium max-w-[200px] truncate">
                           {order.items.map((item: any) => item.name).join(", ") || "Digital Marketing Masterclass"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                           ₹{Number(order.amount).toLocaleString("en-IN")}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1059,10 +1059,10 @@ export default function SalesPage() {
                             {coursePaymentStatus}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500 font-semibold">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
                           {order.date || new Date(order.created_at || Date.now()).toLocaleDateString("en-IN")}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-600 font-semibold">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
                           {order.source || ["Meta Ads", "Google Ads", "Organic", "YouTube Ads", "Referral"][Number(order.id.replace(/\D/g, "")) % 5 || 0]}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -1179,7 +1179,7 @@ export default function SalesPage() {
                     <h3 className="text-sm font-bold text-gray-800">Customer Identity</h3>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Customer Name</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Customer Name</label>
                     <Select 
                       options={dbCustomers.map(c => c.name)}
                       value={newOrderCustomer}
@@ -1189,7 +1189,7 @@ export default function SalesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Phone Number</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Phone Number</label>
                     <input 
                       type="tel" 
                       value={newOrderPhone}
@@ -1199,7 +1199,7 @@ export default function SalesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Shipping Address</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Shipping Address</label>
                     <textarea 
                       rows={3} 
                       value={newOrderAddress}
@@ -1241,7 +1241,7 @@ export default function SalesPage() {
                   
                   {/* Product MultiSelect Selector */}
                   <div className="space-y-1.5 pb-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Bulk Select Products</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">Bulk Select Products</label>
                     <ProductMultiSelect 
                       products={dbProducts}
                       selectedProducts={newOrderItems.filter(it => it.product).map(it => it.product)}
@@ -1275,7 +1275,7 @@ export default function SalesPage() {
                               </div>
                             ) : (
                               <div className="flex-1 min-w-0">
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Select Custom Product</label>
+                                <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-1">Select Custom Product</label>
                                 <Select 
                                   options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Stock: ${p.stock ?? 0} units` }))}
                                   value={item.product}
@@ -1298,7 +1298,7 @@ export default function SalesPage() {
                           <div className="flex items-center justify-between pt-2 gap-4 mt-0.5">
                             {/* Quantity Stepper Capsule */}
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quantity</span>
+                              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Quantity</span>
                               <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] justify-between shadow-xs focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
                                 <button
                                   type="button"
@@ -1326,7 +1326,7 @@ export default function SalesPage() {
 
                             {/* Selling Unit Price Capsule */}
                             <div className="flex flex-col gap-1 items-end">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Price</span>
+                              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Unit Price</span>
                               <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] px-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
                                 <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
                                 <input 
@@ -1382,7 +1382,7 @@ export default function SalesPage() {
                     <h3 className="text-sm font-extrabold text-slate-800">Payment & Invoicing</h3>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Payment Method</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Payment Method</label>
                     <Select 
                       options={["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
                       value={newOrderPayment}
@@ -1398,7 +1398,7 @@ export default function SalesPage() {
                     <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Shipping Type</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Shipping Type</label>
                     <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 gap-1 select-none">
                       <button
                         type="button"
@@ -1443,7 +1443,7 @@ export default function SalesPage() {
 
                 {/* 3. Order Notes Card */}
                 <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-                  <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
+                  <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
                   <textarea 
                     rows={2} 
                     value={orderNotes}
@@ -1528,7 +1528,7 @@ export default function SalesPage() {
                     <h3 className="text-sm font-bold text-gray-800">Customer Identity</h3>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Customer Name</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Customer Name</label>
                     <Select 
                       options={dbCustomers.map(c => c.name)}
                       value={newOrderCustomer}
@@ -1538,7 +1538,7 @@ export default function SalesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Phone Number</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Phone Number</label>
                     <input 
                       type="tel" 
                       value={newOrderPhone}
@@ -1548,7 +1548,7 @@ export default function SalesPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Shipping Address</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Shipping Address</label>
                     <textarea 
                       rows={3} 
                       value={newOrderAddress}
@@ -1590,7 +1590,7 @@ export default function SalesPage() {
                   
                   {/* Product MultiSelect Selector */}
                   <div className="space-y-1.5 pb-2">
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Bulk Select Products</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">Bulk Select Products</label>
                     <ProductMultiSelect 
                       products={dbProducts}
                       selectedProducts={newOrderItems.filter(it => it.product).map(it => it.product)}
@@ -1624,7 +1624,7 @@ export default function SalesPage() {
                               </div>
                             ) : (
                               <div className="flex-1 min-w-0">
-                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Select Custom Product</label>
+                                <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-1">Select Custom Product</label>
                                 <Select 
                                   options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Stock: ${p.stock ?? 0} units` }))}
                                   value={item.product}
@@ -1647,7 +1647,7 @@ export default function SalesPage() {
                           <div className="flex items-center justify-between pt-2 gap-4 mt-0.5">
                             {/* Quantity Stepper Capsule */}
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quantity</span>
+                              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Quantity</span>
                               <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] justify-between shadow-xs focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
                                 <button
                                   type="button"
@@ -1675,7 +1675,7 @@ export default function SalesPage() {
 
                             {/* Selling Unit Price Capsule */}
                             <div className="flex flex-col gap-1 items-end">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Price</span>
+                              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Unit Price</span>
                               <div className="flex items-center bg-white border border-slate-200 rounded-xl h-10 w-[130px] px-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-xs">
                                 <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
                                 <input 
@@ -1731,7 +1731,7 @@ export default function SalesPage() {
                     <h3 className="text-sm font-extrabold text-slate-800">Payment & Invoicing</h3>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Payment Method</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Payment Method</label>
                     <Select 
                       options={["UPI / Online", "Cash on Delivery (COD)", "Bank Transfer"]}
                       value={newOrderPayment}
@@ -1747,7 +1747,7 @@ export default function SalesPage() {
                     <h3 className="text-sm font-extrabold text-slate-800">Shipping Options</h3>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Shipping Type</label>
+                    <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Shipping Type</label>
                     <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 gap-1 select-none">
                       <button
                         type="button"
@@ -1792,7 +1792,7 @@ export default function SalesPage() {
 
                 {/* 3. Order Notes Card */}
                 <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-                  <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
+                  <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
                   <textarea 
                     rows={2} 
                     value={orderNotes}
@@ -2117,22 +2117,22 @@ export default function SalesPage() {
                       {viewingCustomerName.substring(0, 2).toUpperCase()}
                     </div>
                     <h3 className="text-xl font-bold text-gray-900">{viewingCustomerName}</h3>
-                    <p className="text-xs text-gray-500 font-semibold mt-1">Customer since {latestOrder?.date ? latestOrder.date.split(',')[0] : "Today"}</p>
+                    <p className="text-sm text-gray-500 font-medium mt-1">Customer since {latestOrder?.date ? latestOrder.date.split(',')[0] : "Today"}</p>
                   </div>
                 </div>
 
                 {/* Quick Stats Grid */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Orders</p>
+                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Orders</p>
                     <p className="text-lg font-black text-primary mt-1">{totalOrders}</p>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Spent</p>
+                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Spent</p>
                     <p className="text-lg font-black text-[#2E8C13] mt-1">₹{totalSpent.toLocaleString()}</p>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-gray-100 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Paid Rate</p>
+                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Paid Rate</p>
                     <p className="text-lg font-black text-indigo-600 mt-1">
                       {totalOrders > 0 ? `${Math.round((paidOrders.length / totalOrders) * 100)}%` : "0%"}
                     </p>
@@ -2141,7 +2141,7 @@ export default function SalesPage() {
 
                 {/* Contact & Shipping Details */}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</h4>
+                  <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Contact Info</h4>
                   <div className="flex items-start gap-3">
                     <Phone className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
                     <div>
@@ -2160,7 +2160,7 @@ export default function SalesPage() {
 
                 {/* Order History Timeline */}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Past Orders ({totalOrders})</h4>
+                  <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-4">Past Orders ({totalOrders})</h4>
                   <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-100 before:to-transparent">
                     {customerOrders.map((order, idx) => (
                       <div key={order.id} className="relative flex items-start gap-4 animate-in slide-in-from-bottom-2 duration-100">
@@ -2274,7 +2274,7 @@ export default function SalesPage() {
                     <tbody>
                       <tr>
                         <td className="w-[49%] bg-[#f7f7f7] p-4 rounded-lg align-top border-l-[4px] border-[#1a1a1a]">
-                          <p className="m-0 mb-3 text-[10px] font-bold text-[#888] tracking-[1.5px] uppercase">Ship To</p>
+                          <p className="m-0 mb-3 text-[10px] font-medium text-[#888] tracking-[1.5px] uppercase">Ship To</p>
                           <p className="m-0 text-[13px] leading-[1.6] text-[#333] font-normal">
                             <strong className="text-[14px] text-[#1a1a1a] font-bold block mb-1">{printingOrder.customer}</strong>
                             {parsed.cleanAddress}<br/>
@@ -2284,7 +2284,7 @@ export default function SalesPage() {
                         </td>
                         <td className="w-[2%]"></td>
                         <td className="w-[49%] bg-[#f7f7f7] p-4 rounded-lg align-top border-l-[4px] border-[#1a1a1a]">
-                          <p className="m-0 mb-3 text-[10px] font-bold text-[#888] tracking-[1.5px] uppercase">Bill To</p>
+                          <p className="m-0 mb-3 text-[10px] font-medium text-[#888] tracking-[1.5px] uppercase">Bill To</p>
                           <p className="m-0 text-[13px] leading-[1.6] text-[#333] font-normal">
                             <strong className="text-[14px] text-[#1a1a1a] font-bold block mb-1">{printingOrder.customer}</strong>
                             {parsed.cleanAddress}<br/>
@@ -2301,10 +2301,10 @@ export default function SalesPage() {
                   <table className="w-full border-collapse border border-[#e5e5e5] rounded-xl overflow-hidden mb-6 shadow-sm">
                     <thead className="bg-[#1a1a1a] text-white">
                       <tr>
-                        <th className="p-[12px_16px] text-[10px] font-bold tracking-[1.2px] uppercase text-center w-[48px]">#</th>
-                        <th className="p-[12px_16px] text-[10px] font-bold tracking-[1.2px] uppercase text-center w-[72px]">Image</th>
-                        <th className="p-[12px_16px] text-[10px] font-bold tracking-[1.2px] uppercase text-left">Product</th>
-                        <th className="p-[12px_16px] text-[10px] font-bold tracking-[1.2px] uppercase text-center w-[64px]">Qty</th>
+                        <th className="p-[12px_16px] text-[10px] font-medium tracking-[1.2px] uppercase text-center w-[48px]">#</th>
+                        <th className="p-[12px_16px] text-[10px] font-medium tracking-[1.2px] uppercase text-center w-[72px]">Image</th>
+                        <th className="p-[12px_16px] text-[10px] font-medium tracking-[1.2px] uppercase text-left">Product</th>
+                        <th className="p-[12px_16px] text-[10px] font-medium tracking-[1.2px] uppercase text-center w-[64px]">Qty</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2348,7 +2348,7 @@ export default function SalesPage() {
                   {/* PRINT NOTES IF THEY EXIST */}
                   {parsed.notes && (
                     <div className="bg-[#fcfcfc] border border-gray-200 rounded-lg p-4 mb-6 text-left animate-in fade-in">
-                      <p className="m-0 mb-1 text-[10px] font-bold text-gray-500 tracking-[1.5px] uppercase">Special Instructions / Notes</p>
+                      <p className="m-0 mb-1 text-[10px] font-medium text-gray-500 tracking-[1.5px] uppercase">Special Instructions / Notes</p>
                       <p className="m-0 text-[12px] text-gray-700 font-semibold leading-relaxed">{parsed.notes}</p>
                     </div>
                   )}
@@ -2565,7 +2565,7 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross Membership Revenue</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross Membership Revenue</p>
                 <h3 className="text-2xl font-bold tracking-tight text-emerald-600">₹{stats.membershipRev.toLocaleString("en-IN")}</h3>
               </div>
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -2574,7 +2574,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Average Member Value (AMV)</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Average Member Value (AMV)</p>
                 <h3 className="text-2xl font-bold tracking-tight text-indigo-600">₹{stats.amv.toLocaleString("en-IN")}</h3>
               </div>
               <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -2583,7 +2583,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Renewal Conversion Rate</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Renewal Conversion Rate</p>
                 <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.renewalRate}%</h3>
               </div>
               <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -2595,11 +2595,11 @@ function GymRevenueView() {
           {/* Transactions List */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-bold text-gray-900">Membership checkout receipts</CardTitle>
+              <CardTitle className="text-sm font-semibold text-gray-900">Membership checkout receipts</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">
                   <tr>
                     <th className="p-3 pl-6">Receipt #</th>
                     <th className="p-3">Member Name</th>
@@ -2614,12 +2614,12 @@ function GymRevenueView() {
                   {membershipInvoices.slice(0, 10).map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{inv.id}</td>
-                      <td className="p-3 text-sm font-semibold text-gray-800">{inv.member}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-900">{inv.member}</td>
                       <td className="p-3 text-xs font-medium text-gray-600">{inv.plan}</td>
                       <td className="p-3 text-xs text-gray-500">{inv.date}</td>
-                      <td className="p-3 text-xs text-gray-500 font-semibold">{inv.payment}</td>
+                      <td className="p-3 text-sm text-gray-500 font-medium">{inv.payment}</td>
                       <td className="p-3">
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${
                           inv.status === "Paid" 
                             ? "bg-green-50 text-green-700 border-green-200" 
                             : "bg-red-50 text-red-700 border-red-200"
@@ -2644,7 +2644,7 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross PT & Coaching Revenue</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross PT & Coaching Revenue</p>
                 <h3 className="text-2xl font-bold tracking-tight text-purple-600">₹{stats.ptRev.toLocaleString("en-IN")}</h3>
               </div>
               <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -2653,7 +2653,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Coaching Clients</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Active Coaching Clients</p>
                 <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.activePtClients} Members</h3>
               </div>
               <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -2662,7 +2662,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Coaching Conversion Share</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Coaching Conversion Share</p>
                 <h3 className="text-2xl font-bold tracking-tight text-emerald-600">{stats.ptConvRate}%</h3>
               </div>
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -2674,11 +2674,11 @@ function GymRevenueView() {
           {/* Coaching Plans List */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-bold text-gray-900">Personal Training coaching receipts</CardTitle>
+              <CardTitle className="text-sm font-semibold text-gray-900">Personal Training coaching receipts</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">
                   <tr>
                     <th className="p-3 pl-6">Invoice #</th>
                     <th className="p-3">Member Name</th>
@@ -2693,13 +2693,13 @@ function GymRevenueView() {
                   {ptInvoices.slice(0, 10).map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{inv.id}</td>
-                      <td className="p-3 text-sm font-semibold text-gray-800">{inv.member}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-900">{inv.member}</td>
                       <td className="p-3 text-xs font-semibold text-amber-700 flex items-center gap-1">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                         {inv.trainer}
                       </td>
                       <td className="p-3 text-xs font-medium text-gray-600">{inv.package}</td>
-                      <td className="p-3 text-xs text-gray-500 font-semibold">{inv.sessions}</td>
+                      <td className="p-3 text-sm text-gray-500 font-medium">{inv.sessions}</td>
                       <td className="p-3 text-xs text-gray-500">{inv.date}</td>
                       <td className="p-3 text-right pr-6 font-bold text-gray-900">₹{inv.revenue.toLocaleString("en-IN")}</td>
                     </tr>
@@ -2718,7 +2718,7 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gross Supplement Sales</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Gross Supplement Sales</p>
                 <h3 className="text-2xl font-bold tracking-tight text-indigo-600">₹{stats.productRev.toLocaleString("en-IN")}</h3>
               </div>
               <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -2727,7 +2727,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Selling Supplement</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Selling Supplement</p>
                 <h3 className="text-lg font-bold tracking-tight text-gray-900 mt-1">Whey Protein (2kg)</h3>
               </div>
               <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -2736,7 +2736,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Critical Low Stock Items</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Critical Low Stock Items</p>
                 <h3 className="text-2xl font-bold tracking-tight text-red-600">{products.filter(p => p.stock <= 10).length} Items</h3>
               </div>
               <div className="p-3 bg-red-50 text-red-600 rounded-xl animate-pulse">
@@ -2748,11 +2748,11 @@ function GymRevenueView() {
           {/* Supplement Stock Roster */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-bold text-gray-900">Supplement & Product Stock Registry</CardTitle>
+              <CardTitle className="text-sm font-semibold text-gray-900">Supplement & Product Stock Registry</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">
                   <tr>
                     <th className="p-3 pl-6">Product Name</th>
                     <th className="p-3">SKU Code</th>
@@ -2766,7 +2766,7 @@ function GymRevenueView() {
                 <tbody className="divide-y divide-gray-100 bg-white">
                   {products.map((prod: any) => (
                     <tr key={prod.id} className="hover:bg-gray-50/40 transition-colors">
-                      <td className="p-3 pl-6 text-sm font-semibold text-gray-800">{prod.name}</td>
+                      <td className="p-3 pl-6 text-sm font-semibold text-gray-900">{prod.name}</td>
                       <td className="p-3 text-xs font-mono text-gray-500">{prod.sku}</td>
                       <td className="p-3 text-xs">
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 text-gray-600 border border-gray-200/50">
@@ -2779,7 +2779,7 @@ function GymRevenueView() {
                         </span>
                       </td>
                       <td className="p-3 text-xs text-gray-500 font-normal text-center">{prod.unitsSold} sold</td>
-                      <td className="p-3 text-sm font-semibold text-gray-800 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-900 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right pr-6 font-bold text-emerald-600 text-sm">₹{prod.revenue.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
@@ -2797,7 +2797,7 @@ function GymRevenueView() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Gym Monthly Expenses</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Gym Monthly Expenses</p>
                 <h3 className="text-2xl font-bold tracking-tight text-red-600">₹{stats.totalExpenses.toLocaleString("en-IN")}</h3>
               </div>
               <div className="p-3 bg-red-50 text-red-600 rounded-xl">
@@ -2806,7 +2806,7 @@ function GymRevenueView() {
             </Card>
             <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Top Expense category</p>
+                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Top Expense category</p>
                 <h3 className="text-xl font-bold tracking-tight text-gray-900 mt-1">Premises Rent (₹1,20,000)</h3>
               </div>
               <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
@@ -2818,11 +2818,11 @@ function GymRevenueView() {
           {/* Expenses breakdown */}
           <Card className="overflow-hidden border border-gray-100 shadow-xs">
             <CardHeader className="border-b border-gray-50/50 pb-4">
-              <CardTitle className="text-sm font-bold text-gray-900">Gym Premises & operational expenses</CardTitle>
+              <CardTitle className="text-sm font-semibold text-gray-900">Gym Premises & operational expenses</CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[10px] font-medium text-gray-500 uppercase tracking-wider uppercase">
                   <tr>
                     <th className="p-3 pl-6">Expense ID</th>
                     <th className="p-3">Expense Category</th>
@@ -2836,7 +2836,7 @@ function GymRevenueView() {
                     <tr key={exp.display_id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{exp.display_id}</td>
                       <td className="p-3 text-xs">
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${
                           exp.category === "Rent" ? "bg-red-50 text-red-700 border-red-200" :
                           exp.category === "Salaries" ? "bg-blue-50 text-blue-700 border-blue-200" :
                           exp.category === "Equipment" ? "bg-purple-50 text-purple-700 border-purple-200" : "bg-gray-100 text-gray-600 border-gray-200"
@@ -2844,7 +2844,7 @@ function GymRevenueView() {
                           {exp.category}
                         </span>
                       </td>
-                      <td className="p-3 text-xs text-gray-600 font-semibold">{exp.notes}</td>
+                      <td className="p-3 text-sm text-gray-600 font-medium">{exp.notes}</td>
                       <td className="p-3 text-xs text-gray-500">{exp.date}</td>
                       <td className="p-3 text-right pr-6 font-bold text-red-600 text-sm">₹{exp.amount.toLocaleString("en-IN")}</td>
                     </tr>
@@ -2861,7 +2861,7 @@ function GymRevenueView() {
         <form className="space-y-4 font-sans animate-in fade-in duration-200" onSubmit={handleCreateExpense}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Expense Category</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Expense Category</label>
               <select
                 required
                 value={expenseCategory}
@@ -2878,7 +2878,7 @@ function GymRevenueView() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Debit Amount (INR)</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Debit Amount (INR)</label>
               <input
                 required
                 type="number"
@@ -2890,7 +2890,7 @@ function GymRevenueView() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Expense Details / Notes</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Expense Details / Notes</label>
               <textarea
                 rows={3}
                 value={expenseNotes}

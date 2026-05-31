@@ -237,7 +237,7 @@ export default function TeamPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Roster Size</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Roster Size</p>
             <h3 className="text-2xl font-bold tracking-tight text-gray-900">{aggregate.totalRep} Members</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -246,7 +246,7 @@ export default function TeamPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Leads Assigned</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Leads Assigned</p>
             <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{aggregate.leads} candidates</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -255,7 +255,7 @@ export default function TeamPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Conversions</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total Conversions</p>
             <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{aggregate.converted} enrollments</h3>
           </div>
           <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
@@ -264,7 +264,7 @@ export default function TeamPage() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Callbacks Converted Ratio</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Callbacks Converted Ratio</p>
             <h3 className="text-2xl font-bold tracking-tight text-purple-600">{aggregate.rate}%</h3>
           </div>
           <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -305,7 +305,7 @@ export default function TeamPage() {
                   </div>
                 </div>
 
-                <Badge className={`font-bold text-[10px] border ${ROLE_COLORS[rep.role]}`}>
+                <Badge className={`font-medium text-[10px] border ${ROLE_COLORS[rep.role]}`}>
                   {rep.role}
                 </Badge>
               </div>
@@ -350,7 +350,7 @@ export default function TeamPage() {
         <form className="space-y-4" onSubmit={handleCreateMember}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Full Name</label>
               <input 
                 required 
                 type="text" 
@@ -363,7 +363,7 @@ export default function TeamPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Staff Role</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Staff Role</label>
                 <select
                   value={formRole}
                   onChange={e => setFormRole(e.target.value as any)}
@@ -376,7 +376,7 @@ export default function TeamPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Department</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Department</label>
                 <input 
                   required 
                   type="text" 
@@ -389,7 +389,7 @@ export default function TeamPage() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Leads Assigned</label>
+                <label className="block text-xs font-medium text-gray-600 uppercase mb-1">Leads Assigned</label>
                 <input 
                   required 
                   type="number" 
@@ -399,7 +399,7 @@ export default function TeamPage() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Converted</label>
+                <label className="block text-xs font-medium text-gray-600 uppercase mb-1">Converted</label>
                 <input 
                   required 
                   type="number" 
@@ -409,7 +409,7 @@ export default function TeamPage() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Follow-ups</label>
+                <label className="block text-xs font-medium text-gray-600 uppercase mb-1">Follow-ups</label>
                 <input 
                   required 
                   type="number" 

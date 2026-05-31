@@ -925,7 +925,7 @@ export default function GoalsPage() {
       {goals.length > 0 && (
         <div className="bg-white p-4 rounded-xl border border-gray-150/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Analyzing Focus Target:</span>
+            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Analyzing Focus Target:</span>
             <select
               value={focusGoal?.id || ""}
               onChange={(e) => {
@@ -945,7 +945,7 @@ export default function GoalsPage() {
             </select>
           </div>
           {focusGoal && (
-            <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1.5">
                 <span className="text-gray-400 font-semibold">Period:</span>
                 <span className="text-gray-700 font-bold">
@@ -989,7 +989,7 @@ export default function GoalsPage() {
                   <Target className="w-6 h-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider truncate">
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider truncate">
                     {focusGoal.name}
                   </p>
                   <div className="flex items-baseline gap-2 mt-1">
@@ -998,7 +998,7 @@ export default function GoalsPage() {
                         ? formatCurrency(achievedValue)
                         : `${achievedValue} ${salesPlural.toLowerCase()}`}
                     </h3>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 border ${pacingBadgeColor}`}>
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 border ${pacingBadgeColor}`}>
                       {pacingStatus}
                     </span>
                   </div>
@@ -1019,7 +1019,7 @@ export default function GoalsPage() {
                   <Calendar className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Daily Pace Required</p>
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Daily Pace Required</p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
@@ -1045,7 +1045,7 @@ export default function GoalsPage() {
                   <TrendingUp className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Run-Rate Forecast</p>
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Run-Rate Forecast</p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <h3 className={`text-2xl font-semibold tracking-tight ${forecastPercentage >= 100 ? "text-emerald-600" : "text-amber-600"}`}>
                       {focusGoal.type === "revenue" || focusGoal.type === "category"
@@ -1075,7 +1075,7 @@ export default function GoalsPage() {
                   <Percent className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Goal Margin Mix</p>
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Goal Margin Mix</p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
                       {grossProfitMargin}%
@@ -1152,7 +1152,7 @@ export default function GoalsPage() {
             {/* Top Contributors */}
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
-                <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                   <Trophy className="w-4 h-4 text-amber-500" /> Top Goal Contributors
                 </CardTitle>
                 <p className="text-[11px] text-gray-500 mt-0.5">Products driving the highest sales progress</p>
@@ -1162,7 +1162,7 @@ export default function GoalsPage() {
                   topContributors.map((c, i) => (
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
-                        <span className="font-semibold text-gray-800 block truncate">{c.name}</span>
+                        <span className="font-semibold text-gray-900 block truncate">{c.name}</span>
                         <span className="text-[10px] text-gray-400 font-medium">{c.qty} {salesPlural.toLowerCase()} sold</span>
                       </div>
                       <span className="font-bold text-gray-900 shrink-0">{formatCurrency(c.revenue)}</span>
@@ -1177,7 +1177,7 @@ export default function GoalsPage() {
             {/* Overstocked Cash Blocks */}
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
-                <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                   <Coins className="w-4 h-4 text-indigo-500" /> {platform === "gym-services" ? "Trainer Commissions Paid" : platform === "online-course" ? "Inactive Course Costs" : platform === "wholesale" ? "Pallet Stock Cash Ties" : "Overstock Cash Blocks"}
                 </CardTitle>
                 <p className="text-[11px] text-gray-500 mt-0.5">{platform === "gym-services" ? "Trainer revenue shares and coaching margins" : platform === "online-course" ? "Slow courses with significant production cost" : "Slow products with high cash locked up"}</p>
@@ -1187,7 +1187,7 @@ export default function GoalsPage() {
                   cashBlocks.map((c, i) => (
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
-                        <span className="font-semibold text-gray-800 block truncate">{c.name}</span>
+                        <span className="font-semibold text-gray-900 block truncate">{c.name}</span>
                         <span className="text-[10px] text-gray-400 font-medium">Stock: {c.stock} {salesPlural.toLowerCase()} (velocity: {c.velocity})</span>
                       </div>
                       <span className="font-bold text-indigo-600 shrink-0">{formatCurrency(c.cashVal)}</span>
@@ -1202,7 +1202,7 @@ export default function GoalsPage() {
             {/* Stockout Warnings */}
             <Card className="border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-4 shrink-0">
-                <CardTitle className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                   <ShieldAlert className="w-4 h-4 text-rose-500" /> {platform === "gym-services" ? "Supplement Stock Depletions" : platform === "online-course" ? "Capacity Limit Risks" : "Stockout Risks (Top Movers)"}
                 </CardTitle>
                 <p className="text-[11px] text-gray-500 mt-0.5">{platform === "gym-services" ? "High velocity gym supplements nearing depletion" : platform === "online-course" ? "High velocity courses needing instructor attention" : "High velocity products nearing depletion"}</p>
@@ -1212,7 +1212,7 @@ export default function GoalsPage() {
                   stockoutWarnings.map((c, i) => (
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
-                        <span className="font-semibold text-gray-800 block truncate">{c.name}</span>
+                        <span className="font-semibold text-gray-900 block truncate">{c.name}</span>
                         <span className="text-[10px] text-rose-600 font-bold">Only {c.stock} {salesPlural.toLowerCase()} left!</span>
                       </div>
                       <span className="font-semibold text-gray-400 shrink-0">Velocity: {c.velocity} {salesPlural.toLowerCase()}</span>
@@ -1232,7 +1232,7 @@ export default function GoalsPage() {
         <div className="p-5 border-b border-gray-50 bg-gray-50/20">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-gray-900">{goalSingular} Management Ledger</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{goalSingular} Management Ledger</h3>
               <p className="text-[11px] text-gray-500 mt-0.5">Manage and track all business target setups, progress status, and outcomes</p>
             </div>
           </div>
@@ -1341,7 +1341,7 @@ export default function GoalsPage() {
 
                   return (
                     <tr key={g.id || idx} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-3 pl-6 font-semibold text-gray-800">{g.name}</td>
+                      <td className="p-3 pl-6 font-semibold text-gray-900">{g.name}</td>
                       <td className="p-3 text-gray-500 font-semibold">{histStart} — {histEnd}</td>
                       <td className="p-3 font-semibold uppercase text-gray-400 tracking-wide text-[9px]">
                         {platform === "gym-services"
@@ -1353,12 +1353,12 @@ export default function GoalsPage() {
                       <td className="p-3 font-semibold text-gray-900">
                         {g.type === "revenue" || g.type === "category" ? formatCurrency(g.target_amount) : `${g.target_amount} ${salesPlural.toLowerCase()}`}
                       </td>
-                      <td className="p-3 font-semibold text-gray-700">
+                      <td className="p-3 font-semibold text-gray-900">
                         {g.type === "revenue" || g.type === "category" ? formatCurrency(achieved) : `${achieved} ${salesPlural.toLowerCase()}`}
                         <span className="text-gray-400 font-normal ml-1">({progressPct}%)</span>
                       </td>
                       <td className="p-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                           status === "Active" ? "bg-blue-50 text-blue-700 border-blue-150" :
                           status === "Achieved" ? "bg-emerald-50 text-emerald-700 border-emerald-150" :
                           "bg-amber-50 text-amber-700 border-amber-150"
@@ -1404,7 +1404,7 @@ export default function GoalsPage() {
         <form className="space-y-4" onSubmit={handleSaveGoal}>
           <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{goalSingular} Label / Title</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{goalSingular} Label / Title</label>
               <input 
                 type="text" 
                 required 
@@ -1416,7 +1416,7 @@ export default function GoalsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{goalSingular} Type</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">{goalSingular} Type</label>
               <select 
                 value={goalType}
                 onChange={(e) => {
@@ -1454,7 +1454,7 @@ export default function GoalsPage() {
               {/* Dynamic Dropdown Select based on Goal Type */}
               {goalType === "category" && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Target Category Link</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1.5">Target Category Link</label>
                   <Select 
                     options={defaultCategoriesList}
                     value={linkedValue}
@@ -1466,7 +1466,7 @@ export default function GoalsPage() {
 
               {(goalType === "product" || goalType === "stock_reduction") && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Linked Target {inventorySingular}</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1.5">Linked Target {inventorySingular}</label>
                   <Select 
                     options={defaultProductsList}
                     value={linkedValue}
@@ -1478,7 +1478,7 @@ export default function GoalsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">
                 {goalType === "revenue" || goalType === "category" ? "Target Amount (₹)" : "Target Volume Quantity"}
               </label>
               <input 
@@ -1494,7 +1494,7 @@ export default function GoalsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Start Date</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">Start Date</label>
                 <input 
                   type="date" 
                   required
@@ -1504,7 +1504,7 @@ export default function GoalsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">End Date</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">End Date</label>
                 <input 
                   type="date" 
                   required
@@ -1517,7 +1517,7 @@ export default function GoalsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Pacing Period</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">Pacing Period</label>
                 <select 
                   value={goalPeriod}
                   onChange={(e) => setGoalPeriod(e.target.value as Goal["period"])}
@@ -1529,7 +1529,7 @@ export default function GoalsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{goalSingular} Priority</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">{goalSingular} Priority</label>
                 <select 
                   value={goalPriority}
                   onChange={(e) => setGoalPriority(e.target.value as Goal["priority"])}

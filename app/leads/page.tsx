@@ -527,7 +527,7 @@ export default function LeadCRM() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Acquired Today</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Acquired Today</p>
             <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">{stats.today}</h3>
           </div>
           <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl animate-pulse">
@@ -536,7 +536,7 @@ export default function LeadCRM() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Leads Converted</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Leads Converted</p>
             <h3 className="text-2xl font-bold tracking-tight text-indigo-600">{stats.converted}</h3>
           </div>
           <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -545,7 +545,7 @@ export default function LeadCRM() {
         </Card>
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Acquisition Conv. Rate</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1">Acquisition Conv. Rate</p>
             <h3 className="text-2xl font-bold tracking-tight text-purple-600">{stats.rate}%</h3>
           </div>
           <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
@@ -568,7 +568,7 @@ export default function LeadCRM() {
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-          <span className="text-xs text-gray-500 font-semibold uppercase">Interested Course:</span>
+          <span className="text-sm text-gray-500 font-medium uppercase">Interested Course:</span>
           <select
             value={courseFilter}
             onChange={(e) => setCourseFilter(e.target.value)}
@@ -589,15 +589,15 @@ export default function LeadCRM() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider pl-6">Lead Name</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Mobile</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Source</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Interested Course</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Stage</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Owner</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Last Contact</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Next Follow-Up</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">Lead Name</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Interested Course</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stage</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Last Contact</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Next Follow-Up</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -617,13 +617,13 @@ export default function LeadCRM() {
                         {lead.name}
                       </button>
                     </td>
-                    <td className="p-4 text-sm font-semibold text-gray-800">
+                    <td className="p-4 text-sm font-semibold text-gray-900">
                       {lead.phone}
                     </td>
-                    <td className="p-4 text-xs">
+                    <td className="p-4 text-sm">
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-semibold text-[10px]">{lead.source}</span>
                     </td>
-                    <td className="p-4 text-xs font-semibold text-gray-700">{lead.course}</td>
+                    <td className="p-4 text-sm font-semibold text-gray-900">{lead.course}</td>
                     <td className="p-4">
                       <select
                         value={lead.stage}
@@ -635,9 +635,9 @@ export default function LeadCRM() {
                         ))}
                       </select>
                     </td>
-                    <td className="p-4 text-xs font-semibold text-gray-600">{lead.assignedTo}</td>
-                    <td className="p-4 text-xs text-gray-500 font-semibold">{lead.whatsappLastContact || lead.dateCreated}</td>
-                    <td className="p-4 text-xs font-semibold text-amber-600">{lead.nextFollowUp || "Not set"}</td>
+                    <td className="p-4 text-sm font-semibold text-gray-600">{lead.assignedTo}</td>
+                    <td className="p-4 text-sm text-gray-500 font-semibold">{lead.whatsappLastContact || lead.dateCreated}</td>
+                    <td className="p-4 text-sm font-semibold text-amber-600">{lead.nextFollowUp || "Not set"}</td>
                     <td className="p-4 text-right pr-6">
                       <div className="flex items-center justify-end gap-1.5">
                         <button 
@@ -668,7 +668,7 @@ export default function LeadCRM() {
         <form className="space-y-4" onSubmit={handleCreateLead}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Lead / Candidate Name</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Lead / Candidate Name</label>
               <input 
                 required 
                 type="text" 
@@ -681,7 +681,7 @@ export default function LeadCRM() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Mobile Number</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Mobile Number</label>
                 <input 
                   required 
                   type="tel" 
@@ -692,7 +692,7 @@ export default function LeadCRM() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Email Address</label>
                 <input 
                   type="email" 
                   value={formEmail}
@@ -705,7 +705,7 @@ export default function LeadCRM() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Interested Course</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Interested Course</label>
                 <select 
                   value={formCourse}
                   onChange={e => setFormCourse(e.target.value)}
@@ -718,7 +718,7 @@ export default function LeadCRM() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Source</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Source</label>
                 <select 
                   value={formSource}
                   onChange={e => setFormSource(e.target.value)}
@@ -736,7 +736,7 @@ export default function LeadCRM() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Assigned Counselor</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Assigned Counselor</label>
                 <select 
                   value={formAssignedTo}
                   onChange={e => setFormAssignedTo(e.target.value)}
@@ -748,7 +748,7 @@ export default function LeadCRM() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Pipeline Stage</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Pipeline Stage</label>
                 <select 
                   value={formStage}
                   onChange={e => setFormStage(e.target.value as any)}
@@ -762,7 +762,7 @@ export default function LeadCRM() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Next Follow-up Action Date</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Next Follow-up Action Date</label>
               <input 
                 type="date" 
                 value={formNextFollowUp}
@@ -772,7 +772,7 @@ export default function LeadCRM() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Interaction Notes</label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Interaction Notes</label>
               <textarea 
                 rows={3} 
                 value={formNotes}
@@ -796,7 +796,7 @@ export default function LeadCRM() {
           {editingLead && (
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Name</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Name</label>
                 <input 
                   required 
                   type="text" 
@@ -808,7 +808,7 @@ export default function LeadCRM() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Contact Number</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Contact Number</label>
                   <input 
                     required 
                     type="tel" 
@@ -818,7 +818,7 @@ export default function LeadCRM() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Email Address</label>
                   <input 
                     type="email" 
                     value={formEmail}
@@ -830,7 +830,7 @@ export default function LeadCRM() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Interested Course</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Interested Course</label>
                   <select 
                     value={formCourse}
                     onChange={e => setFormCourse(e.target.value)}
@@ -843,7 +843,7 @@ export default function LeadCRM() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Source</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Source</label>
                   <select 
                     value={formSource}
                     onChange={e => setFormSource(e.target.value)}
@@ -861,7 +861,7 @@ export default function LeadCRM() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Assigned counselor</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Assigned counselor</label>
                   <select 
                     value={formAssignedTo}
                     onChange={e => setFormAssignedTo(e.target.value)}
@@ -873,7 +873,7 @@ export default function LeadCRM() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Lead Stage</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">Lead Stage</label>
                   <select 
                     value={formStage}
                     onChange={e => setFormStage(e.target.value as any)}
@@ -887,7 +887,7 @@ export default function LeadCRM() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Next Action Date</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Next Action Date</label>
                 <input 
                   type="date" 
                   value={formNextFollowUp}
@@ -897,7 +897,7 @@ export default function LeadCRM() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Counseling Notes</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Counseling Notes</label>
                 <textarea 
                   rows={3} 
                   value={formNotes}
