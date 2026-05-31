@@ -38,7 +38,7 @@ export function UnifiedStudentDrawer({ isOpen, onClose, record }: UnifiedStudent
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-xl font-bold text-gray-900 leading-none">{displayName}</h3>
-                <Badge variant="outline" className="text-[10px] uppercase font-bold text-gray-500 bg-gray-50 border-gray-200">{record.id || "ENR-0001"}</Badge>
+                <Badge variant="default" className="text-[10px] uppercase font-bold text-gray-500 bg-gray-50 border-gray-200">{record.id || "ENR-0001"}</Badge>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
                 <span>{displayPhone}</span>
