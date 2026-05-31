@@ -11,7 +11,7 @@ import {
   Loader2, CheckCircle2, List, LayoutGrid, ShoppingBag, Award,
   BookOpen, Users, Wallet, IndianRupee, CalendarCheck, DollarSign, 
   ExternalLink, MessageSquare, Share2, Copy, Globe, Calendar, ArrowUpRight,
-  TrendingUp, Edit, ShieldAlert, Sparkles, Activity
+  TrendingUp, Edit, ShieldAlert, Sparkles, Activity, MoreHorizontal, Tag
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -2306,6 +2306,17 @@ function CourseManagementView() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "enrollments" | "leads" | "payments" | "insights">("overview");
 
+  // Page-level tabs
+  const [pageTab, setPageTab] = useState<"courses" | "category">("courses");
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+
+  // Category management state
+  const DEFAULT_CATEGORIES = ["Marketing", "Design", "AI", "Business", "Tech", "Communication"];
+  const [courseCategories, setCourseCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  const [newCatName, setNewCatName] = useState("");
+  const [editingCatIdx, setEditingCatIdx] = useState<number | null>(null);
+  const [editingCatVal, setEditingCatVal] = useState("");
+
   // Form parameters
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Marketing");
@@ -2550,7 +2561,7 @@ function CourseManagementView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Courses</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Courses</p>
             <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.total}</h3>
           </div>
           <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
@@ -2559,7 +2570,7 @@ function CourseManagementView() {
         </Card>
         <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Leads</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Leads</p>
             <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.leads}</h3>
           </div>
           <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
@@ -2568,7 +2579,7 @@ function CourseManagementView() {
         </Card>
         <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Enrollments</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Enrollments</p>
             <h3 className="text-xl font-bold text-gray-900 mt-1">{stats.students}</h3>
           </div>
           <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -2577,7 +2588,7 @@ function CourseManagementView() {
         </Card>
         <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Students</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Active Students</p>
             <h3 className="text-xl font-bold text-[#2E8C13] mt-1">{stats.active}</h3>
           </div>
           <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl animate-pulse">
@@ -2586,7 +2597,7 @@ function CourseManagementView() {
         </Card>
         <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Revenue Generated</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</p>
             <h3 className="text-xl font-bold text-gray-900 mt-1">₹{stats.revenue.toLocaleString("en-IN")}</h3>
           </div>
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -2595,7 +2606,7 @@ function CourseManagementView() {
         </Card>
         <Card className="p-4 border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Conversion Rate</p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Conversion Rate</p>
             <h3 className="text-xl font-bold text-purple-600 mt-1">{stats.conv}%</h3>
           </div>
           <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
@@ -2603,167 +2614,329 @@ function CourseManagementView() {
           </div>
         </Card>
       </div>
+      {/* ── Page-level Tabs: Courses | Category ─── */}
+      <div className="flex gap-0 border-b border-gray-200">
+        <button
+          onClick={() => setPageTab("courses")}
+          className={`px-5 py-2.5 text-sm transition-all border-b-2 ${
+            pageTab === "courses"
+              ? "border-primary text-primary font-semibold"
+              : "border-transparent text-gray-500 hover:text-gray-800 font-normal"
+          }`}
+        >
+          Courses
+        </button>
+        <button
+          onClick={() => setPageTab("category")}
+          className={`px-5 py-2.5 text-sm transition-all border-b-2 flex items-center gap-1.5 ${
+            pageTab === "category"
+              ? "border-primary text-primary font-semibold"
+              : "border-transparent text-gray-500 hover:text-gray-800 font-normal"
+          }`}
+        >
+          <Tag className="w-3.5 h-3.5" />
+          Category
+        </button>
+      </div>
 
-      {/* Course Management Filter toolbar */}
-      <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-        <div className="relative flex-1 w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search by course ID, title or category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Category:</span>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-700 outline-none"
-            >
-              <option value="All">All Categories</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Design">Design</option>
-              <option value="AI">AI</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs font-bold bg-white text-gray-700 outline-none"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Live">Live</option>
-              <option value="Draft">Draft</option>
-              <option value="Paused">Paused</option>
-              <option value="Archived">Archived</option>
-            </select>
-          </div>
-        </div>
-      </Card>
-
-      {/* Main Course Table Directory */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          {filteredCourses.length > 0 ? (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 pl-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Course Name</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Price</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Leads</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Enrolled Students</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Conversion %</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Revenue Generated</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredCourses.map(course => {
-                  const convPct = course.leads > 0 ? ((course.students / course.leads) * 100).toFixed(0) : "0";
-                  const grossRev = course.price * course.students;
-
-                  return (
-                    <tr key={course.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="p-4 pl-6 font-semibold text-gray-900">
-                        <button 
-                          onClick={() => {
-                            setSelectedCourse(course);
-                            setActiveTab("overview");
-                          }}
-                          className="font-bold text-gray-900 hover:text-primary transition-all text-left outline-none"
-                        >
-                          <p className="text-sm font-bold">{course.name}</p>
-                          <span className="text-[10px] font-mono text-gray-400">{course.display_id} • {course.courseType}</span>
-                        </button>
-                      </td>
-                      <td className="p-4">
-                        <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-md font-bold text-[10px]">
-                          {course.category}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm font-bold text-gray-900">
-                        ₹{course.price.toLocaleString("en-IN")}
-                      </td>
-                      <td className="p-4 text-center text-sm font-semibold text-gray-500">
-                        {course.leads}
-                      </td>
-                      <td className="p-4 text-center text-sm font-bold text-gray-700">
-                        {course.students}
-                      </td>
-                      <td className="p-4 text-center text-sm font-bold text-purple-600">
-                        {convPct}%
-                      </td>
-                      <td className="p-4 text-right text-sm font-bold text-emerald-600">
-                        ₹{grossRev.toLocaleString("en-IN")}
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
-                          course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
-                          course.status === "Draft" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                          course.status === "Paused" ? "bg-gray-100 text-gray-700 border-gray-200" :
-                          "bg-rose-50 text-rose-700 border-rose-200"
-                        }`}>
-                          {course.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right pr-6">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button 
-                            onClick={() => {
-                              setSelectedCourse(course);
-                              setActiveTab("overview");
-                            }}
-                            className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded"
-                            title="View Course Profile"
-                          >
-                            <BookOpen className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => handleOpenEdit(course)}
-                            className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-50 rounded"
-                            title="Edit Details"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => handleDuplicate(course)}
-                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
-                            title="Duplicate Course"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
-                          <button 
-                            onClick={() => handleSoftDelete(course)}
-                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded"
-                            title="Archive / Delete Course"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : (
-            <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center">
-              <ShieldAlert className="w-8 h-8 text-gray-300 mb-2" />
-              <p className="text-sm font-semibold">No courses found matching filters.</p>
+      {/* ── COURSES TAB ─── */}
+      {pageTab === "courses" && (
+        <>
+          {/* Filter toolbar */}
+          <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="relative flex-1 w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search by course ID, title or category..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
             </div>
-          )}
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0 justify-end">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Category:</span>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 outline-none"
+                >
+                  <option value="All">All Categories</option>
+                  {courseCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status:</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 outline-none"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Live">Live</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Paused">Paused</option>
+                  <option value="Archived">Archived</option>
+                </select>
+              </div>
+            </div>
+          </Card>
+
+          {/* Main Course Table */}
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              {filteredCourses.length > 0 ? (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/70 border-b border-gray-100">
+                      <th className="p-4 pl-6 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Course Name</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Price</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Leads</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Enrolled</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Conv %</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right">Revenue</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Status</th>
+                      <th className="p-4 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right pr-6"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredCourses.map(course => {
+                      const convPct = course.leads > 0 ? ((course.students / course.leads) * 100).toFixed(0) : "0";
+                      const grossRev = course.price * course.students;
+                      return (
+                        <tr key={course.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                          <td className="p-4 pl-6">
+                            <button
+                              onClick={() => { setSelectedCourse(course); setActiveTab("overview"); }}
+                              className="text-left outline-none"
+                            >
+                              <p className="text-sm text-gray-900 hover:text-primary transition-colors">{course.name}</p>
+                              <span className="text-[10px] font-mono text-gray-400">{course.display_id} • {course.courseType}</span>
+                            </button>
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">{course.category}</span>
+                          </td>
+                          <td className="p-4 text-sm text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
+                          <td className="p-4 text-center text-sm text-gray-500">{course.leads}</td>
+                          <td className="p-4 text-center text-sm text-gray-700">{course.students}</td>
+                          <td className="p-4 text-center text-sm text-purple-600">{convPct}%</td>
+                          <td className="p-4 text-right text-sm text-emerald-600">₹{grossRev.toLocaleString("en-IN")}</td>
+                          <td className="p-4 text-center">
+                            <span className={`px-2 py-0.5 rounded text-[10px] border ${
+                              course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
+                              course.status === "Draft" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                              course.status === "Paused" ? "bg-gray-100 text-gray-600 border-gray-200" :
+                              "bg-rose-50 text-rose-700 border-rose-200"
+                            }`}>{course.status}</span>
+                          </td>
+                          <td className="p-4 text-right pr-6">
+                            {/* 3-dot dropdown */}
+                            <div className="relative inline-block group/menu">
+                              <button
+                                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                title="Actions"
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+                              <div className="absolute right-0 top-8 z-50 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-150 pointer-events-none group-hover/menu:pointer-events-auto">
+                                <button
+                                  onClick={() => { setSelectedCourse(course); setActiveTab("overview"); }}
+                                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                  <BookOpen className="w-3.5 h-3.5 text-gray-400" />
+                                  View Details
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEdit(course)}
+                                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                  <Edit className="w-3.5 h-3.5 text-gray-400" />
+                                  Edit Course
+                                </button>
+                                <button
+                                  onClick={() => handleDuplicate(course)}
+                                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                                >
+                                  <Copy className="w-3.5 h-3.5 text-gray-400" />
+                                  Duplicate
+                                </button>
+                                <div className="border-t border-gray-100 my-1" />
+                                <button
+                                  onClick={() => handleSoftDelete(course)}
+                                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-rose-600 hover:bg-rose-50 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  Archive Course
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center">
+                  <ShieldAlert className="w-8 h-8 text-gray-300 mb-2" />
+                  <p className="text-sm">No courses found matching filters.</p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </>
+      )}
+
+      {/* ── CATEGORY TAB ─── */}
+      {pageTab === "category" && (
+        <div className="space-y-5">
+          {/* Add New Category */}
+          <Card className="p-4 border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="New category name..."
+                value={newCatName}
+                onChange={e => setNewCatName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" && newCatName.trim()) {
+                    setCourseCategories(prev => [...prev, newCatName.trim()]);
+                    setNewCatName("");
+                  }
+                }}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+              <Button
+                onClick={() => {
+                  if (!newCatName.trim()) return;
+                  setCourseCategories(prev => [...prev, newCatName.trim()]);
+                  setNewCatName("");
+                }}
+                className="gap-2 shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                Add Category
+              </Button>
+            </div>
+          </Card>
+
+          {/* Category cards with grouped courses */}
+          <div className="space-y-4">
+            {courseCategories.map((cat, idx) => {
+              const catCourses = courses.filter(c => c.category === cat && c.status !== "Archived");
+              return (
+                <Card key={cat} className="overflow-hidden border border-gray-100 shadow-sm">
+                  <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50/60">
+                    {editingCatIdx === idx ? (
+                      <div className="flex items-center gap-2 flex-1 mr-4">
+                        <input
+                          type="text"
+                          value={editingCatVal}
+                          onChange={e => setEditingCatVal(e.target.value)}
+                          className="flex-1 px-3 py-1 text-sm border border-primary/40 rounded-lg outline-none focus:ring-2 focus:ring-primary/20"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => {
+                            if (!editingCatVal.trim()) return;
+                            const updated = [...courseCategories];
+                            updated[idx] = editingCatVal.trim();
+                            setCourseCategories(updated);
+                            setEditingCatIdx(null);
+                          }}
+                          className="px-3 py-1 text-xs bg-primary text-white rounded-lg"
+                        >Save</button>
+                        <button
+                          onClick={() => setEditingCatIdx(null)}
+                          className="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-lg"
+                        >Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-800">{cat}</span>
+                        <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-1">{catCourses.length} courses</span>
+                      </div>
+                    )}
+                    {editingCatIdx !== idx && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => { setEditingCatIdx(idx); setEditingCatVal(cat); }}
+                          className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Edit category"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (catCourses.length > 0) {
+                              alert(`Cannot delete "${cat}" — it has ${catCourses.length} active course(s). Reassign them first.`);
+                              return;
+                            }
+                            if (window.confirm(`Delete category "${cat}"?`)) {
+                              setCourseCategories(prev => prev.filter((_, i) => i !== idx));
+                            }
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="Delete category"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {catCourses.length > 0 ? (
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Course Name</th>
+                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-center">Students</th>
+                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Price</th>
+                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-2.5 text-[10px] font-medium text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {catCourses.map(course => (
+                          <tr key={course.id} className="hover:bg-gray-50/40 transition-colors">
+                            <td className="px-5 py-3">
+                              <p className="text-sm text-gray-800">{course.name}</p>
+                              <span className="text-[10px] text-gray-400">{course.display_id}</span>
+                            </td>
+                            <td className="px-5 py-3 text-center text-sm text-gray-600">{course.students}</td>
+                            <td className="px-5 py-3 text-sm text-gray-800">₹{course.price.toLocaleString("en-IN")}</td>
+                            <td className="px-5 py-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] border ${
+                                course.status === "Live" ? "bg-green-50 text-green-700 border-green-200" :
+                                course.status === "Draft" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                "bg-gray-100 text-gray-600 border-gray-200"
+                              }`}>{course.status}</span>
+                            </td>
+                            <td className="px-5 py-3 text-right">
+                              <button onClick={() => handleOpenEdit(course)} className="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors mr-0.5" title="Edit">
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleSoftDelete(course)} className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Archive">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="px-5 py-6 text-sm text-gray-400 text-center">No courses in this category yet.</div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
         </div>
-      </Card>
+      )}
+
 
       {/* Sliding Detail Drawer */}
       <Drawer 
@@ -3052,7 +3225,7 @@ function CourseManagementView() {
         <form className="space-y-4" onSubmit={handleSaveCourse}>
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Course Name *</label>
+              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Course Name *</label>
               <input 
                 required 
                 type="text" 
@@ -3065,7 +3238,7 @@ function CourseManagementView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Category *</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Category *</label>
                 <select 
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)} 
@@ -3077,7 +3250,7 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Course Pricing (₹) *</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Course Pricing (₹) *</label>
                 <input 
                   required 
                   type="number" 
@@ -3090,7 +3263,7 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Syllabus Description</label>
+              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Syllabus Description</label>
               <textarea 
                 rows={3} 
                 value={description} 
@@ -3102,7 +3275,7 @@ function CourseManagementView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Duration</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Duration</label>
                 <input 
                   type="text" 
                   value={duration} 
@@ -3112,7 +3285,7 @@ function CourseManagementView() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Course Type</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Course Type</label>
                 <select 
                   value={courseType} 
                   onChange={(e) => setCourseType(e.target.value as any)} 
@@ -3127,7 +3300,7 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Landing Page URL</label>
+              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Landing Page URL</label>
               <input 
                 type="url" 
                 value={landingPageUrl} 
@@ -3138,7 +3311,7 @@ function CourseManagementView() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">WhatsApp CTA Broadcast Link</label>
+              <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">WhatsApp CTA Broadcast Link</label>
               <input 
                 type="url" 
                 value={whatsappCtaLink} 
@@ -3150,7 +3323,7 @@ function CourseManagementView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Publish Status</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Publish Status</label>
                 <select 
                   value={status} 
                   onChange={(e) => setStatus(e.target.value as any)} 
@@ -3163,7 +3336,7 @@ function CourseManagementView() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Meta Tags (comma separated)</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-1 uppercase tracking-wider">Meta Tags (comma separated)</label>
                 <input 
                   type="text" 
                   value={tags} 
