@@ -1231,8 +1231,17 @@ function GymMembersView() {
   // Drawers & Modals
   const [viewingMember, setViewingMember] = useState<any>(null);
   const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isEditMemberOpen, setIsEditMemberOpen] = useState(false);
   const [downloadingPass, setDownloadingPass] = useState<any>(null);
+
+  // Form Fields for Register Gym Member
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberPhone, setNewMemberPhone] = useState("");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberTrainer, setNewMemberTrainer] = useState("None");
+  const [newMemberPlan, setNewMemberPlan] = useState("Monthly Plan");
+  const [newMemberJoinDate, setNewMemberJoinDate] = useState(new Date().toISOString().split("T")[0]);
 
   // Form Fields for Log Lead
   const [leadName, setLeadName] = useState("");
@@ -1353,6 +1362,46 @@ function GymMembersView() {
 
     saveMembers([...updated, newMember]);
     alert(`Successfully transferred ${currentMember.membership} package to ${targetName}!`);
+  };
+
+  const handleCreateMember = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newId = `MEM-${1000 + members.length + 1}`;
+    
+    const join = new Date(newMemberJoinDate || Date.now());
+    const exp = new Date(join);
+    if (newMemberPlan === "Monthly Plan") exp.setMonth(exp.getMonth() + 1);
+    else if (newMemberPlan === "Quarterly Plan") exp.setMonth(exp.getMonth() + 3);
+    else if (newMemberPlan === "Half Yearly") exp.setMonth(exp.getMonth() + 6);
+    else if (newMemberPlan === "Annual Plan") exp.setMonth(exp.getMonth() + 12);
+    else exp.setMonth(exp.getMonth() + 1);
+    
+    const newM = {
+      id: newId,
+      name: newMemberName,
+      mobile: newMemberPhone,
+      email: newMemberEmail || `${newMemberName.toLowerCase().replace(/\s+/g, "")}@elitegym.com`,
+      trainer: newMemberTrainer,
+      membership: newMemberPlan,
+      joinDate: join.toISOString().split("T")[0],
+      expiryDate: exp.toISOString().split("T")[0],
+      status: "Active",
+      hasPT: newMemberTrainer !== "None",
+      hasSupplements: false,
+      lastVisitDate: new Date().toISOString().split("T")[0]
+    };
+    
+    const updated = [...members, newM];
+    saveMembers(updated);
+    setIsAddMemberOpen(false);
+    
+    setNewMemberName("");
+    setNewMemberPhone("");
+    setNewMemberEmail("");
+    setNewMemberTrainer("None");
+    setNewMemberPlan("Monthly Plan");
+    setNewMemberJoinDate(new Date().toISOString().split("T")[0]);
+    alert("New member successfully registered in directory!");
   };
 
   const handleCreateLead = (e: React.FormEvent) => {
@@ -1526,6 +1575,13 @@ function GymMembersView() {
             </button>
           </div>
 
+          {activeTab === "members" && (
+            <Button className="gap-2 font-semibold" onClick={() => setIsAddMemberOpen(true)}>
+              <Plus className="w-4 h-4" />
+              Register Member
+            </Button>
+          )}
+
           {activeTab === "leads" && (
             <Button className="gap-2" onClick={() => setIsAddLeadOpen(true)}>
               <Plus className="w-4 h-4" />
@@ -1612,7 +1668,7 @@ function GymMembersView() {
                 <select
                   value={trainerFilter}
                   onChange={(e) => setTrainerFilter(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none cursor-pointer"
                 >
                   <option value="All">All Trainers</option>
                   <option value="Rajveer Singh">Rajveer Singh</option>
@@ -1622,6 +1678,14 @@ function GymMembersView() {
                   <option value="None">None (General Workout)</option>
                 </select>
               </div>
+              
+              <Button 
+                onClick={() => setIsAddMemberOpen(true)}
+                className="gap-1.5 text-xs font-bold bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white shrink-0 shadow-xs h-8 px-3"
+              >
+                <Plus className="w-4 h-4" />
+                Register Member
+              </Button>
             </div>
           </Card>
 
@@ -1630,60 +1694,60 @@ function GymMembersView() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100">
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Member ID & Name</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact Info</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Coach/Trainer</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Active Plan</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Validity Period</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Membership Status</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <tr className="bg-gray-50/60 border-y border-gray-200/60">
+                    <th className="p-3 pl-6 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Member ID & Name</th>
+                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Contact Info</th>
+                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Coach/Trainer</th>
+                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Active Plan</th>
+                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Validity Period</th>
+                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase">Membership Status</th>
+                    <th className="p-3 text-[11px] font-bold text-gray-500 tracking-wider uppercase text-right pr-6">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-150 bg-white">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {filteredMembers.map((member: any) => (
-                    <tr key={member.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="p-4 pl-6">
+                    <tr key={member.id} className="hover:bg-gray-50/40 transition-colors group">
+                      <td className="p-3 pl-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-sm">
+                          <div className="w-8 h-8 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-xs">
                             {member.name.charAt(0)}
                           </div>
                           <div>
                             <button 
                               onClick={() => setViewingMember(member)}
-                              className="font-bold text-gray-900 hover:text-[#2E8C13] transition-colors outline-none text-left"
+                              className="text-sm font-semibold text-gray-800 hover:text-[#2E8C13] transition-colors outline-none text-left"
                             >
                               {member.name}
                             </button>
-                            <p className="text-[10px] text-gray-400 font-semibold">{member.id}</p>
+                            <p className="text-[10px] font-medium text-gray-400 font-mono mt-0.5">{member.id}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 text-xs text-gray-500">
+                      <td className="p-3 text-xs text-gray-500">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-gray-700">{member.mobile}</span>
-                          <span>{member.email}</span>
+                          <span className="font-normal text-gray-500">{member.mobile}</span>
+                          <span className="text-[11px] text-gray-400">{member.email}</span>
                         </div>
                       </td>
-                      <td className="p-4 text-xs text-gray-700 font-semibold">
+                      <td className="p-3 text-xs">
                         {member.trainer === "None" ? (
                           <span className="text-gray-400 italic">No Coach Assigned</span>
                         ) : (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 font-medium text-gray-600">
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                             {member.trainer}
                           </span>
                         )}
                       </td>
-                      <td className="p-4 text-xs font-bold text-indigo-950">{member.membership}</td>
-                      <td className="p-4 text-xs text-gray-500">
-                        <div className="flex flex-col font-medium">
+                      <td className="p-3 text-xs font-medium text-gray-600">{member.membership}</td>
+                      <td className="p-3 text-xs text-gray-500">
+                        <div className="flex flex-col font-normal">
                           <span>Join: {member.joinDate}</span>
-                          <span className={member.status === "Expired" ? "text-red-500 font-bold" : "text-gray-500"}>Exp: {member.expiryDate}</span>
+                          <span className={member.status === "Expired" ? "text-red-600 font-medium" : "text-gray-400"}>Exp: {member.expiryDate}</span>
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${
+                      <td className="p-3">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
                           member.status === "Active" ? "bg-green-50 text-green-700 border-green-200" :
                           member.status === "Frozen" ? "bg-blue-50 text-blue-700 border-blue-200 animate-pulse" :
                           member.status === "Expired" ? "bg-red-50 text-red-700 border-red-200" : "bg-gray-50 text-gray-600 border-gray-200"
@@ -2045,6 +2109,98 @@ function GymMembersView() {
           <div className="pt-4 flex justify-end gap-3 mt-6">
             <Button type="button" variant="ghost" onClick={() => setIsAddLeadOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary">Submit Candidate Lead</Button>
+          </div>
+        </form>
+      </Drawer>
+
+      {/* Register Member Form Drawer */}
+      <Drawer isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)} title="Register New Gym Member">
+        <form className="space-y-4 animate-in fade-in duration-200" onSubmit={handleCreateMember}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4 font-sans">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+              <input 
+                required 
+                type="text" 
+                value={newMemberName}
+                onChange={(e) => setNewMemberName(e.target.value)}
+                placeholder="e.g. Priyanshu Mehta"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Mobile Number</label>
+                <input 
+                  required
+                  type="tel" 
+                  value={newMemberPhone}
+                  onChange={(e) => setNewMemberPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                <input 
+                  type="email" 
+                  value={newMemberEmail}
+                  onChange={(e) => setNewMemberEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Select Membership Plan</label>
+                <select
+                  value={newMemberPlan}
+                  onChange={(e) => setNewMemberPlan(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none font-semibold text-gray-900 text-sm cursor-pointer"
+                >
+                  <option value="Monthly Plan">Monthly Plan (₹2,999)</option>
+                  <option value="Quarterly Plan">Quarterly Plan (₹7,999)</option>
+                  <option value="Half Yearly">Half Yearly Plan (₹13,999)</option>
+                  <option value="Annual Plan">Annual Plan (₹24,999)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Assign Personal Coach (PT)</label>
+                <select
+                  value={newMemberTrainer}
+                  onChange={(e) => setNewMemberTrainer(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none font-semibold text-gray-900 text-sm cursor-pointer"
+                >
+                  <option value="None">No Personal Coach (Self Workout)</option>
+                  {trainers.map((t: any) => (
+                    <option key={t.id} value={t.name}>{t.name} ({t.bio})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Membership Commencement Date</label>
+              <input 
+                required 
+                type="date" 
+                value={newMemberJoinDate}
+                onChange={(e) => setNewMemberJoinDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-semibold text-gray-950 text-sm"
+              />
+            </div>
+            
+            <p className="text-[10px] text-gray-400 mt-2 leading-relaxed bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+              * Note: The membership package expiry date will be computed automatically based on the selected duration (e.g. 1 Month, 3 Months, 6 Months, or 12 Months).
+            </p>
+          </div>
+          
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddMemberOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Register & Activate Member</Button>
           </div>
         </form>
       </Drawer>

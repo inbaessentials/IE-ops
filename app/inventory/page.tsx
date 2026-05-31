@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, ImagePlus, X, Package, Layers, AlertTriangle, AlertCircle, TrendingDown, Coins, UploadCloud, Sliders, Trash2, Loader2, CheckCircle2, List, LayoutGrid } from "lucide-react";
+import { Plus, Search, Filter, ImagePlus, X, Package, Layers, AlertTriangle, AlertCircle, TrendingDown, Coins, UploadCloud, Sliders, Trash2, Loader2, CheckCircle2, List, LayoutGrid, ShoppingBag } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -1865,19 +1865,22 @@ export default function InventoryPage() {
   );
 }
 
-// ==========================================
-// GYM MEMBERSHIPS CATALOG VIEW (PRD 1.0)
-// ==========================================
 function GymMembershipsView() {
+  const [activeTab, setActiveTab] = useState<"plans" | "supplements">("plans");
   const [plans, setPlans] = useState<any[]>([]);
+  const [supplements, setSupplements] = useState<any[]>([]);
+  
+  // Drawer visibility states
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
+  const [isAddSuppOpen, setIsAddSuppOpen] = useState(false);
+  const [editingSupp, setEditingSupp] = useState<any>(null);
   
   // Filtering & search
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  // Form fields
+  // Form fields: Plans
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("1 Month");
   const [price, setPrice] = useState("");
@@ -1885,16 +1888,25 @@ function GymMembershipsView() {
   const [freezeAllowed, setFreezeAllowed] = useState(true);
   const [status, setStatus] = useState("Active");
 
-  const loadPlans = () => {
+  // Form fields: Supplements & Retail
+  const [suppName, setSuppName] = useState("");
+  const [suppSku, setSuppSku] = useState("");
+  const [suppCategory, setSuppCategory] = useState("Supplements");
+  const [suppPrice, setSuppPrice] = useState("");
+  const [suppStock, setSuppStock] = useState("");
+  const [suppUnitsSold, setSuppUnitsSold] = useState("0");
+
+  const loadData = () => {
     if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("inba_gym_memberships");
-    if (saved) {
-      setPlans(JSON.parse(saved));
-    }
+    const savedPlans = localStorage.getItem("inba_gym_memberships");
+    const savedSupps = localStorage.getItem("inba_gym_products");
+    
+    if (savedPlans) setPlans(JSON.parse(savedPlans));
+    if (savedSupps) setSupplements(JSON.parse(savedSupps));
   };
 
   useEffect(() => {
-    loadPlans();
+    loadData();
   }, []);
 
   const savePlans = (updated: any[]) => {
@@ -1902,6 +1914,12 @@ function GymMembershipsView() {
     setPlans(updated);
   };
 
+  const saveSupplements = (updated: any[]) => {
+    localStorage.setItem("inba_gym_products", JSON.stringify(updated));
+    setSupplements(updated);
+  };
+
+  // Plans Handlers
   const handleOpenAdd = () => {
     setEditingPlan(null);
     setName("");
@@ -1924,40 +1942,21 @@ function GymMembershipsView() {
     setIsAddOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmitPlan = (e: React.FormEvent) => {
     e.preventDefault();
     const planPrice = Number(price);
     const planGst = Number(gst);
 
     if (editingPlan) {
-      // Edit
-      const updated = plans.map(p => {
-        if (p.id === editingPlan.id) {
-          return {
-            ...p,
-            name,
-            duration,
-            price: planPrice,
-            gst: planGst,
-            freezeAllowed,
-            status
-          };
-        }
-        return p;
-      });
+      const updated = plans.map(p => p.id === editingPlan.id ? {
+        ...p, name, duration, price: planPrice, gst: planGst, freezeAllowed, status
+      } : p);
       savePlans(updated);
-      alert("Plan modifications saved successfully!");
+      alert("Plan specifications modified successfully!");
     } else {
-      // Add
       const newId = `GYM-PLN-${100 + plans.length + 1}`;
       const newPlan = {
-        id: newId,
-        name,
-        duration,
-        price: planPrice,
-        gst: planGst,
-        freezeAllowed,
-        status
+        id: newId, name, duration, price: planPrice, gst: planGst, freezeAllowed, status
       };
       savePlans([...plans, newPlan]);
       alert("Membership Plan published successfully!");
@@ -1968,10 +1967,63 @@ function GymMembershipsView() {
   const handleDeletePlan = (planId: string, planName: string) => {
     const confirm = window.confirm(`Are you sure you want to delete the plan "${planName}"?`);
     if (!confirm) return;
-    const updated = plans.filter(p => p.id !== planId);
-    savePlans(updated);
+    savePlans(plans.filter(p => p.id !== planId));
   };
 
+  // Supplements Handlers
+  const handleOpenAddSupp = () => {
+    setEditingSupp(null);
+    setSuppName("");
+    setSuppSku("");
+    setSuppCategory("Supplements");
+    setSuppPrice("");
+    setSuppStock("");
+    setSuppUnitsSold("0");
+    setIsAddSuppOpen(true);
+  };
+
+  const handleOpenEditSupp = (supp: any) => {
+    setEditingSupp(supp);
+    setSuppName(supp.name);
+    setSuppSku(supp.sku);
+    setSuppCategory(supp.category);
+    setSuppPrice(supp.price.toString());
+    setSuppStock(supp.stock.toString());
+    setSuppUnitsSold(supp.unitsSold.toString());
+    setIsAddSuppOpen(true);
+  };
+
+  const handleSubmitSupp = (e: React.FormEvent) => {
+    e.preventDefault();
+    const priceVal = Number(suppPrice);
+    const stockVal = Number(suppStock);
+    const soldVal = Number(suppUnitsSold);
+    const revVal = soldVal * priceVal;
+
+    if (editingSupp) {
+      const updated = supplements.map(s => s.id === editingSupp.id ? {
+        ...s, name: suppName, sku: suppSku, category: suppCategory, price: priceVal, stock: stockVal, unitsSold: soldVal, revenue: revVal
+      } : s);
+      saveSupplements(updated);
+      alert("Retail product updated successfully!");
+    } else {
+      const newId = `GYM-PROD-${100 + supplements.length + 1}`;
+      const newSupp = {
+        id: newId, name: suppName, sku: suppSku, category: suppCategory, price: priceVal, stock: stockVal, unitsSold: soldVal, revenue: revVal
+      };
+      saveSupplements([...supplements, newSupp]);
+      alert("Retail Product added to Supplement Store successfully!");
+    }
+    setIsAddSuppOpen(false);
+  };
+
+  const handleDeleteSupp = (suppId: string, suppName: string) => {
+    const confirm = window.confirm(`Are you sure you want to delete "${suppName}" from product catalog?`);
+    if (!confirm) return;
+    saveSupplements(supplements.filter(s => s.id !== suppId));
+  };
+
+  // Filtering lists
   const filteredPlans = useMemo(() => {
     return plans.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.id.toLowerCase().includes(search.toLowerCase());
@@ -1980,59 +2032,144 @@ function GymMembershipsView() {
     });
   }, [plans, search, statusFilter]);
 
+  const filteredSupps = useMemo(() => {
+    return supplements.filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.sku.toLowerCase().includes(search.toLowerCase());
+      const matchesCat = statusFilter === "All" || s.category === statusFilter;
+      return matchesSearch && matchesCat;
+    });
+  }, [supplements, search, statusFilter]);
+
+  const totalStockCount = useMemo(() => supplements.reduce((sum: number, s: any) => sum + (s.stock || 0), 0), [supplements]);
+  const outOfStockCount = useMemo(() => supplements.filter((s: any) => (s.stock || 0) === 0).length, [supplements]);
+  const totalStoreSalesVal = useMemo(() => supplements.reduce((sum: number, s: any) => sum + (s.revenue || 0), 0), [supplements]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Memberships Plan Catalog</h1>
-          <p className="text-sm text-gray-500 mt-1">Configure subscription plans, personal coaching fees, and duration packages.</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Memberships & Products Catalog</h1>
+          <p className="text-sm text-gray-500 mt-1">Configure subscription plans, coaching PT fees, and retail supplement inventory.</p>
         </div>
-        <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
-          <Plus className="w-4 h-4" />
-          Add Membership Plan
-        </Button>
+        
+        <div className="flex gap-2">
+          {/* Tabs Switcher Selector */}
+          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
+            <button 
+              onClick={() => { setActiveTab("plans"); setStatusFilter("All"); }}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "plans" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Package className="w-3.5 h-3.5" />
+              Membership Plans
+            </button>
+            <button 
+              onClick={() => { setActiveTab("supplements"); setStatusFilter("All"); }}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "supplements" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              Supplements & Retail Products
+            </button>
+          </div>
+
+          {activeTab === "plans" ? (
+            <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
+              <Plus className="w-4 h-4" />
+              Add Membership Plan
+            </Button>
+          ) : (
+            <Button className="gap-2 font-semibold" onClick={handleOpenAddSupp}>
+              <Plus className="w-4 h-4" />
+              Add Retail Product
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Metrics Ribbon */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Plans</p>
-            <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.filter(p => p.status === "Active").length}</h3>
-          </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-            <Package className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
-            <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">135</h3>
-          </div>
-          <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Conversion Rate</p>
-            <h3 className="text-2xl font-bold tracking-tight text-purple-600">88.4%</h3>
-          </div>
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-            <Sliders className="w-5 h-5" />
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Expired plans</p>
-            <h3 className="text-2xl font-bold tracking-tight text-red-600">8</h3>
-          </div>
-          <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-            <AlertCircle className="w-5 h-5" />
-          </div>
-        </Card>
-      </div>
+      {/* Dynamic Metrics Ribbon */}
+      {activeTab === "plans" ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Plans</p>
+              <h3 className="text-2xl font-bold tracking-tight text-gray-900">{plans.filter(p => p.status === "Active").length}</h3>
+            </div>
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Package className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Members</p>
+              <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13]">135</h3>
+            </div>
+            <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Conversion Rate</p>
+              <h3 className="text-2xl font-bold tracking-tight text-purple-600">88.4%</h3>
+            </div>
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <Sliders className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Expired plans</p>
+              <h3 className="text-2xl font-bold tracking-tight text-red-600">8</h3>
+            </div>
+            <div className="p-3 bg-red-50 text-red-600 rounded-xl">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Product Stock</p>
+              <h3 className="text-2xl font-bold tracking-tight text-gray-900">{totalStockCount} <span className="text-xs text-gray-400 font-semibold">units</span></h3>
+            </div>
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <Package className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Out of Stock</p>
+              <h3 className="text-2xl font-bold tracking-tight text-red-600">{outOfStockCount} <span className="text-xs text-gray-400 font-semibold">items</span></h3>
+            </div>
+            <div className="p-3 bg-red-50 text-red-600 rounded-xl animate-pulse">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Store Sales Volume</p>
+              <h3 className="text-2xl font-bold tracking-tight text-emerald-600">₹{totalStoreSalesVal.toLocaleString("en-IN")}</h3>
+            </div>
+            <div className="p-3 bg-green-50 text-[#2E8C13] rounded-xl">
+              <Coins className="w-5 h-5" />
+            </div>
+          </Card>
+          <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs hover:shadow-md transition-all">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Distinct Products</p>
+              <h3 className="text-2xl font-bold tracking-tight text-purple-600">{supplements.length}</h3>
+            </div>
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <Sliders className="w-5 h-5" />
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
@@ -2040,86 +2177,188 @@ function GymMembershipsView() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Search plans by name or catalog ID..."
+            placeholder={activeTab === "plans" ? "Search plans by name or catalog ID..." : "Search products by name or SKU..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
           />
         </div>
         
-        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-          <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
-          >
-            <option value="All">All Plans</option>
-            <option value="Active">Active only</option>
-            <option value="Inactive">Inactive only</option>
-          </select>
-        </div>
+        {activeTab === "plans" ? (
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+            <span className="text-xs text-gray-500 font-semibold uppercase">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none cursor-pointer focus:border-[#2E8C13]"
+            >
+              <option value="All">All Plans</option>
+              <option value="Active">Active only</option>
+              <option value="Inactive">Inactive only</option>
+            </select>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+            <span className="text-xs text-gray-500 font-semibold uppercase">Category:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none cursor-pointer focus:border-[#2E8C13]"
+            >
+              <option value="All">All Categories</option>
+              <option value="Supplements">Supplements</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Apparel">Apparel</option>
+            </select>
+          </div>
+        )}
       </Card>
 
-      {/* Memberships Card Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPlans.map((plan: any) => (
-          <Card key={plan.id} className="overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-200 flex flex-col">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{plan.id}</span>
-                <h3 className="text-base font-bold text-gray-900 mt-1 truncate">{plan.name}</h3>
-              </div>
-              <Badge className={plan.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                {plan.status}
-              </Badge>
-            </div>
-
-            <div className="p-6 flex-1 space-y-4">
-              <div className="flex items-baseline justify-center py-4 bg-gray-50 rounded-xl border border-gray-100/50">
-                <span className="text-3xl font-extrabold text-gray-900">₹{plan.price.toLocaleString("en-IN")}</span>
-                <span className="text-xs text-gray-400 font-semibold ml-1">/ {plan.duration}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-xs font-medium text-gray-600">
-                <div className="bg-gray-50 p-2.5 rounded-lg text-center">
-                  <span className="text-gray-400 block mb-0.5 text-[9px] uppercase tracking-wider">GST Charge</span>
-                  <span className="font-bold text-gray-800">{plan.gst || 18}%</span>
+      {/* Membership Card Grid TAB 1 */}
+      {activeTab === "plans" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
+          {filteredPlans.map((plan: any) => (
+            <Card key={plan.id} className="overflow-hidden border border-gray-150 rounded-2xl hover:shadow-md hover:scale-[1.01] transition-all duration-300 flex flex-col bg-white">
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">{plan.id}</span>
+                  <h3 className="text-sm font-semibold text-gray-800 mt-1.5 truncate">{plan.name}</h3>
                 </div>
-                <div className="bg-gray-50 p-2.5 rounded-lg text-center">
-                  <span className="text-gray-400 block mb-0.5 text-[9px] uppercase tracking-wider">Freeze Support</span>
-                  <span className={`font-bold ${plan.freezeAllowed ? "text-[#2E8C13]" : "text-red-500"}`}>
-                    {plan.freezeAllowed ? "Allowed" : "No Support"}
-                  </span>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${
+                  plan.status === "Active" ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-500 border-gray-200"
+                }`}>
+                  {plan.status}
+                </span>
+              </div>
+
+              <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                <div className="flex flex-col items-center justify-center py-2">
+                  <span className="text-3xl font-semibold tracking-tight text-[#2E8C13]">₹{plan.price.toLocaleString("en-IN")}</span>
+                  <span className="text-xs text-gray-400 font-medium mt-1">/ {plan.duration}</span>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-2.5 text-xs text-gray-500 font-medium">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wider">Tax Details:</span>
+                    <span className="text-gray-700 font-semibold">{plan.gst}% GST included</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-gray-400 uppercase tracking-wider">Freeze Policy:</span>
+                    <span className={plan.freezeAllowed ? "text-green-600 font-bold" : "text-gray-400"}>
+                      {plan.freezeAllowed ? "Allowed" : "Not Allowed"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="p-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs font-semibold text-gray-600 hover:text-gray-900"
-                onClick={() => handleOpenEdit(plan)}
-              >
-                Edit Parameters
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                onClick={() => handleDeletePlan(plan.id, plan.name)}
-              >
-                Delete Plan
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+              <div className="p-4 border-t border-gray-100 bg-gray-50/20 flex gap-2">
+                <Button 
+                  className="flex-1 text-xs font-semibold" 
+                  variant="outline" 
+                  onClick={() => handleOpenEdit(plan)}
+                >
+                  Edit Specifications
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3"
+                  onClick={() => handleDeletePlan(plan.id, plan.name)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Supplements & Products Table TAB 2 */}
+      {activeTab === "supplements" && (
+        <Card className="overflow-hidden border border-gray-100 shadow-xs animate-in fade-in duration-200">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-sans">
+              <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                <tr>
+                  <th className="p-3 pl-6">Catalog ID & SKU</th>
+                  <th className="p-3">Product / Item Name</th>
+                  <th className="p-3">Store Category</th>
+                  <th className="p-3">Retail Price</th>
+                  <th className="p-3">Current Stock</th>
+                  <th className="p-3">Units Sold</th>
+                  <th className="p-3">Store Revenue</th>
+                  <th className="p-3 pr-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white text-xs font-medium text-gray-600">
+                {filteredSupps.length > 0 ? (
+                  filteredSupps.map((supp: any) => {
+                    const isOutOfStock = (supp.stock || 0) === 0;
+                    const isLowStock = (supp.stock || 0) <= 10 && (supp.stock || 0) > 0;
+                    
+                    return (
+                      <tr key={supp.id} className="hover:bg-gray-50/40 transition-colors">
+                        <td className="p-3 pl-6">
+                          <span className="font-semibold text-gray-800 block">{supp.id}</span>
+                          <span className="text-[10px] text-gray-400 font-mono block mt-0.5">{supp.sku}</span>
+                        </td>
+                        <td className="p-3 text-sm font-semibold text-gray-800">{supp.name}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold border ${
+                            supp.category === "Supplements" ? "bg-emerald-50 text-emerald-700 border-emerald-150" :
+                            supp.category === "Apparel" ? "bg-indigo-50 text-indigo-700 border-indigo-150" :
+                            "bg-amber-50 text-amber-700 border-amber-150"
+                          }`}>
+                            {supp.category}
+                          </span>
+                        </td>
+                        <td className="p-3 text-sm font-semibold text-gray-800">₹{supp.price.toLocaleString("en-IN")}</td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-600">{supp.stock} units</span>
+                            <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[8px] font-extrabold uppercase ${
+                              isOutOfStock ? "bg-rose-50 text-rose-700 border border-rose-150" :
+                              isLowStock ? "bg-amber-50 text-amber-700 border border-amber-150 animate-pulse" :
+                              "bg-green-50 text-green-700 border border-green-150"
+                            }`}>
+                              {isOutOfStock ? "Out of stock" : isLowStock ? "Low stock" : "In stock"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-xs text-gray-500 font-normal">{supp.unitsSold || 0} sold</td>
+                        <td className="p-3 text-sm font-bold text-[#2E8C13]">₹{(supp.revenue || 0).toLocaleString("en-IN")}</td>
+                        <td className="p-4 pr-6 text-right space-x-3 whitespace-nowrap">
+                          <button 
+                            onClick={() => handleOpenEditSupp(supp)}
+                            className="text-xs font-bold text-[#2E8C13] hover:underline cursor-pointer"
+                          >
+                            Edit Item
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteSupp(supp.id, supp.name)}
+                            className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="text-center p-8 text-sm text-gray-400 font-medium bg-gray-50/20">
+                      No retail products registered matching these filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
 
       {/* Plan Drawer form */}
       <Drawer isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={editingPlan ? "Modify Plan Specifications" : "Publish New Plan Offer"}>
-        <form className="space-y-4 font-sans" onSubmit={handleSubmit}>
+        <form className="space-y-4 font-sans" onSubmit={handleSubmitPlan}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Plan / Package Name</label>
@@ -2203,6 +2442,94 @@ function GymMembershipsView() {
             <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary">
               {editingPlan ? "Update Plan" : "Publish Offer"}
+            </Button>
+          </div>
+        </form>
+      </Drawer>
+
+      {/* Supplements & Retail Product Drawer */}
+      <Drawer isOpen={isAddSuppOpen} onClose={() => setIsAddSuppOpen(false)} title={editingSupp ? "Modify Retail Product Specifications" : "Register New Product Stock"}>
+        <form className="space-y-4 font-sans" onSubmit={handleSubmitSupp}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Product Name</label>
+              <input 
+                required 
+                type="text" 
+                value={suppName}
+                onChange={(e) => setSuppName(e.target.value)}
+                placeholder="e.g. Whey Protein Isolate (2kg)"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Product SKU / Code</label>
+                <input 
+                  required 
+                  type="text" 
+                  value={suppSku}
+                  onChange={(e) => setSuppSku(e.target.value)}
+                  placeholder="e.g. GYM-WHEY-01"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+                <select 
+                  value={suppCategory}
+                  onChange={e => setSuppCategory(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm cursor-pointer"
+                >
+                  <option value="Supplements">Supplements</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Apparel">Apparel</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Retail Price (INR)</label>
+                <input 
+                  required 
+                  type="number" 
+                  value={suppPrice}
+                  onChange={(e) => setSuppPrice(e.target.value)}
+                  placeholder="e.g. 5499"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">In Stock Qty</label>
+                <input 
+                  required 
+                  type="number" 
+                  value={suppStock}
+                  onChange={(e) => setSuppStock(e.target.value)}
+                  placeholder="e.g. 25"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Units Sold</label>
+                <input 
+                  required 
+                  type="number" 
+                  value={suppUnitsSold}
+                  onChange={(e) => setSuppUnitsSold(e.target.value)}
+                  placeholder="0"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddSuppOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">
+              {editingSupp ? "Update Product" : "Publish Stock"}
             </Button>
           </div>
         </form>

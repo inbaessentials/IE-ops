@@ -27,6 +27,204 @@ export default function AttendancePage() {
   const [scannerMemberId, setScannerMemberId] = useState("");
   const [scannerCheckType, setScannerCheckType] = useState<"in" | "out">("in");
 
+  // Kiosk Simulator states
+  const [isKioskOpen, setIsKioskOpen] = useState(false);
+  const [kioskTab, setKioskTab] = useState<"phone" | "face">("phone");
+  const [kioskPhone, setKioskPhone] = useState("");
+  const [kioskStatus, setKioskStatus] = useState<"idle" | "scanning" | "success" | "error">("idle");
+  const [kioskMatchedMember, setKioskMatchedMember] = useState<any>(null);
+  const [kioskMessage, setKioskMessage] = useState("");
+  const [kioskCheckType, setKioskCheckType] = useState<"in" | "out">("in");
+
+  // Synthesize realistic check-in chimes using browser Web Audio API
+  const playChime = (type: "success" | "error" | "scan") => {
+    if (typeof window === "undefined") return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      
+      if (type === "success") {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880.00, ctx.currentTime + 0.15); // A5
+        
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } else if (type === "error") {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } else {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      }
+    } catch (err) {
+      console.warn("AudioContext chime synthesis skipped:", err);
+    }
+  };
+
+  // Kiosk Keypad Press Handlers
+  const handleKeypadPress = (val: string) => {
+    playChime("scan");
+    if (kioskStatus === "success" || kioskStatus === "error") {
+      setKioskStatus("idle");
+      setKioskPhone(val);
+      return;
+    }
+    if (kioskPhone.length >= 15) return;
+    setKioskPhone(prev => prev + val);
+  };
+
+  const handleKeypadClear = () => {
+    playChime("scan");
+    setKioskPhone("");
+    setKioskStatus("idle");
+  };
+
+  // Kiosk Phone search
+  const handleKioskPhoneSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!kioskPhone) return;
+
+    const cleanedQuery = kioskPhone.replace(/\D/g, "");
+    if (cleanedQuery.length < 4) {
+      playChime("error");
+      setKioskStatus("error");
+      setKioskMessage("Type at least the last 4 digits of your phone number.");
+      return;
+    }
+
+    const matched = members.find(m => {
+      const cleanedMobile = (m.mobile || "").replace(/\D/g, "");
+      return cleanedMobile.endsWith(cleanedQuery) && m.status === "Active";
+    });
+
+    if (!matched) {
+      playChime("error");
+      setKioskStatus("error");
+      setKioskMessage("Active member profile not found! Check your number or ask front desk.");
+      return;
+    }
+
+    processKioskCheck(matched);
+  };
+
+  // AI Facial scanner sweeping trigger
+  const triggerFacialScanner = () => {
+    if (kioskStatus === "scanning") return;
+    setKioskStatus("scanning");
+    setKioskPhone("");
+    playChime("scan");
+
+    const timer1 = setTimeout(() => playChime("scan"), 500);
+    const timer2 = setTimeout(() => playChime("scan"), 1000);
+
+    const timer3 = setTimeout(() => {
+      const activeMembers = members.filter(m => m.status === "Active");
+      if (activeMembers.length === 0) {
+        playChime("error");
+        setKioskStatus("error");
+        setKioskMessage("No active members in directory to match face!");
+        return;
+      }
+
+      // Pick a deterministic member based on timestamp so it varies
+      const matched = activeMembers[Math.floor(Date.now() / 1000) % activeMembers.length];
+      processKioskCheck(matched);
+    }, 1500);
+  };
+
+  // Sync Kiosk Checks with database
+  const processKioskCheck = (member: any) => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const nowTime = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+    if (kioskCheckType === "in") {
+      const newScan = {
+        id: `ATT-KIOSK-${Date.now()}`,
+        memberId: member.id,
+        memberName: member.name,
+        date: todayStr,
+        checkIn: nowTime,
+        checkOut: "--:--",
+        trainer: member.trainer,
+        branch: "Elite Fitness Studio Main Branch"
+      };
+
+      const updated = [newScan, ...attendance];
+      localStorage.setItem("inba_gym_attendance", JSON.stringify(updated));
+      setAttendance(updated);
+
+      const updatedMembers = members.map(m => {
+        if (m.id === member.id) {
+          return { ...m, lastVisitDate: todayStr };
+        }
+        return m;
+      });
+      localStorage.setItem("inba_gym_members", JSON.stringify(updatedMembers));
+      setMembers(updatedMembers);
+
+      playChime("success");
+      setKioskMatchedMember(member);
+      setKioskStatus("success");
+      setKioskMessage(`Check-In recorded! Welcome back, ${member.name.split(" ")[0]}. Have a great workout!`);
+    } else {
+      let found = false;
+      const updated = attendance.map(a => {
+        if (a.memberId === member.id && a.date === todayStr && a.checkOut === "--:--") {
+          found = true;
+          return { ...a, checkOut: nowTime };
+        }
+        return a;
+      });
+
+      if (!found) {
+        playChime("error");
+        setKioskStatus("error");
+        setKioskMessage(`No active check-in scan found for ${member.name} today. Check-in first!`);
+        return;
+      }
+
+      localStorage.setItem("inba_gym_attendance", JSON.stringify(updated));
+      setAttendance(updated);
+
+      playChime("success");
+      setKioskMatchedMember(member);
+      setKioskStatus("success");
+      setKioskMessage(`Check-Out recorded! Workout completed. Great job, ${member.name.split(" ")[0]}!`);
+    }
+  };
+
   const loadData = () => {
     if (typeof window === "undefined") return;
     const a = localStorage.getItem("inba_gym_attendance");
@@ -219,10 +417,23 @@ export default function AttendancePage() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Attendance Scans Ledger</h1>
           <p className="text-sm text-gray-500 mt-1">Track physical studio workouts, sign-ins volume, and engagement churn indicators.</p>
         </div>
-        <Button className="gap-2 font-semibold" onClick={() => setIsScanOpen(true)}>
-          <Plus className="w-4 h-4" />
-          Log Access Scan / Check-In
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="gap-1.5 font-bold border-amber-600/30 text-amber-700 bg-amber-50/50 hover:bg-amber-50"
+            onClick={() => {
+              playChime("scan");
+              setIsKioskOpen(true);
+            }}
+          >
+            <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+            Entrance Kiosk Mode
+          </Button>
+          <Button className="gap-2 font-semibold" onClick={() => setIsScanOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Log Access Scan / Check-In
+          </Button>
+        </div>
       </div>
 
       {/* KPI Stats Ribbon */}
@@ -411,53 +622,53 @@ export default function AttendancePage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/20 border-b border-gray-100">
-                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Member ID & Name</th>
-                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Check In Scan</th>
-                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Check Out Scan</th>
-                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Coach Assigned</th>
-                <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Branch Venue</th>
+            <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+              <tr>
+                <th className="p-3 pl-6">Member ID & Name</th>
+                <th className="p-3">Date</th>
+                <th className="p-3">Check In Scan</th>
+                <th className="p-3">Check Out Scan</th>
+                <th className="p-3">Coach Assigned</th>
+                <th className="p-3">Branch Venue</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
               {filteredAttendanceList.map((log: any) => (
-                <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="p-4 pl-6 font-bold text-gray-900 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs">
+                <tr key={log.id} className="hover:bg-gray-50/40 transition-colors">
+                  <td className="p-3 pl-6 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
                       {log.memberName.charAt(0)}
                     </div>
                     <div>
-                      <span>{log.memberName}</span>
-                      <span className="text-[10px] text-gray-400 block font-mono">{log.memberId}</span>
+                      <span className="text-sm font-semibold text-gray-800 block leading-tight">{log.memberName}</span>
+                      <span className="text-[10px] text-gray-400 block font-mono mt-0.5">{log.memberId}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-xs text-gray-500 font-semibold">{log.date}</td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-                      <Clock className="w-3.5 h-3.5" />
+                  <td className="p-3 text-xs text-gray-500 font-normal">{log.date}</td>
+                  <td className="p-3">
+                    <span className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
+                      <Clock className="w-3.5 h-3.5 text-green-600" />
                       {log.checkIn}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border ${
+                  <td className="p-3">
+                    <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
                       log.checkOut === "--:--" 
                         ? "bg-amber-50 text-amber-700 border-amber-250 animate-pulse" 
                         : "bg-gray-50 text-gray-600 border-gray-200"
                     }`}>
-                      <Clock className="w-3.5 h-3.5" />
+                      <Clock className="w-3.5 h-3.5 text-gray-400" />
                       {log.checkOut}
                     </span>
                   </td>
-                  <td className="p-4 text-xs text-gray-700 font-semibold">
+                  <td className="p-3 text-xs">
                     {log.trainer === "None" ? (
                       <span className="text-gray-400 italic">Self Workout</span>
                     ) : (
-                      <span>{log.trainer}</span>
+                      <span className="font-semibold text-gray-600">{log.trainer}</span>
                     )}
                   </td>
-                  <td className="p-4 text-xs text-gray-500 font-semibold flex items-center gap-1">
+                  <td className="p-3 text-xs text-gray-500 font-normal flex items-center gap-1 mt-1.5">
                     <MapPin className="w-3.5 h-3.5 text-gray-400" />
                     {log.branch.split(" ")[0]}
                   </td>
@@ -521,15 +732,311 @@ export default function AttendancePage() {
             </p>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 mt-6">
-            <Button type="button" variant="ghost" onClick={() => setIsScanOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" className="gap-2 font-bold">
-              <CheckCircle className="w-4 h-4" />
-              Process Access Scan
-            </Button>
-          </div>
-        </form>
+    </form>
       </Drawer>
+
+      {/* Fullscreen Touchscreen Entrance Check-In Kiosk Stand Simulator Modal */}
+      {isKioskOpen && (
+        <div className="fixed inset-0 bg-[#0b0f19]/98 z-50 flex items-center justify-center p-4 font-sans select-none animate-in fade-in duration-200">
+          {/* iPad Kiosk tablet bezel frame */}
+          <div className="relative bg-[#111827] rounded-[2rem] border-[10px] border-[#1f2937] max-w-4xl w-full h-[540px] shadow-2xl flex flex-col overflow-hidden text-gray-200">
+            {/* iPad bezel camera dot */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-[#374151] z-10" />
+            
+            {/* Kiosk Bezel Header */}
+            <div className="p-4 bg-[#1f2937]/40 border-b border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="font-extrabold tracking-widest text-xs text-amber-500 uppercase">Elite Entrance Check-In Stand</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs font-semibold text-gray-400 font-mono">
+                  {new Date().toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}
+                </span>
+                <button 
+                  onClick={() => {
+                    playChime("scan");
+                    setIsKioskOpen(false);
+                    setKioskStatus("idle");
+                  }}
+                  className="px-3 py-1 bg-red-950/40 hover:bg-red-900/60 border border-red-800/30 text-red-400 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                >
+                  ✕ Exit Kiosk
+                </button>
+              </div>
+            </div>
+
+            {/* Main Interactive Screen */}
+            <div className="flex-1 flex overflow-hidden">
+              
+              {/* Left Configuration Panel */}
+              <div className="w-72 bg-[#111827] p-6 border-r border-gray-850 flex flex-col justify-between">
+                <div className="space-y-6">
+                  {/* Select Check In / Out */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Kiosk Action Type</label>
+                    <div className="grid grid-cols-2 gap-2 bg-[#1f2937]/50 p-1 rounded-xl border border-gray-800">
+                      <button 
+                        onClick={() => { playChime("scan"); setKioskCheckType("in"); setKioskStatus("idle"); }}
+                        className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                          kioskCheckType === "in" 
+                            ? "bg-[#2E8C13] text-white shadow-sm" 
+                            : "text-gray-400 hover:text-gray-200"
+                        }`}
+                      >
+                        Check-In
+                      </button>
+                      <button 
+                        onClick={() => { playChime("scan"); setKioskCheckType("out"); setKioskStatus("idle"); }}
+                        className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                          kioskCheckType === "out" 
+                            ? "bg-amber-600 text-white shadow-sm" 
+                            : "text-gray-400 hover:text-gray-200"
+                        }`}
+                      >
+                        Check-Out
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tab Selector */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Biometric Scanner Mode</label>
+                    <div className="flex flex-col gap-2">
+                      <button 
+                        onClick={() => { playChime("scan"); setKioskTab("phone"); setKioskStatus("idle"); }}
+                        className={`w-full py-3 px-4 rounded-xl text-left text-xs font-bold flex items-center justify-between border transition-all ${
+                          kioskTab === "phone" 
+                            ? "bg-[#2E8C13]/10 border-[#2E8C13] text-[#2E8C13]" 
+                            : "bg-[#1f2937]/30 border-gray-800 text-gray-400 hover:bg-[#1f2937]/50"
+                        }`}
+                      >
+                        <span>📞 Phone Keypad</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                      
+                      <button 
+                        onClick={() => { playChime("scan"); setKioskTab("face"); setKioskStatus("idle"); }}
+                        className={`w-full py-3 px-4 rounded-xl text-left text-xs font-bold flex items-center justify-between border transition-all ${
+                          kioskTab === "face" 
+                            ? "bg-[#2E8C13]/10 border-[#2E8C13] text-[#2E8C13]" 
+                            : "bg-[#1f2937]/30 border-gray-800 text-gray-400 hover:bg-[#1f2937]/50"
+                        }`}
+                      >
+                        <span>🛡️ AI Facial Scanner</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer specs */}
+                <div className="text-[10px] text-gray-500 leading-relaxed bg-[#1f2937]/20 p-3 rounded-lg border border-gray-800/40">
+                  <span className="font-semibold text-gray-400 block mb-1">Kiosk Active Registry</span>
+                  * Integrated chimes & direct local storage sync. Logs reflect instantly in scans grid.
+                </div>
+              </div>
+
+              {/* Right Panel (Dynamic Interaction) */}
+              <div className="flex-1 bg-[#0f141f] p-8 flex flex-col justify-center">
+                
+                {/* 1. STATE IDLE / INPUT */}
+                {kioskStatus === "idle" && (
+                  <div className="h-full flex flex-col justify-between max-w-sm mx-auto w-full">
+                    
+                    {kioskTab === "phone" ? (
+                      /* PHONE KEYPAD INTERACTIVE VIEW */
+                      <div className="space-y-6 flex-1 flex flex-col justify-center">
+                        <div className="text-center space-y-1.5">
+                          <h3 className="text-sm font-bold text-gray-200">Enter Phone Number / ID</h3>
+                          <p className="text-[11px] text-gray-500">Type last 4 digits of your registered mobile</p>
+                        </div>
+
+                        {/* Screen */}
+                        <div className="py-2.5 px-4 bg-[#090d16] rounded-xl border border-gray-800 text-center font-mono text-2xl tracking-[0.2em] font-extrabold text-amber-500 min-h-[48px] flex items-center justify-center">
+                          {kioskPhone || "----"}
+                        </div>
+
+                        {/* Numeric Grid */}
+                        <div className="grid grid-cols-3 gap-2 max-w-[280px] mx-auto w-full">
+                          {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map(num => (
+                            <button 
+                              key={num}
+                              onClick={() => handleKeypadPress(num)}
+                              className="h-11 rounded-lg bg-[#1f2937]/60 hover:bg-[#1f2937] active:scale-95 border border-gray-800 text-sm font-bold transition-all"
+                            >
+                              {num}
+                            </button>
+                          ))}
+                          <button 
+                            onClick={handleKeypadClear}
+                            className="h-11 rounded-lg bg-red-950/30 hover:bg-red-950/60 border border-red-800/30 text-red-400 text-xs font-bold transition-all"
+                          >
+                            CLR
+                          </button>
+                          <button 
+                            onClick={() => handleKeypadPress("0")}
+                            className="h-11 rounded-lg bg-[#1f2937]/60 hover:bg-[#1f2937] border border-gray-800 text-sm font-bold transition-all"
+                          >
+                            0
+                          </button>
+                          <button 
+                            onClick={() => handleKioskPhoneSubmit()}
+                            className="h-11 rounded-lg bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white text-xs font-bold transition-all shadow-xs"
+                          >
+                            GO
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* AI FACIAL SCANNER VIEW */
+                      <div className="space-y-6 flex-1 flex flex-col justify-center items-center">
+                        <div className="text-center space-y-1">
+                          <h3 className="text-sm font-bold text-gray-200">Face Recognition Terminal</h3>
+                          <p className="text-[11px] text-gray-500">Stand within 2 feet of screen and look at camera</p>
+                        </div>
+
+                        {/* Mock Circular HUD container */}
+                        <div className="relative w-44 h-44 rounded-full border-4 border-dashed border-amber-600/40 bg-[#090d16] flex items-center justify-center overflow-hidden shadow-inner group">
+                          {/* Live alignment target overlay */}
+                          <div className="absolute inset-4 rounded-full border border-amber-500/20 pointer-events-none" />
+                          <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-amber-500/10 pointer-events-none" />
+                          <div className="absolute left-1/2 top-4 bottom-4 w-0.5 bg-amber-500/10 pointer-events-none" />
+                          
+                          {/* Standard silhouette placeholder */}
+                          <User className="w-16 h-16 text-gray-700 stroke-[1.5]" />
+                          
+                          {/* Pulsing state */}
+                          <div className="absolute inset-0 bg-amber-500/5 animate-pulse rounded-full pointer-events-none" />
+                        </div>
+
+                        <Button 
+                          onClick={triggerFacialScanner}
+                          className="gap-2 font-bold bg-amber-600 hover:bg-amber-600/90 text-white shadow-xs py-2 px-6 rounded-xl"
+                        >
+                          <Flame className="w-4 h-4 animate-pulse" />
+                          [ Start Facial Recognition Scan ]
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. STATE SCANNING (AI sweep) */}
+                {kioskStatus === "scanning" && (
+                  <div className="space-y-6 flex flex-col justify-center items-center h-full max-w-sm mx-auto text-center">
+                    <h3 className="text-sm font-bold text-gray-200 uppercase tracking-widest animate-pulse">Running Neural AI Match...</h3>
+                    
+                    {/* Active facial scan grid */}
+                    <div className="relative w-44 h-44 rounded-full border-4 border-amber-600/70 bg-[#090d16] flex items-center justify-center overflow-hidden shadow-inner">
+                      {/* Live sweeping laser bar */}
+                      <div className="absolute left-0 right-0 h-1 bg-amber-500 opacity-90 shadow-[0_0_10px_#f59e0b] top-0 animate-[bounce_1.5s_infinite_ease-in-out]" />
+                      
+                      <div className="absolute inset-3 border border-amber-500/40 rounded-full" />
+                      <User className="w-16 h-16 text-amber-500/50 stroke-[1.5] animate-pulse" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-amber-500 font-semibold">Scanning biological structures...</p>
+                      <p className="text-[10px] text-gray-500 font-mono">WebRTC telemetry feeds matching in 1.5s</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. STATE SUCCESS CARD */}
+                {kioskStatus === "success" && kioskMatchedMember && (
+                  <div className="space-y-6 flex flex-col justify-center items-center h-full max-w-md mx-auto text-center animate-in zoom-in-95 duration-200">
+                    
+                    {/* Glowing success circle */}
+                    <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+                      <CheckCircle className="w-9 h-9 stroke-[2.5]" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 uppercase tracking-wider">Access Granted</span>
+                      <h2 className="text-lg font-bold text-gray-100">{kioskMessage}</h2>
+                    </div>
+
+                    {/* Member Detailed card details */}
+                    <div className="bg-[#111827] p-5 rounded-2xl border border-gray-800 w-full text-left space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#2E8C13]/20 text-[#2E8C13] flex items-center justify-center font-bold text-sm">
+                          {kioskMatchedMember.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-200">{kioskMatchedMember.name}</h4>
+                          <p className="text-[10px] font-mono text-gray-500">{kioskMatchedMember.id}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-[11px] pt-3 border-t border-gray-850 text-gray-400">
+                        <div>
+                          <span className="text-gray-500 block text-[9px] uppercase tracking-wider mb-0.5">Package Plan</span>
+                          <span className="font-semibold text-gray-300">{kioskMatchedMember.membership}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block text-[9px] uppercase tracking-wider mb-0.5">Validity Expiry</span>
+                          <span className="font-semibold text-red-400 font-mono">{kioskMatchedMember.expiryDate}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block text-[9px] uppercase tracking-wider mb-0.5">Assigned Coach</span>
+                          <span className="font-semibold text-gray-300">{kioskMatchedMember.trainer === "None" ? "Self Workout" : kioskMatchedMember.trainer}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block text-[9px] uppercase tracking-wider mb-0.5">Today Log Time</span>
+                          <span className="font-semibold text-emerald-400 font-mono">
+                            {new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={() => setKioskStatus("idle")}
+                      className="px-6 py-2 bg-[#1f2937] hover:bg-[#273549] text-gray-200 text-xs font-bold border border-gray-800 rounded-xl"
+                    >
+                      [ Tap to Reset Terminal ]
+                    </Button>
+                  </div>
+                )}
+
+                {/* 4. STATE ERROR PANEL */}
+                {kioskStatus === "error" && (
+                  <div className="space-y-6 flex flex-col justify-center items-center h-full max-w-sm mx-auto text-center animate-in zoom-in-95 duration-200">
+                    <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+                      <AlertTriangle className="w-9 h-9 stroke-[2.5]" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 uppercase tracking-wider">Access Blocked</span>
+                      <h2 className="text-sm font-bold text-gray-200">{kioskMessage}</h2>
+                    </div>
+
+                    <div className="flex gap-2 w-full pt-2">
+                      <Button 
+                        onClick={() => setKioskStatus("idle")}
+                        className="flex-1 py-2 bg-[#1f2937] hover:bg-[#273549] text-gray-200 text-xs font-bold border border-gray-800 rounded-xl"
+                      >
+                        Back / Retry
+                      </Button>
+                      {kioskTab === "face" && (
+                        <Button 
+                          onClick={() => setKioskTab("phone")}
+                          className="flex-1 py-2 bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white text-xs font-bold rounded-xl"
+                        >
+                          Use Keypad
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

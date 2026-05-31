@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw, Check, ImagePlus, User, ShoppingBag, CreditCard, Award, Wallet, IndianRupee, Users, TrendingUp, Flame, AlertCircle } from "lucide-react";
+import { Plus, Search, Filter, FileText, MapPin, Phone, Package, Trash2, Printer, CheckCircle2, Clock, Truck, CircleDot, Leaf, ChevronDown, RefreshCw, Check, ImagePlus, User, ShoppingBag, CreditCard, Award, Wallet, IndianRupee, Users, TrendingUp, Flame, AlertCircle, Star } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
@@ -2332,6 +2332,11 @@ function GymRevenueView() {
   const [products, setProducts] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
 
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [expenseCategory, setExpenseCategory] = useState("Rent");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseNotes, setExpenseNotes] = useState("");
+
   const loadData = () => {
     if (typeof window === "undefined") return;
     const m = localStorage.getItem("inba_gym_members");
@@ -2348,6 +2353,31 @@ function GymRevenueView() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleCreateExpense = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expenseAmount) return;
+
+    const nextNum = expenses.length + 1;
+    const display_id = `G-EXP-${nextNum.toString().padStart(2, "0")}`;
+    const newExp = {
+      display_id,
+      category: expenseCategory,
+      amount: Number(expenseAmount),
+      notes: expenseNotes || `${expenseCategory} operational bill`,
+      date: new Date().toISOString().split("T")[0]
+    };
+
+    const updated = [newExp, ...expenses];
+    localStorage.setItem("inba_gym_expenses", JSON.stringify(updated));
+    setExpenses(updated);
+
+    setExpenseAmount("");
+    setExpenseNotes("");
+    setExpenseCategory("Rent");
+    setIsAddExpenseOpen(false);
+    alert("Gym operational expense successfully registered!");
+  };
 
   // Membership Invoices lists
   const membershipInvoices = useMemo(() => {
@@ -2426,44 +2456,56 @@ function GymRevenueView() {
           <p className="text-sm text-gray-500 mt-1">Consolidated ledger for memberships checkout, personal coaching collections, supplement sales, and operations expenses.</p>
         </div>
         
-        {/* Dynamic tabs switcher */}
-        <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
-          <button 
-            onClick={() => setActiveTab("membership")}
-            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-              activeTab === "membership" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            <CreditCard className="w-3.5 h-3.5" />
-            Membership Dues
-          </button>
-          <button 
-            onClick={() => setActiveTab("pt")}
-            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-              activeTab === "pt" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            <Award className="w-3.5 h-3.5" />
-            Coaching PT
-          </button>
-          <button 
-            onClick={() => setActiveTab("products")}
-            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-              activeTab === "products" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            Supplements Shop
-          </button>
-          <button 
-            onClick={() => setActiveTab("expenses")}
-            className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
-              activeTab === "expenses" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            <Wallet className="w-3.5 h-3.5" />
-            Studio Expenses
-          </button>
+        <div className="flex gap-2">
+          {/* Dynamic tabs switcher */}
+          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
+            <button 
+              onClick={() => setActiveTab("membership")}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "membership" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Membership Dues
+            </button>
+            <button 
+              onClick={() => setActiveTab("pt")}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "pt" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Award className="w-3.5 h-3.5" />
+              Coaching PT
+            </button>
+            <button 
+              onClick={() => setActiveTab("products")}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "products" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              Supplements Shop
+            </button>
+            <button 
+              onClick={() => setActiveTab("expenses")}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "expenses" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              Studio Expenses
+            </button>
+          </div>
+
+          {activeTab === "expenses" && (
+            <Button 
+              onClick={() => setIsAddExpenseOpen(true)}
+              className="gap-1.5 text-xs font-bold bg-[#2E8C13] hover:bg-[#2E8C13]/90 text-white shrink-0 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              Add Gym Expense
+            </Button>
+          )}
         </div>
       </div>
 
@@ -2508,27 +2550,27 @@ function GymRevenueView() {
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100">
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Receipt #</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Member Name</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Plan Subscribed</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date Logged</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Payment channel</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Dues Status</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Receipt Amount</th>
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                  <tr>
+                    <th className="p-3 pl-6">Receipt #</th>
+                    <th className="p-3">Member Name</th>
+                    <th className="p-3">Plan Subscribed</th>
+                    <th className="p-3">Date Logged</th>
+                    <th className="p-3">Payment channel</th>
+                    <th className="p-3">Dues Status</th>
+                    <th className="p-3 text-right pr-6">Receipt Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {membershipInvoices.slice(0, 10).map((inv: any) => (
-                    <tr key={inv.id} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-4 pl-6 font-bold text-xs text-gray-500 font-mono">{inv.id}</td>
-                      <td className="p-4 text-xs font-bold text-gray-900">{inv.member}</td>
-                      <td className="p-4 text-xs font-semibold text-gray-700">{inv.plan}</td>
-                      <td className="p-4 text-xs text-gray-500">{inv.date}</td>
-                      <td className="p-4 text-xs text-gray-600 font-bold">{inv.payment}</td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                    <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{inv.id}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-800">{inv.member}</td>
+                      <td className="p-3 text-xs font-medium text-gray-600">{inv.plan}</td>
+                      <td className="p-3 text-xs text-gray-500">{inv.date}</td>
+                      <td className="p-3 text-xs text-gray-500 font-semibold">{inv.payment}</td>
+                      <td className="p-3">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
                           inv.status === "Paid" 
                             ? "bg-green-50 text-green-700 border-green-200" 
                             : "bg-red-50 text-red-700 border-red-200"
@@ -2536,7 +2578,7 @@ function GymRevenueView() {
                           {inv.status}
                         </span>
                       </td>
-                      <td className="p-4 text-right pr-6 font-bold text-gray-900">₹{inv.amount.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right pr-6 font-bold text-gray-900">₹{inv.amount.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2587,27 +2629,30 @@ function GymRevenueView() {
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100">
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Invoice #</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Member Name</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Assigned Trainer</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">PT Package Type</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Sessions Duration</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Invoice Date</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">PT Fees</th>
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                  <tr>
+                    <th className="p-3 pl-6">Invoice #</th>
+                    <th className="p-3">Member Name</th>
+                    <th className="p-3">Assigned Trainer</th>
+                    <th className="p-3">PT Package Type</th>
+                    <th className="p-3">Sessions Duration</th>
+                    <th className="p-3">Invoice Date</th>
+                    <th className="p-3 text-right pr-6">PT Fees</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {ptInvoices.slice(0, 10).map((inv: any) => (
-                    <tr key={inv.id} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-4 pl-6 font-bold text-xs text-gray-500 font-mono">{inv.id}</td>
-                      <td className="p-4 text-xs font-bold text-gray-900">{inv.member}</td>
-                      <td className="p-4 text-xs font-bold text-amber-600">{inv.trainer}</td>
-                      <td className="p-4 text-xs font-semibold text-gray-700">{inv.package}</td>
-                      <td className="p-4 text-xs text-gray-500 font-bold">{inv.sessions}</td>
-                      <td className="p-4 text-xs text-gray-500">{inv.date}</td>
-                      <td className="p-4 text-right pr-6 font-bold text-gray-900">₹{inv.revenue.toLocaleString("en-IN")}</td>
+                    <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{inv.id}</td>
+                      <td className="p-3 text-sm font-semibold text-gray-800">{inv.member}</td>
+                      <td className="p-3 text-xs font-semibold text-amber-700 flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        {inv.trainer}
+                      </td>
+                      <td className="p-3 text-xs font-medium text-gray-600">{inv.package}</td>
+                      <td className="p-3 text-xs text-gray-500 font-semibold">{inv.sessions}</td>
+                      <td className="p-3 text-xs text-gray-500">{inv.date}</td>
+                      <td className="p-3 text-right pr-6 font-bold text-gray-900">₹{inv.revenue.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2658,35 +2703,35 @@ function GymRevenueView() {
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100">
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Product Name</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">SKU Code</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">In Stock</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Units Sold</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Retail Unit Price</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Revenue Generated</th>
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                  <tr>
+                    <th className="p-3 pl-6">Product Name</th>
+                    <th className="p-3">SKU Code</th>
+                    <th className="p-3">Category</th>
+                    <th className="p-3 text-center">In Stock</th>
+                    <th className="p-3 text-center">Units Sold</th>
+                    <th className="p-3 text-right">Retail Unit Price</th>
+                    <th className="p-3 text-right pr-6">Revenue Generated</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {products.map((prod: any) => (
-                    <tr key={prod.id} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-4 pl-6 font-bold text-xs text-gray-900">{prod.name}</td>
-                      <td className="p-4 text-xs font-mono text-gray-500">{prod.sku}</td>
-                      <td className="p-4 text-xs">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                    <tr key={prod.id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-3 pl-6 text-sm font-semibold text-gray-800">{prod.name}</td>
+                      <td className="p-3 text-xs font-mono text-gray-500">{prod.sku}</td>
+                      <td className="p-3 text-xs">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 text-gray-600 border border-gray-200/50">
                           {prod.category}
                         </span>
                       </td>
-                      <td className="p-4 text-xs font-bold text-center">
-                        <span className={prod.stock <= 10 ? "text-red-600 bg-red-50 px-2 py-0.5 rounded" : "text-gray-700"}>
+                      <td className="p-3 text-xs text-center font-semibold">
+                        <span className={prod.stock <= 10 ? "text-red-600 bg-red-50 px-1.5 py-0.5 rounded" : "text-gray-600"}>
                           {prod.stock} units
                         </span>
                       </td>
-                      <td className="p-4 text-xs font-bold text-gray-600 text-center">{prod.unitsSold} units</td>
-                      <td className="p-4 text-xs font-bold text-right text-gray-900">₹{prod.price.toLocaleString("en-IN")}</td>
-                      <td className="p-4 text-right pr-6 font-bold text-emerald-600">₹{prod.revenue.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-xs text-gray-500 font-normal text-center">{prod.unitsSold} sold</td>
+                      <td className="p-3 text-sm font-semibold text-gray-800 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-right pr-6 font-bold text-emerald-600 text-sm">₹{prod.revenue.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2728,31 +2773,31 @@ function GymRevenueView() {
             </CardHeader>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100">
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider pl-6">Expense display ID</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Expense Category</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Details / Notes</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date Logged</th>
-                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right pr-6">Debit Amount</th>
+                <thead className="bg-gray-50/60 border-y border-gray-200/60 text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                  <tr>
+                    <th className="p-3 pl-6">Expense ID</th>
+                    <th className="p-3">Expense Category</th>
+                    <th className="p-3">Payment Details / Notes</th>
+                    <th className="p-3">Date Logged</th>
+                    <th className="p-3 text-right pr-6">Debit Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 bg-white">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {expenses.map((exp: any) => (
-                    <tr key={exp.display_id} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-4 pl-6 font-bold text-xs text-gray-500 font-mono">{exp.display_id}</td>
-                      <td className="p-4 text-xs">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          exp.category === "Rent" ? "bg-red-50 text-red-700" :
-                          exp.category === "Salaries" ? "bg-blue-50 text-blue-700" :
-                          exp.category === "Equipment" ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-600"
+                    <tr key={exp.display_id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{exp.display_id}</td>
+                      <td className="p-3 text-xs">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          exp.category === "Rent" ? "bg-red-50 text-red-700 border-red-200" :
+                          exp.category === "Salaries" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                          exp.category === "Equipment" ? "bg-purple-50 text-purple-700 border-purple-200" : "bg-gray-100 text-gray-600 border-gray-200"
                         }`}>
                           {exp.category}
                         </span>
                       </td>
-                      <td className="p-4 text-xs text-gray-700 font-semibold">{exp.notes}</td>
-                      <td className="p-4 text-xs text-gray-500">{exp.date}</td>
-                      <td className="p-4 text-right pr-6 font-bold text-red-600">₹{exp.amount.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-xs text-gray-600 font-semibold">{exp.notes}</td>
+                      <td className="p-3 text-xs text-gray-500">{exp.date}</td>
+                      <td className="p-3 text-right pr-6 font-bold text-red-600 text-sm">₹{exp.amount.toLocaleString("en-IN")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2761,6 +2806,58 @@ function GymRevenueView() {
           </Card>
         </div>
       )}
+
+      {/* Studio Expense Drawer */}
+      <Drawer isOpen={isAddExpenseOpen} onClose={() => setIsAddExpenseOpen(false)} title="Log Studio Operational Expense">
+        <form className="space-y-4 font-sans animate-in fade-in duration-200" onSubmit={handleCreateExpense}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Expense Category</label>
+              <select
+                required
+                value={expenseCategory}
+                onChange={e => setExpenseCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-200 bg-white rounded-lg outline-none text-gray-900 font-semibold text-sm cursor-pointer"
+              >
+                <option value="Rent">Premises Lease Rent</option>
+                <option value="Salaries">Payroll & Trainer Salaries</option>
+                <option value="Equipment">Equipment Maintenance / Leases</option>
+                <option value="Utilities">Electricity & Utility Bills</option>
+                <option value="Software">Inba CRM Software License</option>
+                <option value="Other">Other Operational Expenses</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Debit Amount (INR)</label>
+              <input
+                required
+                type="number"
+                value={expenseAmount}
+                onChange={e => setExpenseAmount(e.target.value)}
+                placeholder="e.g. 15000"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Expense Details / Notes</label>
+              <textarea
+                rows={3}
+                value={expenseNotes}
+                onChange={e => setExpenseNotes(e.target.value)}
+                placeholder="Details of expense, e.g. AMC for Treadmills"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none font-medium text-gray-900 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddExpenseOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary" className="font-bold">Save Operational Expense</Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 }
