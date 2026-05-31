@@ -256,7 +256,7 @@ export default function CustomersPage() {
                     </td>
                     <td className="p-4 whitespace-nowrap text-gray-600">{student.leadSource}</td>
                     <td className="p-4 whitespace-nowrap">
-                      <Badge variant="outline" className={`
+                      <Badge variant="default" className={`
                         ${student.status === "Lead" ? "bg-purple-50 text-purple-700 border-purple-200" : ""}
                         ${student.status === "Interested" ? "bg-amber-50 text-amber-700 border-amber-200" : ""}
                         ${student.status === "Enrolled" ? "bg-blue-50 text-blue-700 border-blue-200" : ""}
