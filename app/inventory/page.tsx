@@ -11,7 +11,7 @@ import {
   Loader2, CheckCircle2, List, LayoutGrid, ShoppingBag, Award,
   BookOpen, Users, Wallet, IndianRupee, CalendarCheck, DollarSign, 
   ExternalLink, MessageSquare, Share2, Copy, Globe, Calendar, ArrowUpRight,
-  TrendingUp, Edit, ShieldAlert, Sparkles, Activity, MoreHorizontal, Tag
+  TrendingUp, Edit, ShieldAlert, Sparkles, Activity, MoreHorizontal, Tag, ChevronDown
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -2325,6 +2325,7 @@ function CourseManagementView() {
 
   // Form & Drawer visibility
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
   // Selected Course details drawer
@@ -2347,7 +2348,8 @@ function CourseManagementView() {
   const [category, setCategory] = useState("Marketing");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [duration, setDuration] = useState("8 Weeks");
+  const [durationValue, setDurationValue] = useState("8");
+  const [durationUnit, setDurationUnit] = useState("Weeks");
   const [courseType, setCourseType] = useState<Course["courseType"]>("Live Cohort");
   const [landingPageUrl, setLandingPageUrl] = useState("");
   const [whatsappCtaLink, setWhatsappCtaLink] = useState("");
@@ -2361,8 +2363,10 @@ function CourseManagementView() {
   const [seats, setSeats] = useState("");
   const [liveSessions, setLiveSessions] = useState("");
   const [zoomLink, setZoomLink] = useState("");
-  const [sessionDays, setSessionDays] = useState("");
+  const [sessionDays, setSessionDays] = useState<string[]>([]);
+  const [isDaysOpen, setIsDaysOpen] = useState(false);
   const [sessionTiming, setSessionTiming] = useState("");
+  const [coaches, setCoaches] = useState<any[]>([]);
   const [enrollmentDeadline, setEnrollmentDeadline] = useState("");
   const [modules, setModules] = useState("");
   const [lessons, setLessons] = useState("");
@@ -2390,6 +2394,14 @@ function CourseManagementView() {
 
   useEffect(() => {
     loadData();
+    const savedTeam = localStorage.getItem("inba_team_reps");
+    if (savedTeam) {
+      try {
+        const parsed = JSON.parse(savedTeam);
+        const trainerList = parsed.filter((t: any) => t.role === "Trainer" || t.role === "Coach" || t.name.toLowerCase().includes("coach") || t.name.toLowerCase().includes("trainer"));
+        setCoaches(trainerList);
+      } catch (e) {}
+    }
   }, []);
 
   const saveCourses = (updated: Course[]) => {
@@ -2414,7 +2426,8 @@ function CourseManagementView() {
     setCategory(typeof defaultCat === 'string' ? defaultCat : "Marketing");
     setDescription("");
     setPrice("");
-    setDuration("8 Weeks");
+    setDurationValue("8");
+    setDurationUnit("Weeks");
     setCourseType("Live Cohort");
     setLandingPageUrl("");
     setWhatsappCtaLink("");
@@ -2422,7 +2435,7 @@ function CourseManagementView() {
     setTags("");
     // Clear dynamic fields
     setBatchName(""); setStartDate(""); setEndDate(""); setSeats(""); setLiveSessions("");
-    setZoomLink(""); setSessionDays(""); setSessionTiming(""); setEnrollmentDeadline("");
+    setZoomLink(""); setSessionDays([]); setSessionTiming(""); setEnrollmentDeadline("");
     setModules(""); setLessons(""); setVideoHours(""); setAccessDuration("Lifetime Access");
     setHasCertificate("Yes"); setCoachName(""); setNumSessions(""); setSessionDuration("");
     setDeliveryType("1:1"); setMaxClients(""); setCalendlyLink("");
@@ -2435,7 +2448,9 @@ function CourseManagementView() {
     setCategory(course.category);
     setDescription(course.description);
     setPrice(course.price.toString());
-    setDuration(course.duration);
+    const splitDur = course.duration.split(" ");
+    setDurationValue(splitDur[0] || "");
+    setDurationUnit(splitDur.slice(1).join(" ") || "Weeks");
     setCourseType(course.courseType);
     setLandingPageUrl(course.landingPageUrl);
     setWhatsappCtaLink(course.whatsappCtaLink);
@@ -2448,7 +2463,7 @@ function CourseManagementView() {
     setSeats(course.metadata?.seats?.toString() || "");
     setLiveSessions(course.metadata?.liveSessions?.toString() || "");
     setZoomLink(course.metadata?.zoomLink || "");
-    setSessionDays(course.metadata?.sessionDays || "");
+    setSessionDays(course.metadata?.sessionDays ? course.metadata.sessionDays.split(", ") : []);
     setSessionTiming(course.metadata?.sessionTiming || "");
     setEnrollmentDeadline(course.metadata?.enrollmentDeadline || "");
     setModules(course.metadata?.modules?.toString() || "");
@@ -2504,7 +2519,7 @@ function CourseManagementView() {
       seats: seats ? parseInt(seats) : undefined,
       liveSessions: liveSessions ? parseInt(liveSessions) : undefined,
       zoomLink: zoomLink.trim(),
-      sessionDays: sessionDays.trim(),
+      sessionDays: sessionDays.join(", "),
       sessionTiming: sessionTiming.trim(),
       enrollmentDeadline: enrollmentDeadline.trim(),
       modules: modules ? parseInt(modules) : undefined,
@@ -2529,7 +2544,7 @@ function CourseManagementView() {
             category: category.trim(),
             description: description.trim(),
             price: parseFloat(price),
-            duration: duration.trim(),
+            duration: `${durationValue} ${durationUnit}`.trim(),
             courseType,
             landingPageUrl: landingPageUrl.trim(),
             whatsappCtaLink: whatsappCtaLink.trim(),
@@ -2550,7 +2565,7 @@ function CourseManagementView() {
         category: category.trim(),
         description: description.trim(),
         price: parseFloat(price),
-        duration: duration.trim(),
+        duration: `${durationValue} ${durationUnit}`.trim(),
         courseType,
         landingPageUrl: landingPageUrl.trim(),
         whatsappCtaLink: whatsappCtaLink.trim(),
@@ -2814,25 +2829,8 @@ function CourseManagementView() {
         {/* Right: Add Category (Only show on Category tab) */}
         {pageTab === "category" && (
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto lg:flex-1 lg:justify-end">
-            <input
-              type="text"
-              placeholder="New category name..."
-              value={newCatName}
-              onChange={e => setNewCatName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && newCatName.trim()) {
-                  setCourseCategories(prev => [...prev, newCatName.trim()]);
-                  setNewCatName("");
-                }
-              }}
-              className="w-full sm:w-[240px] px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
             <Button
-              onClick={() => {
-                if (!newCatName.trim()) return;
-                setCourseCategories(prev => [...prev, newCatName.trim()]);
-                setNewCatName("");
-              }}
+              onClick={() => setIsAddCategoryOpen(true)}
               className="w-full sm:w-auto gap-2 shrink-0 py-1.5"
             >
               <Plus className="w-4 h-4" />
@@ -2904,7 +2902,7 @@ function CourseManagementView() {
                               >
                                 <MoreHorizontal className="w-4 h-4" />
                               </button>
-                              <div className="absolute right-0 top-8 z-50 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-150 pointer-events-none group-hover/menu:pointer-events-auto">
+                              <div className="absolute right-0 top-8 z-50 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-150 pointer-events-none group-hover/menu:pointer-events-auto before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
                                 <button
                                   onClick={() => { setSelectedCourse(course); setActiveTab("overview"); }}
                                   className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
@@ -3362,7 +3360,7 @@ function CourseManagementView() {
       <Drawer 
         isOpen={isAddOpen} 
         onClose={() => setIsAddOpen(false)} 
-        title={editingCourse ? `Edit Course: ${editingCourse.name}` : "Publish New Course Offer"}
+        title={editingCourse ? `Edit Course: ${editingCourse.name}` : "Add New Course"}
         size="xl"
       >
         <form className="space-y-4" onSubmit={handleSaveCourse}>
@@ -3490,8 +3488,15 @@ function CourseManagementView() {
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration (Weeks)</label>
-                      <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 8 Weeks" />
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration</label>
+                      <div className="flex gap-2">
+                        <input type="number" value={durationValue} onChange={(e) => setDurationValue(e.target.value)} className="w-1/2 px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 8" />
+                        <select value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)} className="w-1/2 px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                          <option value="Days">Days</option>
+                          <option value="Weeks">Weeks</option>
+                          <option value="Months">Months</option>
+                        </select>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Available Seats</label>
@@ -3501,7 +3506,22 @@ function CourseManagementView() {
                   <div className="grid grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Session Schedule</label>
-                      <input type="text" value={sessionDays} onChange={(e) => setSessionDays(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Mon, Wed, Fri 7pm" />
+                      <div className="relative">
+                        <div onClick={() => setIsDaysOpen(!isDaysOpen)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center">
+                          <span className="truncate">{sessionDays.length > 0 ? sessionDays.join(", ") : "Select Days"}</span>
+                          <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        </div>
+                        {isDaysOpen && (
+                          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto py-2">
+                            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                              <label key={day} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" checked={sessionDays.includes(day)} onChange={(e) => { if (e.target.checked) setSessionDays([...sessionDays, day]); else setSessionDays(sessionDays.filter(d => d !== day)); }} className="mr-3 rounded border-gray-300 text-primary focus:ring-primary" />
+                                <span className="text-sm text-gray-700">{day}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Live Platform</label>
@@ -3537,7 +3557,14 @@ function CourseManagementView() {
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration</label>
-                      <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 12 Weeks" />
+                      <div className="flex gap-2">
+                        <input type="number" value={durationValue} onChange={(e) => setDurationValue(e.target.value)} className="w-1/2 px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 12" />
+                        <select value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)} className="w-1/2 px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                          <option value="Days">Days</option>
+                          <option value="Weeks">Weeks</option>
+                          <option value="Months">Months</option>
+                        </select>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Total Video Hours</label>
@@ -3556,19 +3583,40 @@ function CourseManagementView() {
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Live Platform</label>
-                      <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-                        <option value="Zoom">Zoom</option>
-                        <option value="Google Meet">Google Meet</option>
-                        <option value="Offline">Offline</option>
-                      </select>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Schedule</label>
+                      <div className="relative">
+                        <div onClick={() => setIsDaysOpen(!isDaysOpen)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center">
+                          <span className="truncate">{sessionDays.length > 0 ? sessionDays.join(", ") : "Select Days"}</span>
+                          <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        </div>
+                        {isDaysOpen && (
+                          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto py-2">
+                            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                              <label key={day} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" checked={sessionDays.includes(day)} onChange={(e) => { if (e.target.checked) setSessionDays([...sessionDays, day]); else setSessionDays(sessionDays.filter(d => d !== day)); }} className="mr-3 rounded border-gray-300 text-primary focus:ring-primary" />
+                                <span className="text-sm text-gray-700">{day}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Certificate</label>
-                      <select value={hasCertificate} onChange={(e) => setHasCertificate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                      </select>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Live Platform</label>
+                        <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                          <option value="Zoom">Zoom</option>
+                          <option value="Google Meet">Google Meet</option>
+                          <option value="Offline">Offline</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Certificate</label>
+                        <select value={hasCertificate} onChange={(e) => setHasCertificate(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3579,17 +3627,32 @@ function CourseManagementView() {
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Coach Name</label>
-                      <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. John Doe" />
+                      <select value={coachName} onChange={(e) => setCoachName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                        <option value="">Select a Coach</option>
+                        {coaches.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      </select>
+                      {coaches.length === 0 && <p className="text-xs text-amber-600 mt-1">No coach found in Team Directory. Please add one first.</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Program Duration</label>
-                      <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 6 Months" />
+                      <div className="flex gap-2">
+                        <input type="number" value={durationValue} onChange={(e) => setDurationValue(e.target.value)} className="w-1/2 px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 6" />
+                        <select value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)} className="w-1/2 px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white">
+                          <option value="Days">Days</option>
+                          <option value="Weeks">Weeks</option>
+                          <option value="Months">Months</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Total Sessions</label>
                       <input type="number" value={numSessions} onChange={(e) => setNumSessions(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 24" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Duration (Mins)</label>
+                      <input type="text" value={sessionDuration} onChange={(e) => setSessionDuration(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. 60" />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Capacity</label>
@@ -3598,8 +3661,23 @@ function CourseManagementView() {
                   </div>
                   <div className="grid grid-cols-3 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Frequency</label>
-                      <input type="text" value={sessionDays} onChange={(e) => setSessionDays(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Weekly" />
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Session Schedule</label>
+                      <div className="relative">
+                        <div onClick={() => setIsDaysOpen(!isDaysOpen)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm bg-white cursor-pointer flex justify-between items-center">
+                          <span className="truncate">{sessionDays.length > 0 ? sessionDays.join(", ") : "Select Days"}</span>
+                          <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        </div>
+                        {isDaysOpen && (
+                          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto py-2">
+                            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                              <label key={day} className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" checked={sessionDays.includes(day)} onChange={(e) => { if (e.target.checked) setSessionDays([...sessionDays, day]); else setSessionDays(sessionDays.filter(d => d !== day)); }} className="mr-3 rounded border-gray-300 text-primary focus:ring-primary" />
+                                <span className="text-sm text-gray-700">{day}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Mode</label>
@@ -3674,6 +3752,44 @@ function CourseManagementView() {
             <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary">
               {editingCourse ? "Save Changes" : "Publish Course"}
+            </Button>
+          </div>
+        </form>
+      </Drawer>
+
+      {/* Add Category form sliding drawer */}
+      <Drawer isOpen={isAddCategoryOpen} onClose={() => setIsAddCategoryOpen(false)} title="Add New Category">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (newCatName.trim()) {
+            if (!courseCategories.includes(newCatName.trim())) {
+              setCourseCategories(prev => [...prev, newCatName.trim()]);
+              toast("Category added successfully!", "success");
+            } else {
+              toast("Category already exists", "error");
+            }
+            setNewCatName("");
+            setIsAddCategoryOpen(false);
+          }
+        }} className="flex flex-col h-full -mx-6 -mt-6">
+          <div className="p-6 flex-1 space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Category Name</label>
+              <input 
+                type="text" 
+                value={newCatName} 
+                onChange={(e) => setNewCatName(e.target.value)} 
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-normal text-gray-700 text-sm" 
+                placeholder="e.g. Marketing" 
+                autoFocus
+                required
+              />
+            </div>
+          </div>
+          <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+            <Button type="button" variant="ghost" onClick={() => setIsAddCategoryOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">
+              Save Category
             </Button>
           </div>
         </form>
