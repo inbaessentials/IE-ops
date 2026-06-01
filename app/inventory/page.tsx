@@ -3798,7 +3798,6 @@ function CourseManagementView() {
               />
             </div>
           </div>
-          </div>
           <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
             <Button type="button" variant="ghost" onClick={() => setIsAddCategoryOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary">
