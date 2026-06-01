@@ -168,11 +168,7 @@ export default function LeadCRM() {
   const [formNextFollowUp, setFormNextFollowUp] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
-  // WhatsApp Form Fields State
-  const [waFirstContact, setWaFirstContact] = useState("");
-  const [waLastContact, setWaLastContact] = useState("");
-  const [waCount, setWaCount] = useState(0);
-  const [waStatus, setWaStatus] = useState<Lead["whatsappStatus"]>("No Response");
+
 
   // Load Leads from LocalStorage
   const loadLeads = () => {
@@ -350,91 +346,6 @@ export default function LeadCRM() {
     toast("Lead Details Updated!", "success");
   };
 
-  // WhatsApp workflow logs updates (Module 3)
-  const handleUpdateWhatsApp = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!viewingLead) return;
-
-    const updated = leads.map(l => {
-      if (l.id === viewingLead.id) {
-        return {
-          ...l,
-          whatsappFirstContact: waFirstContact,
-          whatsappLastContact: waLastContact,
-          whatsappCount: Number(waCount),
-          whatsappStatus: waStatus
-        };
-      }
-      return l;
-    });
-
-    saveLeads(updated);
-    toast("WhatsApp Log Updated!", "success");
-    
-    // Update active viewing lead state
-    setViewingLead(prev => prev ? {
-      ...prev,
-      whatsappFirstContact: waFirstContact,
-      whatsappLastContact: waLastContact,
-      whatsappCount: Number(waCount),
-      whatsappStatus: waStatus
-    } : null);
-  };
-
-  // Automation reminders trigger mockup (Module 9)
-  const simulateReminder = (type: "Welcome" | "Payment" | "Followup") => {
-    if (!viewingLead) return;
-
-    // Load existing automation logs
-    const savedLogs = localStorage.getItem("inba_automation_logs");
-    const logs = savedLogs ? JSON.parse(savedLogs) : [];
-
-    const newLog = {
-      id: `auto-${Date.now()}`,
-      lead: viewingLead.name,
-      phone: viewingLead.phone,
-      type: type === "Welcome" ? "Enrollment Welcome Reminder" : type === "Payment" ? "Fee Payment Pending Reminder" : "Cohort Callback Reminder",
-      channel: "WhatsApp & SMS",
-      time: new Date().toLocaleTimeString("en-IN", { hour: "numeric", minute: "numeric", second: "numeric" }),
-      status: "Delivered",
-      date: new Date().toISOString().split("T")[0]
-    };
-
-    localStorage.setItem("inba_automation_logs", JSON.stringify([newLog, ...logs]));
-    toast(`Simulated ${type} automation reminder sent to ${viewingLead.name}!`, "success");
-
-    // Also update WhatsApp contact stats count!
-    const updated = leads.map(l => {
-      if (l.id === viewingLead.id) {
-        const nextCount = (l.whatsappCount || 0) + 1;
-        const lastContact = new Date().toISOString().split("T")[0];
-        const firstContact = l.whatsappFirstContact || new Date().toISOString().split("T")[0];
-        
-        // Populate inputs in local state for UI drawer refresh
-        setWaCount(nextCount);
-        setWaLastContact(lastContact);
-        setWaFirstContact(firstContact);
-        
-        return {
-          ...l,
-          whatsappCount: nextCount,
-          whatsappFirstContact: firstContact,
-          whatsappLastContact: lastContact,
-          whatsappStatus: "Responded" as const
-        };
-      }
-      return l;
-    });
-    saveLeads(updated);
-    setViewingLead(prev => prev ? {
-      ...prev,
-      whatsappCount: (prev.whatsappCount || 0) + 1,
-      whatsappFirstContact: prev.whatsappFirstContact || new Date().toISOString().split("T")[0],
-      whatsappLastContact: new Date().toISOString().split("T")[0],
-      whatsappStatus: "Responded"
-    } : null);
-  };
-
   // Filtering Logic
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
@@ -602,13 +513,7 @@ export default function LeadCRM() {
                   <tr key={lead.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     <td className="p-4 pl-6">
                       <button 
-                        onClick={() => {
-                          setViewingLead(lead);
-                          setWaFirstContact(lead.whatsappFirstContact || "");
-                          setWaLastContact(lead.whatsappLastContact || "");
-                          setWaCount(lead.whatsappCount || 0);
-                          setWaStatus(lead.whatsappStatus || "No Response");
-                        }}
+                        onClick={() => setViewingLead(lead)}
                         className="text-left outline-none"
                       >
                         <p className="text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors">{lead.name}</p>
@@ -640,13 +545,7 @@ export default function LeadCRM() {
                         </button>
                         <div className="absolute right-0 top-8 z-50 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 opacity-0 invisible group-hover/menu:opacity-100 group-hover/menu:visible transition-all duration-150 pointer-events-none group-hover/menu:pointer-events-auto">
                           <button
-                            onClick={() => {
-                              setViewingLead(lead);
-                              setWaFirstContact(lead.whatsappFirstContact || "");
-                              setWaLastContact(lead.whatsappLastContact || "");
-                              setWaCount(lead.whatsappCount || 0);
-                              setWaStatus(lead.whatsappStatus || "No Response");
-                            }}
+                            onClick={() => setViewingLead(lead)}
                             className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                           >
                             <BookOpen className="w-3.5 h-3.5 text-gray-400" />
@@ -930,147 +829,193 @@ export default function LeadCRM() {
       </Drawer>
 
       {/* View Lead Detailed Profile & WhatsApp Tracker Drawer */}
-      <Drawer isOpen={!!viewingLead} onClose={() => setViewingLead(null)} title="Lead Acquisition Dossier">
+            <Drawer isOpen={!!viewingLead} onClose={() => setViewingLead(null)} title="Lead Profile">
         {viewingLead && (
-          <div className="space-y-5 pb-12">
-
-            {/* Header Identity */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
-                  {viewingLead.name.charAt(0)}
+          <div className="space-y-6 pb-12">
+            
+            {/* Converted State Banner */}
+            {viewingLead.stage === "Enrolled" && (
+              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-2">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                    <CheckCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-emerald-800 font-bold text-lg leading-tight">Converted to Student</h3>
+                    <p className="text-emerald-600 text-sm">This lead is now an active enrollment.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-800 leading-tight">{viewingLead.name}</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Logged: {viewingLead.dateCreated}</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-white/60 p-3 rounded-lg border border-emerald-100/50">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-emerald-600/70 font-semibold mb-1">Enrollment ID</p>
+                    <p className="text-sm font-bold text-emerald-900">ENR-{viewingLead.id.split("-")[1] || "1029"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-emerald-600/70 font-semibold mb-1">Course Enrolled</p>
+                    <p className="text-sm font-bold text-emerald-900">{viewingLead.course}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-emerald-600/70 font-semibold mb-1">Conversion Date</p>
+                    <p className="text-sm font-bold text-emerald-900">{new Date().toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
                 </div>
               </div>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${STAGE_COLORS[viewingLead.stage]}`}>
-                {viewingLead.stage}
-              </span>
+            )}
+
+            {/* Section 1: Lead Overview */}
+            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+              <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-50 pb-2">Lead Overview</h4>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl shrink-0">
+                    {viewingLead.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 leading-none mb-1.5">{viewingLead.name}</h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-600 font-medium">
+                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gray-400"/> {viewingLead.phone}</span>
+                      {viewingLead.email && (
+                        <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-gray-400"/> {viewingLead.email}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {viewingLead.stage !== "Enrolled" && (
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STAGE_COLORS[viewingLead.stage]}`}>
+                    {viewingLead.stage}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Acquisition Details */}
-            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-6">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Acquisition details</p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {/* Section 2: Course Interest */}
+            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+              <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4 border-b border-gray-50 pb-2">Acquisition Profile</h4>
+              <div className="grid grid-cols-2 gap-y-5 gap-x-4">
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Course / Program</p>
-                  <p className="text-sm text-gray-800 flex items-center gap-1.5">
-                    <BookOpen className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    {viewingLead.course}
-                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">Course Interest</p>
+                  <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5 text-primary/70" /> {viewingLead.course}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Lead Source</p>
-                  <p className="text-sm text-[#2E8C13] flex items-center gap-1.5">
-                    <Share2 className="w-3.5 h-3.5 shrink-0" />
-                    {viewingLead.source}
-                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">Lead Source</p>
+                  <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><Share2 className="w-3.5 h-3.5 text-primary/70" /> {viewingLead.source}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Assigned Advisor</p>
-                  <p className="text-sm text-gray-800 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                    {viewingLead.assignedTo}
-                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">Assigned Counsellor</p>
+                  <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-primary/70" /> {viewingLead.assignedTo}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Next Follow-Up</p>
-                  <p className="text-sm text-amber-600 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 shrink-0" />
-                    {viewingLead.nextFollowUp || "Not set"}
-                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">Date Logged</p>
+                  <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary/70" /> {viewingLead.dateCreated}</p>
                 </div>
               </div>
+            </div>
 
-              <div className="border-t border-gray-200 pt-3">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1.5">Counselor Interaction Log</p>
-                <p className="text-sm text-gray-600 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 italic">
-                  "{viewingLead.notes || "No log entries recorded."}"
+            {/* Section 3: Lead Journey Timeline */}
+            {viewingLead.stage !== "Enrolled" && (
+              <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+                <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 border-b border-gray-50 pb-2">Lead Journey</h4>
+                <div className="flex justify-between items-center relative px-2">
+                  <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-1 bg-gray-100 rounded-full -z-10" />
+                  
+                  {/* Step 1: New */}
+                  <div className="flex flex-col items-center gap-2 relative z-10">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-md">
+                      <CheckCircle className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-900">Created</span>
+                  </div>
+
+                  {/* Step 2: Contacted */}
+                  <div className="flex flex-col items-center gap-2 relative z-10">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-sm border-2 ${["Contacted", "Demo Booked", "Interested", "Payment Pending", "Enrolled"].includes(viewingLead.stage) ? "bg-primary border-primary text-white" : "bg-white border-gray-200 text-gray-300"}`}>
+                      {["Contacted", "Demo Booked", "Interested", "Payment Pending", "Enrolled"].includes(viewingLead.stage) ? <CheckCircle className="w-4 h-4" /> : <span className="text-xs">2</span>}
+                    </div>
+                    <span className={`text-[10px] font-bold ${["Contacted", "Demo Booked", "Interested", "Payment Pending", "Enrolled"].includes(viewingLead.stage) ? "text-gray-900" : "text-gray-400"}`}>Contacted</span>
+                  </div>
+
+                  {/* Step 3: Demo Booked / Interested */}
+                  <div className="flex flex-col items-center gap-2 relative z-10">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-sm border-2 ${["Demo Booked", "Interested", "Payment Pending", "Enrolled"].includes(viewingLead.stage) ? "bg-primary border-primary text-white" : "bg-white border-gray-200 text-gray-300"}`}>
+                      {["Demo Booked", "Interested", "Payment Pending", "Enrolled"].includes(viewingLead.stage) ? <CheckCircle className="w-4 h-4" /> : <span className="text-xs">3</span>}
+                    </div>
+                    <span className={`text-[10px] font-bold ${["Demo Booked", "Interested", "Payment Pending", "Enrolled"].includes(viewingLead.stage) ? "text-gray-900" : "text-gray-400"}`}>Interested</span>
+                  </div>
+
+                  {/* Step 4: Payment */}
+                  <div className="flex flex-col items-center gap-2 relative z-10">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-sm border-2 ${["Payment Pending", "Enrolled"].includes(viewingLead.stage) ? "bg-primary border-primary text-white" : "bg-white border-gray-200 text-gray-300"}`}>
+                      {["Payment Pending", "Enrolled"].includes(viewingLead.stage) ? <CheckCircle className="w-4 h-4" /> : <span className="text-xs">4</span>}
+                    </div>
+                    <span className={`text-[10px] font-bold ${["Payment Pending", "Enrolled"].includes(viewingLead.stage) ? "text-gray-900" : "text-gray-400"}`}>Payment</span>
+                  </div>
+
+                  {/* Step 5: Converted */}
+                  <div className="flex flex-col items-center gap-2 relative z-10">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-sm border-2 ${["Enrolled"].includes(viewingLead.stage) ? "bg-emerald-500 border-emerald-500 text-white" : "bg-white border-gray-200 text-gray-300"}`}>
+                      {["Enrolled"].includes(viewingLead.stage) ? <CheckCircle className="w-4 h-4" /> : <span className="text-xs">5</span>}
+                    </div>
+                    <span className={`text-[10px] font-bold ${["Enrolled"].includes(viewingLead.stage) ? "text-gray-900" : "text-gray-400"}`}>Converted</span>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* Section 4: Counsellor Notes */}
+            <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-2">
+                <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Counsellor Notes</h4>
+                <button 
+                  type="button" 
+                  onClick={() => toast("Notes appended successfully", "success")} 
+                  className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Add Note
+                </button>
+              </div>
+              <div className="bg-gray-50/70 p-4 rounded-lg border border-gray-100/80">
+                <p className="text-sm text-gray-700 leading-relaxed font-medium">
+                  {viewingLead.notes || "No interaction notes logged yet."}
                 </p>
               </div>
             </div>
 
-            {/* WhatsApp Workflow Tracker */}
-            <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-6">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-green-600" />
-                <p className="text-xs font-medium text-gray-700">WhatsApp Workflow Tracker</p>
-                <span className="ml-auto text-[10px] font-medium text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Active</span>
-              </div>
-
-              <form onSubmit={handleUpdateWhatsApp} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">First Contact Date</label>
-                    <input 
-                      type="date"
-                      value={waFirstContact}
-                      onChange={e => setWaFirstContact(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">Last Contact Date</label>
-                    <input 
-                      type="date"
-                      value={waLastContact}
-                      onChange={e => setWaLastContact(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">Total Callback Count</label>
-                    <input 
-                      type="number"
-                      value={waCount}
-                      onChange={e => setWaCount(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs text-gray-700 bg-white outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-400 uppercase tracking-wider mb-1">Response Status</label>
-                    <select
-                      value={waStatus}
-                      onChange={e => setWaStatus(e.target.value as any)}
-                      className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-primary/20"
-                    >
-                      <option value="No Response">No Response</option>
-                      <option value="Responded">Responded</option>
-                      <option value="Interested">Interested</option>
-                      <option value="Closed">Closed</option>
-                    </select>
-                  </div>
-                </div>
-
-                <Button type="submit" size="sm" variant="outline" className="w-full text-xs font-medium flex items-center justify-center gap-1.5 text-green-700 border-green-200 hover:bg-green-50">
-                  <Send className="w-3.5 h-3.5" />
-                  Save WhatsApp States
-                </Button>
-              </form>
-            </div>
-
             {/* Bottom Actions */}
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <Button 
                 variant="outline" 
-                className="flex-1 text-xs gap-1.5"
+                className="flex-1 text-xs font-bold gap-1.5 bg-white shadow-sm"
                 onClick={() => handleOpenEditDrawer(viewingLead)}
               >
                 <Edit className="w-3.5 h-3.5" />
-                Edit Profile
+                Edit Lead
               </Button>
               <Button 
                 variant="outline" 
-                className="flex-1 text-rose-600 border-rose-100 hover:bg-rose-50 text-xs gap-1.5"
+                className="flex-1 text-xs font-bold gap-1.5 bg-white shadow-sm"
+                onClick={() => toast("Follow-up scheduled!", "success")}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                Schedule Follow-up
+              </Button>
+              {viewingLead.stage !== "Enrolled" && (
+                <Button 
+                  variant="primary" 
+                  className="flex-1 text-xs font-bold gap-1.5 shadow-sm"
+                  onClick={() => handleUpdateStage(viewingLead.id, "Enrolled")}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Convert to Enrollment
+                </Button>
+              )}
+              <Button 
+                variant="outline" 
+                className="flex-1 text-rose-600 border-rose-100 hover:bg-rose-50 hover:text-rose-700 text-xs font-bold gap-1.5 shadow-sm"
                 onClick={() => handleDeleteLead(viewingLead.id, viewingLead.name)}
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                Delete Lead
+                Delete
               </Button>
             </div>
           </div>
