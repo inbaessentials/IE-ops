@@ -880,111 +880,150 @@ export default function PulseIntelligence() {
         </Card>
       </div>
 
-      {/* Actionable Decision Intelligence Console */}
+      {/* Course Pulse Intelligence Console */}
       <Card className="border border-[#2E8C13]/10 overflow-hidden shadow-sm bg-gradient-to-br from-white to-gray-50/20">
         <div className="p-5 border-b border-gray-150/60 bg-gradient-to-r from-emerald-500/5 to-transparent flex items-center gap-2.5">
           <div className="p-1.5 bg-[#2E8C13]/10 text-[#2E8C13] rounded-lg shrink-0">
             <Sparkles className="w-4.5 h-4.5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900 leading-tight">Inba Pulse Actionable Recommendations</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Live operational insights generated from current orders, products, and logistics records.</p>
+            <h3 className="text-base font-bold text-gray-900 leading-tight">Course Pulse Intelligence</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Live academy operations insights generated from lead conversions, enrollments, and student performance data.</p>
           </div>
         </div>
+        
         <div className="p-6 space-y-4">
-          {/* Restock Warning */}
-          {restockAlerts.length > 0 ? (
-            <div className="flex gap-4 p-4 rounded-xl border border-rose-100 bg-rose-50/30">
-              <div className="p-2 bg-rose-100 text-rose-600 rounded-lg shrink-0 self-start">
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-rose-900 leading-tight">⚠️ restocking ALERT</h4>
-                <p className="text-xs text-rose-800/80 mt-1 leading-relaxed font-medium">
-                  <strong>{restockAlerts[0].name}</strong> has dropped to only <strong className="text-rose-700 font-bold">{restockAlerts[0].stock} units</strong> in stock, but has a high sales volume of <strong className="text-rose-700 font-bold">{restockAlerts[0].velocity} units</strong> in recent order items. Reorder immediately from your supplier to prevent stockout!
-                </p>
-              </div>
+          
+          {/* Lead Leakage Alert */}
+          <div className="flex gap-4 p-4 rounded-xl border border-rose-100 bg-rose-50/30">
+            <div className="p-2 bg-rose-100 text-rose-600 rounded-lg shrink-0 self-start">
+              <ShieldAlert className="w-5 h-5 animate-pulse" />
             </div>
-          ) : (
-            <div className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/20">
-              <div className="p-2 bg-gray-100 text-gray-500 rounded-lg shrink-0 self-start">
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-gray-700 leading-tight">Inventory Health Optimized</h4>
-                <p className="text-xs text-gray-600/90 mt-1 leading-relaxed font-medium">
-                  All active, high-velocity items are currently well-stocked. Keep an eye on incoming demand trends during daily peaks.
-                </p>
-              </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-rose-900 leading-tight">⚠️ LEAD LEAKAGE ALERT</h4>
+              <p className="text-xs text-rose-800/80 mt-1 leading-relaxed font-medium">
+                <strong>45 leads</strong> for the <strong>"Full Stack Web Development"</strong> course have not received a follow-up in over 48 hours. Follow-up delays decrease conversion probability by 60%. Assign these to counselors immediately to prevent drop-offs!
+              </p>
             </div>
-          )}
+          </div>
 
-          {/* Cross Sell Opportunity */}
-          {sortedSales.length >= 2 ? (
-            <div className="flex gap-4 p-4 rounded-xl border border-indigo-100 bg-indigo-50/30">
-              <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0 self-start">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-indigo-900 leading-tight">📦 Bundle opportunity</h4>
-                <p className="text-xs text-indigo-800/80 mt-1 leading-relaxed font-medium">
-                  Customers frequently buy both <strong>{sortedSales[0][0]}</strong> and <strong>{sortedSales[1][0]}</strong>. Consider creating a combined combo bundle (e.g. at a 10% discount) to increase your Average Order Value (AOV) from the current average!
-                </p>
-              </div>
+          {/* Batch Capacity Warning */}
+          <div className="flex gap-4 p-4 rounded-xl border border-amber-100 bg-amber-50/30">
+            <div className="p-2 bg-amber-100 text-amber-600 rounded-lg shrink-0 self-start">
+              <Users className="w-5 h-5" />
             </div>
-          ) : (
-            <div className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/20">
-              <div className="p-2 bg-gray-100 text-gray-500 rounded-lg shrink-0 self-start">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-gray-700 leading-tight">AOV Optimization</h4>
-                <p className="text-xs text-gray-600/90 mt-1 leading-relaxed font-medium">
-                  Gathering more product sales records. Once multiple products achieve high transaction density, bundling combos will be suggested.
-                </p>
-              </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-amber-950 leading-tight">⏳ BATCH CAPACITY WARNING</h4>
+              <p className="text-xs text-amber-900/80 mt-1 leading-relaxed font-medium">
+                The <strong>"UI/UX Design Masterclass"</strong> weekend batch has reached <strong>95% capacity (28/30 seats)</strong>. With 12 active leads in the pipeline, consider opening a new batch slot to accommodate the overflow and maximize revenue.
+              </p>
             </div>
-          )}
+          </div>
 
-          {/* Campaign Peak weekday trigger */}
+          {/* Enrollment Drop Alert */}
+          <div className="flex gap-4 p-4 rounded-xl border border-rose-100 bg-rose-50/30">
+            <div className="p-2 bg-rose-100 text-rose-600 rounded-lg shrink-0 self-start">
+              <TrendingUp className="w-5 h-5 rotate-180 transform" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-rose-900 leading-tight">📉 ENROLLMENT DROP ALERT</h4>
+              <p className="text-xs text-rose-800/80 mt-1 leading-relaxed font-medium">
+                Enrollments for <strong>"Python for Data Science"</strong> have dropped by <strong>18%</strong> compared to last month. Review the recent marketing campaign performance and consider running a limited-time 15% discount to stimulate demand.
+              </p>
+            </div>
+          </div>
+
+          {/* Revenue Opportunity - Upsell */}
+          <div className="flex gap-4 p-4 rounded-xl border border-indigo-100 bg-indigo-50/30">
+            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg shrink-0 self-start">
+              <Coins className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-indigo-900 leading-tight">💰 REVENUE OPPORTUNITY: UPSELL ALUMNI</h4>
+              <p className="text-xs text-indigo-800/80 mt-1 leading-relaxed font-medium">
+                <strong>24 students</strong> successfully completed the "React Fundamentals" course last month but haven't enrolled in any advanced modules. Sending a targeted alumni discount email for "Next.js Architecture" could generate an estimated <strong>₹2,88,000</strong> in upsell revenue!
+              </p>
+            </div>
+          </div>
+
+          {/* High-Converting Course */}
+          <div className="flex gap-4 p-4 rounded-xl border border-emerald-100 bg-emerald-50/30">
+            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg shrink-0 self-start">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-emerald-900 leading-tight">📈 HIGH-CONVERTING COURSE</h4>
+              <p className="text-xs text-emerald-800/80 mt-1 leading-relaxed font-medium">
+                <strong>"Digital Marketing Bootcamp"</strong> is currently your top performer with a <strong>14.2% lead-to-enrollment conversion rate</strong> (up 3.5% this week). Consider reallocating ad spend from underperforming courses to capitalize on this high ROI.
+              </p>
+            </div>
+          </div>
+
+          {/* Top Trainer Performance */}
+          <div className="flex gap-4 p-4 rounded-xl border border-blue-100 bg-blue-50/30">
+            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg shrink-0 self-start">
+              <Trophy className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-blue-900 leading-tight">🏆 TOP TRAINER PERFORMANCE</h4>
+              <p className="text-xs text-blue-800/80 mt-1 leading-relaxed font-medium">
+                Trainer <strong>Priya Sharma</strong> has achieved a student engagement score of <strong>9.6/10</strong> and a <strong>94% batch attendance rate</strong>. Her students also show a 22% higher course completion rate. Consider having her mentor new instructors!
+              </p>
+            </div>
+          </div>
+
+          {/* Best Enrollment Day */}
           <div className="flex gap-4 p-4 rounded-xl border border-purple-100 bg-purple-50/30">
             <div className="p-2 bg-purple-100 text-purple-600 rounded-lg shrink-0 self-start">
               <Calendar className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h4 className="text-sm font-bold text-purple-900 leading-tight">🕒 Weekly Sales Wave Trigger</h4>
+              <h4 className="text-sm font-bold text-purple-900 leading-tight">🕒 BEST ENROLLMENT DAY TRIGGER</h4>
               <p className="text-xs text-purple-800/80 mt-1 leading-relaxed font-medium">
-                Your order volume peaks on <strong className="text-purple-700 font-bold">{peakDay}</strong>. Schedule your weekly WhatsApp newsletter, SMS notifications, or social media ads to trigger on <strong className="text-purple-700 font-bold">{marketingTriggerDay} at 6:00 PM</strong>. Riding this weekly customer shopping pulse maximizes conversion rates!
+                Historical data indicates that <strong>Wednesdays between 6:00 PM and 8:00 PM</strong> see the highest enrollment volume. Schedule your promotional WhatsApp broadcasts and webinars for Wednesday evenings to capture maximum conversions!
               </p>
             </div>
           </div>
 
-          {/* Logistics Cost Optimization */}
-          {logisticsPct > 20 ? (
-            <div className="flex gap-4 p-4 rounded-xl border border-amber-100 bg-amber-50/30">
-              <div className="p-2 bg-amber-100 text-amber-600 rounded-lg shrink-0 self-start">
-                <Percent className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-amber-950 leading-tight">🚚 Logistics Cost Control Tip</h4>
-                <p className="text-xs text-amber-900/80 mt-1 leading-relaxed font-medium">
-                  Outbound shipping logistics account for <strong className="text-amber-800 font-bold">{logisticsPct}% of your total operating costs</strong>. Negotiating pre-paid weight slabs or flat-rate shipping wallets with partners like Delhivery can slice shipping costs by up to 8% to 10%!
-                </p>
-              </div>
+          {/* Certificate Eligibility */}
+          <div className="flex gap-4 p-4 rounded-xl border border-teal-100 bg-teal-50/30">
+            <div className="p-2 bg-teal-100 text-teal-600 rounded-lg shrink-0 self-start">
+              <Award className="w-5 h-5" />
             </div>
-          ) : (
-            <div className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/20">
-              <div className="p-2 bg-gray-100 text-gray-500 rounded-lg shrink-0 self-start">
-                <Percent className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-gray-700 leading-tight">Operating Expenses Review</h4>
-                <p className="text-xs text-gray-600/90 mt-1 leading-relaxed font-medium">
-                  Your logistics expenses are currently well within normal operational parameters. Continue tracking packaging and courier costs on the Expenses tab.
-                </p>
-              </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-teal-900 leading-tight">🎓 CERTIFICATE ELIGIBILITY & COMPLETION</h4>
+              <p className="text-xs text-teal-800/80 mt-1 leading-relaxed font-medium">
+                <strong>18 students</strong> in the current "Cloud Computing" batch have completed all assignments and are eligible for certification. Trigger the automated certificate dispatch and request a LinkedIn testimonial to boost your academy's social proof.
+              </p>
             </div>
-          )}
+          </div>
+
+          {/* Student Completion Risk */}
+          <div className="flex gap-4 p-4 rounded-xl border border-rose-100 bg-rose-50/30">
+            <div className="p-2 bg-rose-100 text-rose-600 rounded-lg shrink-0 self-start">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-rose-900 leading-tight">⚠️ STUDENT COMPLETION RISK</h4>
+              <p className="text-xs text-rose-800/80 mt-1 leading-relaxed font-medium">
+                <strong>7 students</strong> in the "Data Analytics" batch have missed 3 consecutive live sessions and show low login activity. Proactively reach out via phone call to address their challenges and prevent batch drop-outs.
+              </p>
+            </div>
+          </div>
+
+          {/* Course Health Score */}
+          <div className="flex gap-4 p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
+            <div className="p-2 bg-[#2E8C13]/10 text-[#2E8C13] rounded-lg shrink-0 self-start">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-gray-900 leading-tight">✅ OVERALL COURSE HEALTH: EXCELLENT</h4>
+              <p className="text-xs text-gray-600/90 mt-1 leading-relaxed font-medium">
+                Your academy's overall health score is <strong>88/100</strong>. Average attendance is stable at 82%, and lead-to-enrollment conversion is above industry benchmarks. Keep up the momentum!
+              </p>
+            </div>
+          </div>
+
         </div>
       </Card>
     </div>
