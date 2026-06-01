@@ -3476,6 +3476,10 @@ function CourseManagementView() {
 
               {courseType === "Live Cohort" && (
                 <div className="space-y-6 animate-in fade-in">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Name</label>
+                    <input type="text" value={batchName} onChange={(e) => setBatchName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Summer Cohort 2024" />
+                  </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Start Date</label>
@@ -3544,6 +3548,10 @@ function CourseManagementView() {
 
               {courseType === "Hybrid Program" && (
                 <div className="space-y-6 animate-in fade-in">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Name</label>
+                    <input type="text" value={batchName} onChange={(e) => setBatchName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Summer Cohort 2024" />
+                  </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Batch Start Date</label>
