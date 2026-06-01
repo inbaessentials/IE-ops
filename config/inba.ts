@@ -83,7 +83,9 @@ export const InbaConfig = {
       { display_id: "PRD-002", name: "Aloe Vera Face Wash", sku: "CM-AV-100", category: "Cosmetic", purchase_price: 80, price: 199, stock: 12, status: "Low Stock" },
       { display_id: "PRD-003", name: "Organic Honey (500g)", sku: "GR-OH-500", category: "Grocery", purchase_price: 300, price: 450, stock: 0, status: "Out of Stock" },
       { display_id: "PRD-004", name: "Neem Soap Bar", sku: "HB-NS-1", category: "Wellness", purchase_price: 30, price: 75, stock: 320, status: "Active" },
-      { display_id: "PRD-005", name: "Rose Water Spray", sku: "BT-RW-50", category: "Beauty", purchase_price: 50, price: 120, stock: 85, status: "Active" }
+      { display_id: "PRD-005", name: "Rose Water Spray", sku: "BT-RW-50", category: "Beauty", purchase_price: 50, price: 120, stock: 85, status: "Active" },
+      { display_id: "PRD-006", name: "Lunch Bags (Insulated)", sku: "LB-IN-01", category: "Accessories", purchase_price: 120, price: 350, stock: 250, status: "Active" },
+      { display_id: "PRD-007", name: "Chudithar Materials (Cotton)", sku: "CH-CT-01", category: "Fashion", purchase_price: 450, price: 850, stock: 120, status: "Active" }
     ],
     orders: [
       { display_id: "ORD-9012", customer: "Rahul Sharma", date: "13 May 2026, 10:45 AM", amount: "₹890", payment: "Paid", status: "New", address: "123 Anna Salai, Chennai", phone: "+91 98765 43210", items: [{ name: "Herbal Hair Oil (200ml)", qty: 2, price: "₹299" }, { name: "Neem Soap Bar", qty: 4, price: "₹75" }] },
