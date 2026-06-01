@@ -89,6 +89,7 @@ export default function AdminPage() {
                   {[
                     { id: "online-course", name: "Online Course", desc: "LMS, Students, Cohorts", icon: "🎓" },
                     { id: "gym-services", name: "Gym Services", desc: "Memberships, Attendance", icon: "🏋️" },
+                    { id: "clinic", name: "Clinic Services", desc: "Patients, Appointments", icon: "🏥" },
                     { id: "wholesale", name: "Wholesale", desc: "B2B, Bulk Orders", icon: "📦" },
                     { id: "fashion", name: "Fashion", desc: "Retail, Variations", icon: "👕" },
                     { id: "other", name: "General Business", desc: "Standard Operations", icon: "🏢" }
