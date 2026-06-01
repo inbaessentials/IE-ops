@@ -360,6 +360,10 @@ export default function SalesPage() {
     return <GymRevenueView />;
   }
 
+  if (platform === "clinic") {
+    return <ClinicBillingView />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1171,6 +1175,271 @@ function GymRevenueView() {
           <div className="pt-4 flex justify-end gap-3 mt-6">
             <Button type="button" variant="ghost" onClick={() => setIsAddExpenseOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary" className="font-bold">Save Operational Expense</Button>
+          </div>
+        </form>
+      </Drawer>
+    </div>
+  );
+}
+
+function ClinicBillingView() {
+  const [activeTab, setActiveTab] = useState<"invoices" | "expenses">("invoices");
+  
+  // Local Database States
+  const [patients, setPatients] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [expenseCategory, setExpenseCategory] = useState("Rent");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseNotes, setExpenseNotes] = useState("");
+
+  const loadData = () => {
+    if (typeof window === "undefined") return;
+    const p = localStorage.getItem("inba_clinic_patients");
+    const a = localStorage.getItem("inba_clinic_appointments");
+    const e = localStorage.getItem("inba_clinic_expenses");
+
+    if (p) setPatients(JSON.parse(p));
+    if (a) setAppointments(JSON.parse(a));
+    if (e) setExpenses(JSON.parse(e));
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleCreateExpense = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expenseAmount) return;
+
+    const nextNum = expenses.length + 1;
+    const display_id = `C-EXP-${nextNum.toString().padStart(2, "0")}`;
+    const newExp = {
+      display_id,
+      category: expenseCategory,
+      amount: Number(expenseAmount),
+      notes: expenseNotes || `${expenseCategory} bill`,
+      date: new Date().toISOString().split("T")[0]
+    };
+
+    const updated = [newExp, ...expenses];
+    localStorage.setItem("inba_clinic_expenses", JSON.stringify(updated));
+    setExpenses(updated);
+
+    setExpenseAmount("");
+    setExpenseNotes("");
+    setExpenseCategory("Rent");
+    setIsAddExpenseOpen(false);
+  };
+
+  // Generate Invoices from Appointments
+  const invoices = useMemo(() => {
+    const list: any[] = [];
+    appointments.filter(a => a.status === "Completed").forEach((a: any, i: number) => {
+      let amount = 500;
+      if (a.purpose === "Vaccination") amount = 1500;
+      else if (a.purpose === "Pain Management") amount = 800;
+
+      list.push({
+        id: `INV-${1000 + i}`,
+        patient: a.patientName,
+        patientId: a.patientId,
+        date: a.date,
+        purpose: a.purpose,
+        doctor: a.doctor,
+        amount,
+        payment: i % 2 === 0 ? "UPI" : "Card",
+        status: "Paid"
+      });
+    });
+    return list;
+  }, [appointments]);
+
+  const stats = useMemo(() => {
+    const totalRev = invoices.reduce((sum: number, item: any) => sum + item.amount, 0);
+    const totalExp = expenses.reduce((sum: number, e: any) => sum + e.amount, 0);
+    
+    return {
+      revenue: totalRev,
+      expenses: totalExp,
+      profit: totalRev - totalExp
+    };
+  }, [invoices, expenses]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Clinic Billing & Expenses</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage patient invoices and clinic operational expenses.</p>
+        </div>
+        
+        <div className="flex gap-2">
+          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
+            <button 
+              onClick={() => setActiveTab("invoices")}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "invoices" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Patient Invoices
+            </button>
+            <button 
+              onClick={() => setActiveTab("expenses")}
+              className={`px-3 py-1.5 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 ${
+                activeTab === "expenses" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              Expenses
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Revenue</p>
+            <h3 className="text-xl font-semibold tracking-tight text-emerald-600">₹{stats.revenue.toLocaleString("en-IN")}</h3>
+          </div>
+          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+            <IndianRupee className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Expenses</p>
+            <h3 className="text-xl font-semibold tracking-tight text-red-600">₹{stats.expenses.toLocaleString("en-IN")}</h3>
+          </div>
+          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+            <TrendingUp className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Net Profit</p>
+            <h3 className="text-xl font-semibold tracking-tight text-blue-600">₹{stats.profit.toLocaleString("en-IN")}</h3>
+          </div>
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <Activity className="w-5 h-5" />
+          </div>
+        </Card>
+      </div>
+
+      {activeTab === "invoices" && (
+        <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden">
+          <div className="overflow-x-auto min-h-[300px]">
+            {invoices.length > 0 ? (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <th className="p-4 pl-6">Invoice ID</th>
+                    <th className="p-4">Patient</th>
+                    <th className="p-4">Doctor & Purpose</th>
+                    <th className="p-4">Amount</th>
+                    <th className="p-4">Method</th>
+                    <th className="p-4">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {invoices.map((inv: any) => (
+                    <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-4 pl-6 font-medium text-xs text-gray-900 font-mono">{inv.id}</td>
+                      <td className="p-4">
+                        <span className="font-semibold text-primary">{inv.patient}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-xs text-gray-600">{inv.purpose}</span><br />
+                        <span className="text-[10px] text-gray-400">{inv.doctor}</span>
+                      </td>
+                      <td className="p-4 font-bold text-gray-900">₹{inv.amount.toLocaleString("en-IN")}</td>
+                      <td className="p-4 text-gray-500">{inv.payment}</td>
+                      <td className="p-4 text-gray-600">{inv.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[300px] text-sm text-gray-400 font-medium">
+                No invoices found.
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {activeTab === "expenses" && (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button className="gap-2" onClick={() => setIsAddExpenseOpen(true)}>
+              <Plus className="w-4 h-4" /> Add Expense
+            </Button>
+          </div>
+          <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden">
+            <div className="overflow-x-auto min-h-[300px]">
+              {expenses.length > 0 ? (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th className="p-4 pl-6">Exp ID</th>
+                      <th className="p-4">Category</th>
+                      <th className="p-4">Notes</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4 text-right pr-6">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {expenses.map((exp: any) => (
+                      <tr key={exp.display_id} className="hover:bg-gray-50/40 transition-colors">
+                        <td className="p-4 pl-6 font-medium text-xs text-gray-400 font-mono">{exp.display_id}</td>
+                        <td className="p-4 text-xs font-semibold text-gray-700">{exp.category}</td>
+                        <td className="p-4 text-sm text-gray-600">{exp.notes}</td>
+                        <td className="p-4 text-xs text-gray-500">{exp.date}</td>
+                        <td className="p-4 text-right pr-6 font-bold text-red-600">₹{exp.amount.toLocaleString("en-IN")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[300px] text-sm text-gray-400 font-medium">
+                  No expenses recorded.
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <Drawer isOpen={isAddExpenseOpen} onClose={() => setIsAddExpenseOpen(false)} title="Log Clinic Expense">
+        <form className="space-y-4" onSubmit={handleCreateExpense}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Expense Category</label>
+              <select required value={expenseCategory} onChange={e => setExpenseCategory(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-800 text-sm">
+                <option value="Rent">Rent</option>
+                <option value="Salaries">Salaries</option>
+                <option value="Equipment">Equipment / Medical Devices</option>
+                <option value="Supplies">Medical Supplies</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Amount (INR)</label>
+              <input required type="number" value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} placeholder="0" className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-900 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Notes</label>
+              <textarea rows={3} value={expenseNotes} onChange={e => setExpenseNotes(e.target.value)} placeholder="Details..." className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-900 text-sm" />
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddExpenseOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Save Expense</Button>
           </div>
         </form>
       </Drawer>

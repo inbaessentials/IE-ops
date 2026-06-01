@@ -772,6 +772,10 @@ export default function InventoryPage() {
     return <CourseManagementView />;
   }
 
+  if (platform === "clinic") {
+    return <ClinicInventoryView />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -3794,11 +3798,208 @@ function CourseManagementView() {
               />
             </div>
           </div>
+          </div>
           <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
             <Button type="button" variant="ghost" onClick={() => setIsAddCategoryOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary">
               Save Category
             </Button>
+          </div>
+        </form>
+      </Drawer>
+    </div>
+  );
+}
+
+function ClinicInventoryView() {
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
+  
+  // Form Fields
+  const [formName, setFormName] = useState("");
+  const [formCategory, setFormCategory] = useState("Medicines");
+  const [formBatch, setFormBatch] = useState("");
+  const [formStock, setFormStock] = useState("");
+  const [formExpiry, setFormExpiry] = useState("");
+
+  const loadData = () => {
+    if (typeof window === "undefined") return;
+    const inv = localStorage.getItem("inba_clinic_inventory");
+    if (inv) setInventory(JSON.parse(inv));
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleAddItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName) return;
+
+    const newItem = {
+      name: formName,
+      category: formCategory,
+      batch: formBatch,
+      stock: Number(formStock),
+      expiry: formExpiry
+    };
+
+    const updated = [newItem, ...inventory];
+    localStorage.setItem("inba_clinic_inventory", JSON.stringify(updated));
+    setInventory(updated);
+    setIsAddDrawerOpen(false);
+
+    setFormName("");
+    setFormBatch("");
+    setFormStock("");
+    setFormExpiry("");
+  };
+
+  const filteredInventory = inventory.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    item.batch?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const lowStockCount = inventory.filter(i => (i.stock || 0) <= 10).length;
+  const outOfStockCount = inventory.filter(i => (i.stock || 0) === 0).length;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Clinic Inventory</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage medicines, consumables, and medical equipment stock.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button className="gap-2 font-semibold" onClick={() => setIsAddDrawerOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Add Item
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Items</p>
+            <h3 className="text-xl font-semibold tracking-tight text-gray-900">{inventory.length}</h3>
+          </div>
+          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <Package className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Low Stock</p>
+            <h3 className="text-xl font-semibold tracking-tight text-amber-600">{lowStockCount}</h3>
+          </div>
+          <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+        </Card>
+        <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-xs">
+          <div>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Out of Stock</p>
+            <h3 className="text-xl font-semibold tracking-tight text-red-600">{outOfStockCount}</h3>
+          </div>
+          <div className="p-2.5 bg-red-50 text-red-600 rounded-xl">
+            <AlertCircle className="w-4 h-4" />
+          </div>
+        </Card>
+      </div>
+
+      <Card className="p-4 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs bg-white">
+        <div className="relative flex-1 w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Search items by name or batch..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+          />
+        </div>
+      </Card>
+
+      <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden">
+        <div className="overflow-x-auto min-h-[400px]">
+          {filteredInventory.length > 0 ? (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <th className="p-4 pl-6">Item Name</th>
+                  <th className="p-4">Category</th>
+                  <th className="p-4">Batch No.</th>
+                  <th className="p-4">Expiry Date</th>
+                  <th className="p-4 text-right pr-6">Stock Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white text-sm font-medium">
+                {filteredInventory.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/40 transition-colors group">
+                    <td className="p-4 pl-6 whitespace-nowrap">
+                      <span className="font-semibold text-gray-900">{item.name}</span>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-gray-600">
+                      <span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs">{item.category || "General"}</span>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-gray-500 font-mono text-xs">{item.batch || "N/A"}</td>
+                    <td className="p-4 whitespace-nowrap text-gray-600">{item.expiry || "N/A"}</td>
+                    <td className="p-4 whitespace-nowrap text-right pr-6">
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-sm font-bold text-gray-900">{item.stock} Units</span>
+                        {(item.stock || 0) <= 10 && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600">Low Stock</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[300px] text-sm text-gray-400 font-medium">
+              No inventory items found.
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Add Inventory Item">
+        <form className="space-y-4" onSubmit={handleAddItem}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Item Name</label>
+              <input required type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Paracetamol 500mg" className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-900 text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Category</label>
+              <select required value={formCategory} onChange={e => setFormCategory(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-800 text-sm">
+                <option value="Medicines">Medicines</option>
+                <option value="Consumables">Consumables (Syringes, Gloves)</option>
+                <option value="Equipment">Medical Equipment</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Batch Number</label>
+                <input type="text" value={formBatch} onChange={e => setFormBatch(e.target.value)} placeholder="B-12345" className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-900 text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Expiry Date</label>
+                <input type="date" value={formExpiry} onChange={e => setFormExpiry(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-900 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-800 mb-1">Initial Stock</label>
+              <input required type="number" value={formStock} onChange={e => setFormStock(e.target.value)} placeholder="0" className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none text-gray-900 text-sm" />
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsAddDrawerOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Save Item</Button>
           </div>
         </form>
       </Drawer>

@@ -4,6 +4,7 @@ import { OnlineCourseConfig } from "./online-course";
 import { WholesaleConfig } from "./wholesale";
 import { GymServicesConfig } from "./gym-services";
 import { OtherConfig } from "./other";
+import { ClinicConfig } from "./clinic";
 
 export interface SidebarItem {
   name: string;
@@ -54,7 +55,7 @@ export const platformConfigs: Record<BusinessPlatform, PlatformConfig> = {
   "online-course": OnlineCourseConfig,
   wholesale: WholesaleConfig,
   "gym-services": GymServicesConfig,
-  clinic: OtherConfig, // Using OtherConfig as fallback for now
+  clinic: ClinicConfig,
   other: OtherConfig,
 };
 
@@ -70,6 +71,6 @@ export const platformOptions = [
   { value: "online-course", label: "Online Course" },
   { value: "wholesale", label: "Wholesale" },
   { value: "gym-services", label: "Gym Services" },
-  { value: "clinic", label: "Clinic" },
+  { value: "clinic", label: "Clinic Services" },
   { value: "other", label: "Other" }
 ];

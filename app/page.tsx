@@ -214,6 +214,80 @@ const seedGymData = () => {
   localStorage.setItem("inba_gym_seeded", "true");
 };
 
+// Clinic Seeder function
+const seedClinicData = () => {
+  if (typeof window === "undefined" || localStorage.getItem("inba_clinic_seeded") === "true") return;
+
+  const firstNames = ["Amit", "Sneha", "Rajesh", "Priya", "Vikram", "Anjali", "Suresh", "Neha", "Ravi", "Kavita", "Arun", "Pooja", "Sunil", "Meera", "Deepak"];
+  const lastNames = ["Sharma", "Patel", "Reddy", "Verma", "Gupta", "Singh", "Kumar", "Nair", "Joshi", "Bose", "Menon", "Desai", "Iyer", "Das", "Rao"];
+  const bloodGroups = ["A+", "O+", "B+", "AB+", "A-", "O-", "B-", "AB-"];
+  const genders = ["Male", "Female"];
+  
+  const patients = [];
+  const today = new Date();
+  for (let i = 1; i <= 500; i++) {
+    const fName = firstNames[i % firstNames.length];
+    const lName = lastNames[Math.floor(i * 1.5) % lastNames.length];
+    const gender = genders[i % 2];
+    const age = 18 + (i % 55);
+    const bg = bloodGroups[i % bloodGroups.length];
+    
+    patients.push({
+      id: `PAT-${1000 + i}`,
+      name: `${fName} ${lName}`,
+      mobile: `+91 ${98765} ${10000 + i}`,
+      age,
+      gender,
+      bloodGroup: bg,
+      registeredDate: new Date(today.getTime() - (i % 300) * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      lastVisit: new Date(today.getTime() - (i % 30) * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      nextFollowUp: (i % 4 === 0) ? new Date(today.getTime() + (i % 15) * 24 * 60 * 60 * 1000).toISOString().split("T")[0] : null
+    });
+  }
+  localStorage.setItem("inba_clinic_patients", JSON.stringify(patients));
+
+  const doctors = ["Dr. Sharma (General)", "Dr. Patel (Pediatrics)", "Dr. Reddy (Ortho)", "Dr. Verma (Derma)"];
+  const statuses = ["Booked", "Checked In", "Waiting", "Completed", "Cancelled", "No Show"];
+  const purposes = ["General Checkup", "Fever/Cold", "Follow-up", "Vaccination", "Pain Management", "Skin Rash"];
+  
+  const appointments = [];
+  // Generate 1000 appointments spread over past 30 days and next 15 days
+  for (let i = 1; i <= 1000; i++) {
+    const patient = patients[i % patients.length];
+    const daysOffset = (i % 45) - 30; // -30 to +14 days
+    const appDate = new Date(today.getTime() + daysOffset * 24 * 60 * 60 * 1000);
+    const isToday = daysOffset === 0;
+    const isPast = daysOffset < 0;
+    
+    let status = "Booked";
+    if (isPast) status = (i % 10 === 0) ? "No Show" : "Completed";
+    if (isToday) status = statuses[i % 4]; // Booked, Checked In, Waiting, Completed
+
+    appointments.push({
+      id: `APT-${5000 + i}`,
+      patientId: patient.id,
+      patientName: patient.name,
+      patientMobile: patient.mobile,
+      date: appDate.toISOString().split("T")[0],
+      time: `${9 + (i % 8).toString().padStart(2, "0")}:${((i * 15) % 60).toString().padStart(2, "0")}`,
+      doctor: doctors[i % doctors.length],
+      purpose: purposes[i % purposes.length],
+      status
+    });
+  }
+  localStorage.setItem("inba_clinic_appointments", JSON.stringify(appointments));
+
+  const inventory = [
+    { name: "Paracetamol 500mg", batch: "B-101", stock: 450, expiry: new Date(today.getTime() + 180 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] },
+    { name: "Amoxicillin 250mg", batch: "B-102", stock: 120, expiry: new Date(today.getTime() + 150 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] },
+    { name: "Syringes 5ml", batch: "B-103", stock: 1500, expiry: new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] },
+    { name: "Cotton Rolls", batch: "B-104", stock: 5, expiry: new Date(today.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] }, // low stock
+    { name: "Ibuprofen 400mg", batch: "B-105", stock: 8, expiry: new Date(today.getTime() + 200 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] }  // low stock
+  ];
+  localStorage.setItem("inba_clinic_inventory", JSON.stringify(inventory));
+  localStorage.setItem("inba_clinic_seeded", "true");
+};
+
 export default function Dashboard() {
   const { platform, config } = usePlatform();
   const [dateRange, setDateRange] = useState("All time");
@@ -229,6 +303,12 @@ export default function Dashboard() {
   const [gymProducts, setGymProducts] = useState<any[]>([]);
   const [gymTrainers, setGymTrainers] = useState<any[]>([]);
   const [gymTodayRevenue, setGymTodayRevenue] = useState(28298);
+
+  // Clinic Service dashboard state hooks
+  const [clinicPatients, setClinicPatients] = useState<any[]>([]);
+  const [clinicAppointments, setClinicAppointments] = useState<any[]>([]);
+  const [clinicInventory, setClinicInventory] = useState<any[]>([]);
+  const [clinicTodayRevenue, setClinicTodayRevenue] = useState(15400);
 
   const getCardTitle = (key: string) => {
     return config.dashboardCards.find(card => card.key === key)?.title || key;
@@ -286,9 +366,25 @@ export default function Dashboard() {
     if (trainers) setGymTrainers(JSON.parse(trainers));
   };
 
+  // Fetch Clinic Specific data
+  const fetchClinicData = () => {
+    if (typeof window === "undefined") return;
+    seedClinicData();
+    
+    const patients = localStorage.getItem("inba_clinic_patients");
+    const apps = localStorage.getItem("inba_clinic_appointments");
+    const inv = localStorage.getItem("inba_clinic_inventory");
+
+    if (patients) setClinicPatients(JSON.parse(patients));
+    if (apps) setClinicAppointments(JSON.parse(apps));
+    if (inv) setClinicInventory(JSON.parse(inv));
+  };
+
   useEffect(() => {
     if (platform === "gym-services") {
       fetchGymData();
+    } else if (platform === "clinic") {
+      fetchClinicData();
     } else {
       fetchDashboardStats();
     }
@@ -486,6 +582,153 @@ export default function Dashboard() {
       maximumFractionDigits: 0
     }).format(value);
   };
+
+  // CLINIC SERVICES CONDITIONAL DASHBOARD RENDER
+  if (platform === "clinic") {
+    const todayStr = now.toISOString().split("T")[0];
+    const patientsToday = clinicAppointments.filter(a => a.date === todayStr).length;
+    const newPatients = clinicPatients.filter(p => p.registeredDate === todayStr).length || 5;
+    const followUpsDue = clinicPatients.filter(p => p.nextFollowUp === todayStr).length;
+    const lowStock = clinicInventory.filter(i => (i.stock || 0) <= 10).length;
+    
+    const appsTodayList = clinicAppointments
+      .filter(a => a.date === todayStr)
+      .sort((a, b) => a.time.localeCompare(b.time));
+      
+    const waitingList = appsTodayList.filter(a => a.status === "Waiting" || a.status === "Checked In");
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              Clinic Services Dashboard
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">Real-time overview of patients, queue, and clinic operations.</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 bg-white p-2 border border-gray-200 rounded-xl shadow-xs">
+            <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1">
+              <Activity className="w-3.5 h-3.5" />
+              Sunrise Clinic
+            </span>
+            <div className="w-[1px] h-5 bg-gray-200"></div>
+            <span className="text-xs font-medium text-gray-500">{new Date().toDateString()}</span>
+          </div>
+        </div>
+
+        {/* KPI Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{getCardTitle("Patients Today")}</p>
+              <h3 className="text-xl font-semibold text-gray-900 mt-0.5">{patientsToday}</h3>
+            </div>
+          </Card>
+          
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-2.5 bg-green-50 text-green-600 rounded-xl">
+              <UserCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{getCardTitle("New Patients")}</p>
+              <h3 className="text-xl font-bold text-green-600 mt-0.5">{newPatients}</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+              <CalendarCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{getCardTitle("Follow-Ups Due")}</p>
+              <h3 className="text-xl font-bold text-amber-600 mt-0.5">{followUpsDue}</h3>
+            </div>
+          </Card>
+
+          <Card className="p-4 flex items-center gap-4 hover:shadow-md transition-shadow border border-gray-100">
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+              <IndianRupee className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">{getCardTitle("Revenue Today")}</p>
+              <h3 className="text-xl font-bold text-emerald-600 mt-0.5">₹{clinicTodayRevenue.toLocaleString("en-IN")}</h3>
+            </div>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Live Queue */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  Live Patient Queue
+                </CardTitle>
+                <p className="text-[11px] text-gray-500 mt-0.5">Patients waiting or checked in currently.</p>
+              </div>
+              <Link href="/appointments" className="text-xs font-medium text-primary hover:underline">View All</Link>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-4 max-h-[300px] overflow-y-auto">
+              {waitingList.length > 0 ? (
+                <div className="divide-y divide-gray-50">
+                  {waitingList.map((app, i) => (
+                    <div key={i} className="py-3 flex items-center justify-between group">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-gray-900">{app.patientName}</span>
+                        <span className="text-[10px] text-gray-500 mt-0.5">{app.purpose} • {app.doctor}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs font-bold text-gray-700">{app.time}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full mt-1 ${
+                          app.status === 'Waiting' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+                        }`}>{app.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400 text-sm">No patients currently in queue.</div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Low Stock Alerts */}
+          <Card className="border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+            <CardHeader className="border-b border-gray-50 pb-4 bg-gray-50/50">
+              <CardTitle className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                Inventory Alerts
+              </CardTitle>
+              <p className="text-[11px] text-gray-500 mt-0.5">Medicines and consumables running low.</p>
+            </CardHeader>
+            <CardContent className="p-4 flex-1 space-y-4 max-h-[300px] overflow-y-auto">
+              {lowStock > 0 ? (
+                <div className="divide-y divide-gray-50">
+                  {clinicInventory.filter(i => (i.stock || 0) <= 10).map((item, i) => (
+                    <div key={i} className="py-3 flex items-center justify-between group">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-gray-900">{item.name}</span>
+                        <span className="text-[10px] text-gray-500 mt-0.5">Batch: {item.batch}</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-1 rounded bg-red-50 text-red-600">
+                        {item.stock} left
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-400 text-sm">Inventory levels are healthy.</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   // GYM SERVICES CONDITIONAL DASHBOARD RENDER
   if (platform === "gym-services") {

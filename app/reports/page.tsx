@@ -19,6 +19,10 @@ export default function ReportsPage() {
   };
 
   const [activeReportTab, setActiveReportTab] = useState<"financial" | "pulse">("financial");
+
+  if (platform === "clinic") {
+    return <ClinicReportsView />;
+  }
   const [timeframe, setTimeframe] = useState("Last 30 Days");
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -640,6 +644,133 @@ export default function ReportsPage() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function ClinicReportsView() {
+  const [stats, setStats] = useState({
+    appointments: 0,
+    revenue: 0,
+    patients: 0,
+    expenses: 0
+  });
+
+  const loadData = () => {
+    if (typeof window === "undefined") return;
+    const a = localStorage.getItem("inba_clinic_appointments");
+    const p = localStorage.getItem("inba_clinic_patients");
+    const e = localStorage.getItem("inba_clinic_expenses");
+
+    const appointments = a ? JSON.parse(a) : [];
+    const patients = p ? JSON.parse(p) : [];
+    const expenses = e ? JSON.parse(e) : [];
+
+    // Calculate metrics
+    let rev = 0;
+    appointments.filter((app: any) => app.status === "Completed").forEach((app: any) => {
+      if (app.purpose === "Vaccination") rev += 1500;
+      else if (app.purpose === "Pain Management") rev += 800;
+      else rev += 500;
+    });
+
+    const exp = expenses.reduce((sum: number, item: any) => sum + item.amount, 0);
+
+    setStats({
+      appointments: appointments.length,
+      revenue: rev,
+      patients: patients.length,
+      expenses: exp
+    });
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">Clinic Analytics</h1>
+          <p className="text-sm text-gray-500 mt-1">Key metrics for appointments, patients, and revenue.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Revenue</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">₹{stats.revenue.toLocaleString("en-IN")}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-4 text-xs">
+            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+12%</span>
+            <span className="text-gray-400 font-medium">vs last month</span>
+          </div>
+        </Card>
+
+        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Net Profit</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">₹{(stats.revenue - stats.expenses).toLocaleString("en-IN")}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-4 text-xs">
+            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+8%</span>
+            <span className="text-gray-400 font-medium">vs last month</span>
+          </div>
+        </Card>
+
+        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Patients</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">{stats.patients}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-purple-50 text-purple-600">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-4 text-xs">
+            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+15%</span>
+            <span className="text-gray-400 font-medium">new registrations</span>
+          </div>
+        </Card>
+
+        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Appointments</p>
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">{stats.appointments}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
+              <Calendar className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-4 text-xs">
+            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+5%</span>
+            <span className="text-gray-400 font-medium">this month</span>
+          </div>
+        </Card>
+      </div>
+
+      {/* Adding a visual placeholder for Clinic Charts */}
+      <Card className="p-6 border border-gray-100 shadow-sm min-h-[300px] flex items-center justify-center bg-gray-50/50">
+        <div className="text-center">
+          <TrendingUp className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+          <h3 className="text-sm font-semibold text-gray-900">Advanced Analytics Available Soon</h3>
+          <p className="text-xs text-gray-500 mt-1">Detailed charts for clinic revenue and patient demographics are being generated.</p>
+        </div>
+      </Card>
     </div>
   );
 }

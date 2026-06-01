@@ -84,6 +84,24 @@ export default function Sidebar() {
         reports,
         goals
       ];
+    } else if (platform === "clinic") {
+      const dashboard = list.find(item => item.name === "Dashboard")!;
+      const patients = list.find(item => item.name === "Customers")!;
+      const appointments = list.find(item => item.name === "Goals")!;
+      const billing = list.find(item => item.name === "Sales")!;
+      const inventory = list.find(item => item.name === "Inventory")!;
+      const expenses = list.find(item => item.name === "Expenses")!;
+      const reports = list.find(item => item.name === "Reports")!;
+      
+      list = [
+        dashboard,
+        patients,
+        { name: "Appointments", href: "/appointments", icon: CalendarCheck },
+        billing,
+        inventory,
+        expenses,
+        reports
+      ];
     }
     return list;
   }, [platform]);
