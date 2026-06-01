@@ -87,6 +87,7 @@ export default function AdminPage() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
+                    { id: "inba", name: "Inba Essentials", desc: "D2C Retail & Operations", icon: "🌿" },
                     { id: "online-course", name: "Online Course", desc: "LMS, Students, Cohorts", icon: "🎓" },
                     { id: "gym-services", name: "Gym Services", desc: "Memberships, Attendance", icon: "🏋️" },
                     { id: "clinic", name: "Clinic Services", desc: "Patients, Appointments", icon: "🏥" },
