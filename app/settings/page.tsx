@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import CalendarIntegration from "@/components/CalendarIntegration";
 import { Badge } from "@/components/ui/Badge";
-import { usePlatform } from "@/lib/PlatformContext";
+
 import { 
   Building2, 
   Users, 
@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const { platform } = usePlatform();
   const [activeTab, setActiveTab] = useState("organization");
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -44,9 +43,6 @@ export default function SettingsPage() {
   ];
 
   const getRolesForPlatform = () => {
-    if (platform === "online-course") return ["Admin", "Manager", "Staff", "Trainer", "Counsellor"];
-    if (platform === "gym-services") return ["Admin", "Manager", "Staff", "Trainer", "Receptionist"];
-    if (platform === "clinic") return ["Admin", "Manager", "Staff", "Doctor", "Receptionist"];
     return ["Admin", "Manager", "Staff"];
   };
 
@@ -108,7 +104,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
-                    <input type="text" value={platform.replace("-", " ").toUpperCase()} disabled className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500" />
+                    <input type="text" value="INBA ESSENTIALS" disabled className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>

@@ -13,16 +13,14 @@ import PulseIntelligence from "@/components/PulseIntelligence";
 import { usePlatform } from "@/lib/PlatformContext";
 
 export default function ReportsPage() {
-  const { platform, config } = usePlatform();
+  const { config } = usePlatform();
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
     return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
   };
 
   const [activeReportTab, setActiveReportTab] = useState<"financial" | "pulse">("financial");
 
-  if (platform === "clinic") {
-    return <ClinicReportsView />;
-  }
+
   const [timeframe, setTimeframe] = useState("Last 30 Days");
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -41,131 +39,7 @@ export default function ReportsPage() {
     try {
       setLoading(true);
 
-      if (platform === "gym-services") {
-        const m = localStorage.getItem("inba_gym_members");
-        const t = localStorage.getItem("inba_gym_trainers");
-        const p = localStorage.getItem("inba_gym_products");
-        const e = localStorage.getItem("inba_gym_expenses");
-        const l = localStorage.getItem("inba_gym_leads");
-
-        const membersList = m ? JSON.parse(m) : [];
-        const trainersList = t ? JSON.parse(t) : [];
-        const productsList = p ? JSON.parse(p) : [];
-        const expensesList = e ? JSON.parse(e) : [];
-        const leadsList = l ? JSON.parse(l) : [];
-
-        // Membership Rev
-        const totalMemRev = membersList.reduce((sum: number, item: any) => {
-          if (item.status === "Expired" || item.status === "Cancelled") return sum;
-          let price = 2999;
-          if (item.membership === "Quarterly Plan") price = 7999;
-          else if (item.membership === "Half Yearly") price = 13999;
-          else if (item.membership === "Annual Plan") price = 24999;
-          return sum + price;
-        }, 0);
-
-        // PT Rev
-        let totalPtRev = 0;
-        membersList.filter((m: any) => m.trainer !== "None").forEach((m: any, idx: number) => {
-          const isWeightLoss = idx % 3 === 0;
-          totalPtRev += isWeightLoss ? 18000 : 12000;
-        });
-
-        // Products Rev
-        const totalProdRev = productsList.reduce((sum: number, prod: any) => sum + (prod.revenue || 0), 0) || 326163;
-
-        // Expenses
-        const totalExpSum = expensesList.reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0) || 261500;
-
-        const grossRev = totalMemRev + totalPtRev + totalProdRev;
-        const netProfitVal = Math.max(0, grossRev - totalExpSum);
-
-        const avgAOV = membersList.length > 0 ? (totalMemRev / membersList.length) : 0;
-
-        setStats({
-          totalRevenue: grossRev,
-          netProfit: netProfitVal,
-          totalOrders: membersList.length,
-          operatingExpenses: totalExpSum,
-          avgOrderValue: avgAOV
-        });
-
-        // Group Top Products
-        const topProductsList = productsList
-          .sort((a: any, b: any) => (b.revenue || 0) - (a.revenue || 0))
-          .slice(0, 4)
-          .map((prod: any, index: number) => ({
-            rank: index + 1,
-            name: prod.name,
-            sku: prod.sku,
-            units: prod.unitsSold || 0,
-            revenue: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(prod.revenue || 0),
-            growth: "+15.4%",
-            status: index === 0 ? "Best Seller" : index === 1 ? "High Growth" : "Stable"
-          }));
-        setTopProducts(topProductsList);
-
-        // Group Operating Cost Split
-        const expenseMap: Record<string, number> = {};
-        expensesList.forEach((exp: any) => {
-          const cat = exp.category || "Other";
-          const amt = Number(exp.amount || 0);
-          expenseMap[cat] = (expenseMap[cat] || 0) + amt;
-        });
-        const expensesSplit = Object.entries(expenseMap).map(([name, amount], index) => {
-          const pct = totalExpSum > 0 ? Math.round((amount / totalExpSum) * 100) : 0;
-          const colors = ["bg-[#2E8C13]", "bg-[#45B823]", "bg-amber-500", "bg-red-500", "bg-gray-800"];
-          return {
-            name,
-            amount: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount),
-            percentage: pct,
-            color: colors[index % colors.length]
-          };
-        });
-        setExpensesBreakdown(expensesSplit);
-
-        // Group Category detailed performance
-        const catList = [
-          {
-            name: "Membership Plans",
-            units: membersList.length,
-            revenue: totalMemRev,
-            cost: 0,
-            profit: totalMemRev,
-            revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalMemRev),
-            profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalMemRev),
-            margin: "100%",
-            share: Math.round((totalMemRev / (grossRev || 1)) * 100)
-          },
-          {
-            name: "Personal Coaching (PT)",
-            units: membersList.filter((m: any) => m.trainer !== "None").length,
-            revenue: totalPtRev,
-            cost: 0,
-            profit: totalPtRev,
-            revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalPtRev),
-            profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalPtRev),
-            margin: "100%",
-            share: Math.round((totalPtRev / (grossRev || 1)) * 100)
-          },
-          {
-            name: "Supplements Shop",
-            units: productsList.reduce((sum: number, p: any) => sum + (p.unitsSold || 0), 0),
-            revenue: totalProdRev,
-            cost: Math.round(totalProdRev * 0.6),
-            profit: Math.round(totalProdRev * 0.4),
-            revenueFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalProdRev),
-            profitFormatted: new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Math.round(totalProdRev * 0.4)),
-            margin: "40%",
-            share: Math.round((totalProdRev / (grossRev || 1)) * 100)
-          }
-        ];
-        setCategoryPerformance(catList);
-        setLoading(false);
-        return;
-      }
-
-      // 1. Fetch Orders
+      // Fetch from Supabase
       const { data: orders } = await supabase.from("orders").select("*");
 
       // 2. Fetch Order Items
@@ -369,7 +243,7 @@ export default function ReportsPage() {
       value: formatCurrency(stats.operatingExpenses),
       change: stats.operatingExpenses > 0 ? "-4.2%" : "0%",
       isPositive: true,
-      subtitle: platform === "online-course" ? "Video hosting & dev costs" : platform === "wholesale" ? "Freight & warehouse rent" : "Courier & packaging costs",
+      subtitle: "Courier & packaging costs",
       icon: TrendingDown,
       color: "from-red-500/10 to-red-500/5 text-red-600"
     }
@@ -426,7 +300,7 @@ export default function ReportsPage() {
               : "border-transparent text-gray-500 hover:text-gray-900"
           }`}
         >
-          <span>🧠</span> {(platform === "inba" ? "Inba" : platform === "fashion" ? "Fashion" : platform === "online-course" ? "Course" : platform === "wholesale" ? "Wholesale" : platform === "gym-services" ? "Gym" : "Business")} Pulse Intelligence
+          <span>🧠</span> Inba Pulse Intelligence
         </button>
       </div>
 
@@ -648,129 +522,3 @@ export default function ReportsPage() {
   );
 }
 
-function ClinicReportsView() {
-  const [stats, setStats] = useState({
-    appointments: 0,
-    revenue: 0,
-    patients: 0,
-    expenses: 0
-  });
-
-  const loadData = () => {
-    if (typeof window === "undefined") return;
-    const a = localStorage.getItem("inba_clinic_appointments");
-    const p = localStorage.getItem("inba_clinic_patients");
-    const e = localStorage.getItem("inba_clinic_expenses");
-
-    const appointments = a ? JSON.parse(a) : [];
-    const patients = p ? JSON.parse(p) : [];
-    const expenses = e ? JSON.parse(e) : [];
-
-    // Calculate metrics
-    let rev = 0;
-    appointments.filter((app: any) => app.status === "Completed").forEach((app: any) => {
-      if (app.purpose === "Vaccination") rev += 1500;
-      else if (app.purpose === "Pain Management") rev += 800;
-      else rev += 500;
-    });
-
-    const exp = expenses.reduce((sum: number, item: any) => sum + item.amount, 0);
-
-    setStats({
-      appointments: appointments.length,
-      revenue: rev,
-      patients: patients.length,
-      expenses: exp
-    });
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Clinic Analytics</h1>
-          <p className="text-sm text-gray-500 mt-1">Key metrics for appointments, patients, and revenue.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Revenue</p>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">₹{stats.revenue.toLocaleString("en-IN")}</h3>
-            </div>
-            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-4 text-xs">
-            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+12%</span>
-            <span className="text-gray-400 font-medium">vs last month</span>
-          </div>
-        </Card>
-
-        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Net Profit</p>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">₹{(stats.revenue - stats.expenses).toLocaleString("en-IN")}</h3>
-            </div>
-            <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-4 text-xs">
-            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+8%</span>
-            <span className="text-gray-400 font-medium">vs last month</span>
-          </div>
-        </Card>
-
-        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Patients</p>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">{stats.patients}</h3>
-            </div>
-            <div className="p-3 rounded-xl bg-purple-50 text-purple-600">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-4 text-xs">
-            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+15%</span>
-            <span className="text-gray-400 font-medium">new registrations</span>
-          </div>
-        </Card>
-
-        <Card className="p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Appointments</p>
-              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mt-2">{stats.appointments}</h3>
-            </div>
-            <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
-              <Calendar className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 mt-4 text-xs">
-            <span className="font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">+5%</span>
-            <span className="text-gray-400 font-medium">this month</span>
-          </div>
-        </Card>
-      </div>
-
-      {/* Adding a visual placeholder for Clinic Charts */}
-      <Card className="p-6 border border-gray-100 shadow-sm min-h-[300px] flex items-center justify-center bg-gray-50/50">
-        <div className="text-center">
-          <TrendingUp className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-gray-900">Advanced Analytics Available Soon</h3>
-          <p className="text-xs text-gray-500 mt-1">Detailed charts for clinic revenue and patient demographics are being generated.</p>
-        </div>
-      </Card>
-    </div>
-  );
-}
