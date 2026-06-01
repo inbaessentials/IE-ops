@@ -469,7 +469,7 @@ export default function SalesPage() {
                   <tr key={enr.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     <td className="p-4 pl-6 whitespace-nowrap">
                       <div className="flex flex-col cursor-pointer" onClick={() => setViewingEnrollment(enr)}>
-                        <span className="font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">
+                        <span className="text-[15px] font-semibold text-primary group-hover:text-primary/80 transition-colors">
                           {enr.studentName}
                         </span>
                         <span className="text-[10px] text-gray-400 font-semibold">{enr.id}</span>

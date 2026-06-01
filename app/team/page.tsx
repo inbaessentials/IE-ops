@@ -311,7 +311,7 @@ export default function TeamPage() {
                         <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-xs border border-gray-200">
                           {rep.name.split(" ").map(w => w.charAt(0)).join("")}
                         </div>
-                        <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{rep.name}</span>
+                        <span className="text-[15px] font-semibold text-primary group-hover:text-primary/80 transition-colors">{rep.name}</span>
                       </div>
                     </td>
                     <td className="p-4 whitespace-nowrap">

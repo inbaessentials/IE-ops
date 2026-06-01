@@ -240,7 +240,7 @@ export default function CustomersPage() {
                         <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
                           {student.name.charAt(0)}
                         </div>
-                        <span className="font-semibold text-gray-900 group-hover:text-primary transition-colors">{student.name}</span>
+                        <span className="text-[15px] font-semibold text-primary group-hover:text-primary/80 transition-colors">{student.name}</span>
                       </div>
                     </td>
                     <td className="p-4 whitespace-nowrap">

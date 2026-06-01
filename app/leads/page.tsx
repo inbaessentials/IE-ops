@@ -611,7 +611,7 @@ export default function LeadCRM() {
                         }}
                         className="text-left outline-none"
                       >
-                        <p className="text-sm font-semibold text-gray-900 hover:text-primary transition-colors">{lead.name}</p>
+                        <p className="text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors">{lead.name}</p>
                         <span className="text-[10px] font-medium text-gray-500">{lead.dateCreated} • {lead.source}</span>
                       </button>
                     </td>
