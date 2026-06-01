@@ -26,7 +26,7 @@ export function UnifiedStudentDrawer({ isOpen, onClose, record }: UnifiedStudent
   const displayStatus = record.status || record.paymentStatus || "Unknown";
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} title="Student & Enrollment Details" size="xl">
+    <Drawer isOpen={isOpen} onClose={onClose} title="Student & Enrollment Details" size="2xl">
       <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-300">
         
         {/* Student Info Card */}
@@ -41,9 +41,9 @@ export function UnifiedStudentDrawer({ isOpen, onClose, record }: UnifiedStudent
                 <Badge variant="default" className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5">{record.id || "ENR-0001"}</Badge>
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-500">
-                <span>{displayPhone}</span>
-                <span className="w-1 h-1 rounded-full bg-gray-300" />
-                <span>{displayEmail}</span>
+                <span className="whitespace-nowrap">{displayPhone}</span>
+                <span className="w-1 h-1 shrink-0 rounded-full bg-gray-300" />
+                <span className="truncate max-w-[200px] md:max-w-xs">{displayEmail}</span>
               </div>
             </div>
           </div>
@@ -56,7 +56,34 @@ export function UnifiedStudentDrawer({ isOpen, onClose, record }: UnifiedStudent
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="flex justify-between items-center p-6 border-b border-gray-50">
             <h4 className="font-semibold text-gray-900 text-lg">Enrolled Courses</h4>
-            <Button variant="outline" size="sm" onClick={() => toast("Downloading receipt...", "success")}>Download Receipt</Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              toast("Downloading receipt...", "success");
+              const receiptContent = `=========================================
+INBA ESSENTIALS - ENROLLMENT RECEIPT
+=========================================
+Student Name: ${displayName}
+Phone: ${displayPhone}
+Email: ${displayEmail}
+
+Course Enrolled: ${displayCourse}
+Course Type: ${record.courseType || "Hybrid Program"}
+Enrollment Date: ${record.enrollmentDate ? new Date(record.enrollmentDate).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' }) : "31 May 2026"}
+
+Fee Paid: ₹${record.amount ? record.amount.toLocaleString() : "15,000"}
+Payment Method: ${record.paymentMethod || "Razorpay"}
+Status: ${displayStatus}
+=========================================
+Thank you for enrolling!`;
+              const blob = new Blob([receiptContent], { type: "text/plain" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `receipt_${record.id || "ENR-0001"}.txt`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }}>Download Receipt</Button>
           </div>
           
           <div className="overflow-x-auto">
@@ -78,7 +105,7 @@ export function UnifiedStudentDrawer({ isOpen, onClose, record }: UnifiedStudent
                     <span className="text-xs text-gray-500 mt-0.5 block">{record.courseType || "Hybrid Program"}</span>
                   </td>
                   <td className="p-4 text-sm text-gray-600">
-                    {record.enrollmentDate ? new Date(record.enrollmentDate).toLocaleDateString("en-IN") : "31 May 2026"}
+                    {record.enrollmentDate ? new Date(record.enrollmentDate).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' }) : "31 May 2026"}
                   </td>
                   <td className="p-4">
                     <p className="text-sm font-semibold text-gray-900">₹{record.amount ? record.amount.toLocaleString() : "15,000"}</p>
