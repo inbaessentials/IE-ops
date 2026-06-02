@@ -801,51 +801,38 @@ export default function ReportCharts() {
           <CardTitle className="text-base font-bold text-gray-900">Category Share</CardTitle>
           <p className="text-xs text-gray-500 mt-1">Category distribution of total {salesTitle.toLowerCase()}</p>
         </CardHeader>
-        <CardContent className="p-6 flex flex-col justify-between h-[368px]">
+        <CardContent className="p-6 flex flex-col justify-start h-[368px] overflow-y-auto">
           {hasCategoryData ? (
-            <>
-              <div className="h-[200px] w-full relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      {categoryBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                      formatter={(value: any) => [formatCurrency(Number(value)), "Sales"]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-xl font-semibold tracking-tight text-gray-800">
-                    {totalSalesSum >= 1000 ? `₹${(totalSalesSum / 1000).toFixed(1)}k` : `₹${totalSalesSum}`}
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Total {salesTitle}</span>
-                </div>
+            <div className="space-y-5">
+              <div className="bg-[#2E8C13]/5 border border-[#2E8C13]/10 p-4 rounded-xl flex justify-between items-center">
+                <span className="text-xs font-bold text-[#2E8C13] uppercase tracking-wider">Total {salesTitle}</span>
+                <span className="text-base font-extrabold text-gray-950">
+                  {formatCurrency(totalSalesSum)}
+                </span>
               </div>
-              
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-50 text-xs">
-                {categoryBreakdown.map((cat) => (
-                  <div key={cat.name} className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-800 truncate">{cat.name}</p>
-                      <p className="text-[10px] text-gray-500 font-semibold">{formatCurrency(cat.value)}</p>
+              <div className="space-y-4">
+                {categoryBreakdown.map((cat) => {
+                  const pct = totalSalesSum > 0 ? Math.round((cat.value / totalSalesSum) * 100) : 0;
+                  return (
+                    <div key={cat.name} className="space-y-1.5 text-xs">
+                      <div className="flex justify-between font-semibold">
+                        <span className="text-gray-700 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                          {cat.name}
+                        </span>
+                        <span className="text-gray-950 font-bold">{formatCurrency(cat.value)} <span className="text-gray-400 font-semibold">({pct}%)</span></span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-300" 
+                          style={{ width: `${pct}%`, backgroundColor: cat.color }} 
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </>
+            </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-sm text-gray-400 font-medium">
               <svg className="w-12 h-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

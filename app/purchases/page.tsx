@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { KpiCard } from "@/components/ui/KpiCard";
+import { Select } from "@/components/ui/Select";
 import { 
   Plus, 
   Search, 
@@ -16,11 +18,74 @@ import {
   FileText, 
   CheckCircle2, 
   Clock, 
-  AlertCircle 
+  AlertCircle,
+  ChevronDown,
+  Check
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
 import { usePlatform } from "@/lib/PlatformContext";
+
+const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
+  Received: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
+  Pending: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-500" },
+  Ordered: { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
+};
+
+function StatusDropdown({ value, onChange }: { value: string, onChange: (val: any) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const config = STATUS_COLORS[value] || { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", dot: "bg-gray-500" };
+
+  return (
+    <div className="relative w-36" ref={dropdownRef}>
+      <button
+        type="button"
+        className={`flex items-center justify-between w-full px-3 py-1.5 border ${config.bg} ${config.text} ${config.border} rounded-full text-xs font-bold shadow-sm transition-all focus:outline-none`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="flex items-center gap-1.5">
+          <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+          {value}
+        </span>
+        <ChevronDown className="w-3.5 h-3.5 opacity-70" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+          {Object.keys(STATUS_COLORS).map((status) => {
+            const opt = STATUS_COLORS[status];
+            return (
+              <button
+                key={status}
+                type="button"
+                className={`flex items-center gap-2 w-full px-3 py-2 text-left text-xs font-semibold transition-colors hover:bg-gray-50 ${value === status ? 'bg-gray-50 font-bold' : 'text-gray-700'}`}
+                onClick={() => {
+                  onChange(status);
+                  setIsOpen(false);
+                }}
+              >
+                <span className={`w-2 h-2 rounded-full ${opt.dot}`} />
+                <span className={opt.text}>{status}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface PurchaseOrder {
   id: string;
@@ -613,38 +678,41 @@ export default function PurchasesPage() {
       ) : (
         <>
           {/* Dynamic Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-              <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total {getModuleProp('Purchases', 'displayName')}</p>
-                <h3 className="text-xl font-semibold tracking-tight text-gray-900">{purchaseOrders.length}</h3>
-              </div>
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                <FileText className="w-4 h-4" />
-              </div>
-            </Card>
-            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-              <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
-                <h3 className="text-xl font-semibold tracking-tight text-indigo-600">
-                  ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString()}
-                </h3>
-              </div>
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                <DollarSign className="w-4 h-4" />
-              </div>
-            </Card>
-            <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
-              <div>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending Actions</p>
-                <h3 className="text-xl font-semibold tracking-tight text-amber-600">
-                  {purchaseOrders.filter(o => o.status !== "Received").length}
-                </h3>
-              </div>
-              <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                <Clock className="w-4 h-4" />
-              </div>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <KpiCard 
+              title={`Total ${getModuleProp('Purchases', 'displayName')}`}
+              value={purchaseOrders.length}
+              icon={<FileText />}
+              iconBgClass="bg-blue-50"
+              iconTextClass="text-blue-600"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("All");
+              }}
+            />
+            <KpiCard 
+              title="Total Spend"
+              value={`₹${purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString("en-IN")}`}
+              icon={<DollarSign />}
+              iconBgClass="bg-indigo-50"
+              iconTextClass="text-indigo-600"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("All");
+              }}
+            />
+            <KpiCard 
+              title="Pending Actions"
+              value={purchaseOrders.filter(o => o.status !== "Received").length}
+              valueClass="text-amber-600"
+              icon={<Clock />}
+              iconBgClass="bg-amber-50"
+              iconTextClass="text-amber-600"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("Pending");
+              }}
+            />
           </div>
 
           {/* Main Listing Section */}
@@ -654,24 +722,22 @@ export default function PurchasesPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input 
                   type="text" 
-                  placeholder="Search by PO number, platform, or platforms..." 
+                  placeholder="Search by PO number, supplier, or notes..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-semibold"
                 />
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-                <span className="text-sm text-gray-500 font-medium uppercase">Status:</span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold bg-white text-gray-700 outline-none"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Ordered">Ordered</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Received">Received</option>
-                </select>
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status:</span>
+                <div className="w-[150px]">
+                  <Select
+                    options={["All", "Ordered", "Pending", "Received"]}
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                    placeholder="All Statuses"
+                  />
+                </div>
               </div>
             </div>
           </Card>

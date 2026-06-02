@@ -20,7 +20,7 @@ import {
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "Sales", href: "/sales", icon: ShoppingCart },
+  { name: "Orders", href: "/orders", icon: ShoppingCart },
   { name: "Purchases", href: "/purchases", icon: Briefcase },
   { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Customers", href: "/customers", icon: Users },
@@ -76,18 +76,6 @@ export default function Sidebar() {
         >
           <Settings className={`w-5 h-5 ${pathname.startsWith("/settings") ? "text-[#2E8C13]" : "text-gray-400"}`} />
           Settings
-        </Link>
-        <div className="h-px bg-gray-200 my-2 mx-2"></div>
-        <Link
-          href="/admin"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-            pathname.startsWith("/admin") 
-              ? "bg-primary/10 text-primary" 
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-          }`}
-        >
-          <Lock className={`w-5 h-5 ${pathname.startsWith("/admin") ? "text-primary" : "text-gray-400"}`} />
-          Admin
         </Link>
       </div>
 

@@ -300,8 +300,8 @@ export default function SettingsPage() {
                   <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Active</Badge>
                 </div>
                 <div className="mt-8 pt-6 border-t border-gray-700 flex gap-3">
-                  <Button variant="primary" className="bg-white text-gray-900 hover:bg-gray-100">Upgrade Plan</Button>
-                  <Button variant="outline" className="text-white border-gray-600 hover:bg-gray-800">Cancel Subscription</Button>
+                  <Button variant="primary" className="bg-[#2E8C13] hover:bg-[#257310] text-white border-none font-bold px-6 py-2.5 shadow-md transition-all duration-150">Upgrade Plan</Button>
+                  <Button variant="outline" className="bg-transparent text-gray-200 border-gray-600 hover:border-gray-400 hover:bg-white/10 hover:text-white font-semibold px-6 py-2.5 transition-all">Cancel Subscription</Button>
                 </div>
               </Card>
               
@@ -310,8 +310,97 @@ export default function SettingsPage() {
                 <div className="text-sm text-gray-500 flex justify-between py-3 border-b border-gray-50">
                   <span>Jan 01, 2026</span>
                   <span className="font-medium text-gray-900">₹4,999.00</span>
-                  <span className="text-emerald-600">Paid</span>
-                  <button className="text-primary hover:underline">Download Invoice</button>
+                  <span className="text-emerald-600 font-semibold">Paid</span>
+                  <button 
+                    onClick={() => {
+                      const invoiceHtml = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                          <meta charset="utf-8">
+                          <title>Invoice INB-2026-001</title>
+                          <style>
+                            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; }
+                            .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); font-size: 16px; line-height: 24px; }
+                            .invoice-box table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; }
+                            .invoice-box table td { padding: 8px; vertical-align: top; }
+                            .invoice-box table tr td:nth-child(2) { text-align: right; }
+                            .invoice-box table tr.top table td { padding-bottom: 20px; }
+                            .invoice-box table tr.top table td.title { font-size: 32px; line-height: 32px; color: #2E8C13; font-weight: bold; }
+                            .invoice-box table tr.information table td { padding-bottom: 40px; }
+                            .invoice-box table tr.heading td { background: #f9f9f9; border-bottom: 2px solid #eee; font-weight: bold; }
+                            .invoice-box table tr.item td { border-bottom: 1px solid #eee; }
+                            .invoice-box table tr.total td:nth-child(2) { border-top: 2px solid #eee; font-weight: bold; color: #2E8C13; font-size: 18px; }
+                            .badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: bold; background-color: #DEF7EC; color: #03543F; }
+                          </style>
+                        </head>
+                        <body>
+                          <div class="invoice-box">
+                            <table>
+                              <tr class="top">
+                                <td colspan="2">
+                                  <table>
+                                    <tr>
+                                      <td class="title">INBA ESSENTIALS</td>
+                                      <td>
+                                        Invoice #: INB-2026-001<br>
+                                        Created: January 01, 2026<br>
+                                        Status: <span class="badge">PAID</span>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                              <tr class="information">
+                                <td colspan="2">
+                                  <table>
+                                    <tr>
+                                      <td>
+                                        Inba Essentials Ops OS<br>
+                                        123 Startup Hub, 4th Block<br>
+                                        Bangalore, KA, India
+                                      </td>
+                                      <td>
+                                        Neemtree Apps<br>
+                                        Admin User<br>
+                                        admin@neemtreeapps.com
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                              <tr class="heading">
+                                <td>Item Description</td>
+                                <td>Price</td>
+                              </tr>
+                              <tr class="item">
+                                <td>Business Pro Plan - Annual Subscription</td>
+                                <td>₹4,999.00</td>
+                              </tr>
+                              <tr class="total">
+                                <td></td>
+                                <td>Total: ₹4,999.00</td>
+                              </tr>
+                            </table>
+                          </div>
+                        </body>
+                        </html>
+                      `;
+                      const blob = new Blob([invoiceHtml], { type: "text/html" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = "Invoice_INB-2026-001.html";
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      toast("Invoice downloaded successfully!", "success");
+                    }}
+                    className="text-primary hover:underline font-semibold"
+                  >
+                    Download Invoice
+                  </button>
                 </div>
               </Card>
             </div>

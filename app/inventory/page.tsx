@@ -963,17 +963,6 @@ export default function InventoryPage() {
                       <Plus className="w-3.5 h-3.5" />
                       Add Product
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        window.location.href = `/sales?newOrder=true`;
-                      }}
-                      className="gap-1.5 text-xs font-bold text-[#2E8C13] border-[#2E8C13]/20 hover:bg-green-50"
-                    >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      Create Order
-                    </Button>
                   </div>
                 </div>
 
@@ -1043,7 +1032,7 @@ export default function InventoryPage() {
                                   variant="ghost"
                                   className="text-xs font-bold text-[#2E8C13] hover:bg-green-50 px-2 py-1"
                                   onClick={() => {
-                                    window.location.href = `/sales?newOrder=true&product=${encodeURIComponent(product.name)}`;
+                                    window.location.href = `/orders?newOrder=true&product=${encodeURIComponent(product.name)}`;
                                   }}
                                 >
                                   Create Order

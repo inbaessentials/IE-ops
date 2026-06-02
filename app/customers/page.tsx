@@ -397,7 +397,7 @@ export default function CustomersPage() {
   const getDropdownItems = (customer: Customer) => [
     { label: "View Details", onClick: () => { setProfileTab("orders"); setViewingCustomer(customer); } },
     { label: "Edit Customer", onClick: () => handleOpenEditDrawer(customer) },
-    { label: "Create Order", onClick: () => { window.location.href = `/sales?newOrder=true&customer=${encodeURIComponent(customer.name)}`; } },
+    { label: "Create Order", onClick: () => { window.location.href = `/orders?newOrder=true&customer=${encodeURIComponent(customer.name)}`; } },
     { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer.id), destructive: true }
   ];
 
@@ -703,7 +703,7 @@ export default function CustomersPage() {
               {/* Action Buttons Below Info Card */}
               <div className="flex items-center gap-3 pt-3 border-t border-gray-150/40">
                 <Button size="sm" variant="primary" className="bg-[#2E8C13] text-white font-medium text-xs px-4 py-2 flex items-center gap-1.5" onClick={() => {
-                  window.location.href = `/sales?newOrder=true&customer=${encodeURIComponent(viewingCustomer.name)}`;
+                  window.location.href = `/orders?newOrder=true&customer=${encodeURIComponent(viewingCustomer.name)}`;
                 }}>
                   <PlusCircle className="w-3.5 h-3.5" /> Create Order
                 </Button>
