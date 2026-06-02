@@ -1868,40 +1868,30 @@ export default function SalesPage() {
 
                 return (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2">
-                        <h4 className="text-sm font-medium text-gray-800 flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-gray-400" /> Customer Info
-                        </h4>
-                        <p className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => { setViewingCustomerName(viewingOrder.customer); setViewingOrder(null); }}>{viewingOrder.customer}</p>
-                        <p className="text-xs text-gray-500 font-medium leading-relaxed">{parsedAddr.cleanAddress}</p>
-                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                          <Phone className="w-3 h-3 text-gray-400" /> {viewingOrder.phone}
-                        </p>
-                        {parsedAddr.notes && (
-                          <div className="mt-3 bg-amber-50/60 p-2.5 rounded-lg border border-amber-100/60 animate-in fade-in">
-                            <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Order Notes:</p>
-                            <p className="text-xs text-amber-800 font-semibold mt-1 leading-relaxed">{parsedAddr.notes}</p>
-                          </div>
-                        )}
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                      <div className="flex items-start justify-between flex-wrap gap-4">
+                        <div className="space-y-2 flex-1">
+                          <h4 className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-gray-400" /> Customer Info
+                          </h4>
+                          <p className="text-sm font-bold text-[#2E8C13] cursor-pointer hover:underline" onClick={() => { setViewingCustomerName(viewingOrder.customer); setViewingOrder(null); }}>{viewingOrder.customer}</p>
+                          <p className="text-xs text-gray-500 font-medium leading-relaxed">{parsedAddr.cleanAddress}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+                            <Phone className="w-3 h-3 text-gray-400" /> {viewingOrder.phone}
+                          </p>
+                        </div>
+                        <div className="shrink-0 w-full sm:w-auto">
+                          <Button variant="outline" className="w-full h-8 text-xs gap-1" onClick={() => handlePrint(viewingOrder)}>
+                            <Printer className="w-3 h-3" /> Print Receipt
+                          </Button>
+                        </div>
                       </div>
-                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2">
-                        <h4 className="text-sm font-medium text-gray-800 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-gray-400" /> Course Access
-                        </h4>
-                        {viewingOrder.status === "Paid" || viewingOrder.status === "Partial Payment" ? (
-                          <>
-                            <p className="text-sm text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-md inline-block">Access Granted</p>
-                            <p className="text-sm text-gray-700 mt-2">Platform: <strong>Inba Academy LMS</strong></p>
-                            <p className="text-sm text-gray-500">Student login credentials dispatched.</p>
-                          </>
-                        ) : (
-                          <p className="text-sm text-gray-500 italic">Access pending payment.</p>
-                        )}
-                        <Button variant="outline" className="w-full mt-2 h-8 text-xs gap-1" onClick={() => handlePrint(viewingOrder)}>
-                          <Printer className="w-3 h-3" /> Print Receipt
-                        </Button>
-                      </div>
+                      {parsedAddr.notes && (
+                        <div className="mt-3 bg-amber-50/60 p-2.5 rounded-lg border border-amber-100/60 animate-in fade-in">
+                          <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Order Notes:</p>
+                          <p className="text-xs text-amber-800 font-semibold mt-1 leading-relaxed">{parsedAddr.notes}</p>
+                        </div>
+                      )}
                     </div>
 
                     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
@@ -1961,52 +1951,63 @@ export default function SalesPage() {
                 );
               })()}
 
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <h4 className="text-sm font-medium text-gray-800 mb-4">Enrollment Timeline</h4>
+              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                <h4 className="text-sm font-medium text-gray-800 mb-4">Order Timeline</h4>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[1.125rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent">
                   
                   <div className="relative flex items-start gap-4">
                     <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-blue-100 text-blue-600 shadow shrink-0 z-10">
-                      <User className="w-4 h-4" />
+                      <Package className="w-4 h-4" />
                     </div>
                     <div className="flex-1 pb-4">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="font-semibold text-gray-900 text-sm">Enrollment Initiated</p>
-                        <span className="text-xs text-gray-500">{viewingOrder.date ? viewingOrder.date.split(',')[1] || viewingOrder.date : "Today"}</span>
+                        <p className="font-semibold text-gray-900 text-sm">Order Placed ({viewingOrder.id})</p>
+                        <span className="text-xs text-gray-500">{viewingOrder.date}</span>
                       </div>
-                      <p className="text-xs text-gray-500">Student initiated checkout.</p>
+                      <div className="text-xs text-gray-500 mt-1 bg-gray-50 p-2.5 rounded-lg border border-gray-100 space-y-1">
+                        {viewingOrder.items.map((it: any, i: number) => (
+                          <div key={i} className="flex justify-between">
+                            <span>{it.name} x{it.qty}</span>
+                            <span>₹{(it.price * it.qty).toLocaleString("en-IN")}</span>
+                          </div>
+                        ))}
+                        <div className="border-t border-gray-200 pt-1 mt-1 flex justify-between font-semibold text-gray-700">
+                          <span>Subtotal</span>
+                          <span>{viewingOrder.amount}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {(viewingOrder.status === "Paid" || viewingOrder.status === "Partial Payment") && (
-                    <div className="relative flex items-start gap-4">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-emerald-100 text-emerald-600 shadow shrink-0 z-10">
-                        <CreditCard className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 pb-4">
-                        <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-gray-900 text-sm">Payment Processed</p>
-                          <span className="text-xs text-gray-500">Today</span>
-                        </div>
-                        <p className="text-xs text-gray-500">Fee successfully collected.</p>
-                      </div>
+                  <div className="relative flex items-start gap-4">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-indigo-100 text-indigo-600 shadow shrink-0 z-10">
+                      <CreditCard className="w-4 h-4" />
                     </div>
-                  )}
+                    <div className="flex-1 pb-4">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-semibold text-gray-900 text-sm">Payment Status</p>
+                        <span className="text-xs text-gray-500">Active</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Current Status: <span className="font-bold text-indigo-600 uppercase text-[10px] tracking-wider bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">{viewingOrder.status || "Pending"}</span>
+                      </p>
+                    </div>
+                  </div>
 
-                  {(viewingOrder.status === "Paid" || viewingOrder.status === "Partial Payment") && (
-                    <div className="relative flex items-start gap-4">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-indigo-100 text-indigo-600 shadow shrink-0 z-10">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 pb-2">
-                        <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-gray-900 text-sm">Course Provisioned</p>
-                          <span className="text-xs text-gray-500">Today</span>
-                        </div>
-                        <p className="text-xs text-gray-500">LMS access granted to student.</p>
-                      </div>
+                  <div className="relative flex items-start gap-4">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-emerald-100 text-emerald-600 shadow shrink-0 z-10">
+                      <Truck className="w-4 h-4" />
                     </div>
-                  )}
+                    <div className="flex-1 pb-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-semibold text-gray-900 text-sm">Fulfillment & Shipping</p>
+                        <span className="text-xs text-gray-500">Live</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Fulfillment: <span className="font-semibold text-gray-700">{viewingOrder.status === "Shipped" ? "Order shipped and in transit." : "Awaiting shipment processing / courier assignment."}</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -62,7 +62,7 @@ export function Drawer({ isOpen, onClose, title, children, size = "md" }: Drawer
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6 flex-1 overflow-y-auto bg-gray-50/30">
+        <div className="p-6 flex-1 overflow-y-auto bg-gray-50/30 text-sm">
           {children}
         </div>
       </div>
