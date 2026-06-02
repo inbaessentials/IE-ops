@@ -717,25 +717,25 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            {/* 2. Purchase Summary Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
-                <h4 className="text-base font-semibold text-gray-900 mt-1">{formatCurrency(viewingCustomer.totalSpent)}</h4>
+            {/* 2. Purchase Summary Metrics (Consolidated and Clean) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50/70 p-4 rounded-xl border border-gray-100">
+              <div className="space-y-0.5">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
+                <h4 className="text-sm font-semibold text-gray-900">{formatCurrency(viewingCustomer.totalSpent)}</h4>
               </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
-                <h4 className="text-base font-semibold text-gray-900 mt-1">{viewingCustomer.totalOrders} Orders</h4>
+              <div className="space-y-0.5 border-t sm:border-t-0 sm:border-l border-gray-200/60 pt-2 sm:pt-0 sm:pl-4">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
+                <h4 className="text-sm font-semibold text-gray-900">{viewingCustomer.totalOrders}</h4>
               </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Order Value</p>
-                <h4 className="text-base font-semibold text-gray-900 mt-1">
+              <div className="space-y-0.5 border-t sm:border-t-0 sm:border-l border-gray-200/60 pt-2 sm:pt-0 sm:pl-4">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Avg Order Value</p>
+                <h4 className="text-sm font-semibold text-gray-900">
                   {formatCurrency(viewingCustomer.totalOrders > 0 ? Math.round(viewingCustomer.totalSpent / viewingCustomer.totalOrders) : 0)}
                 </h4>
               </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pending Dues</p>
-                <h4 className={`text-base font-semibold mt-1 ${viewingCustomer.pendingPayments > 0 ? "text-amber-600 animate-pulse" : "text-gray-900"}`}>
+              <div className="space-y-0.5 border-t sm:border-t-0 sm:border-l border-gray-200/60 pt-2 sm:pt-0 sm:pl-4">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Pending Dues</p>
+                <h4 className={`text-sm font-semibold ${viewingCustomer.pendingPayments > 0 ? "text-amber-600 font-bold" : "text-gray-900"}`}>
                   {formatCurrency(viewingCustomer.pendingPayments)}
                 </h4>
               </div>
