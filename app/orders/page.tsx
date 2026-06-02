@@ -199,15 +199,17 @@ interface ParsedAddress {
   cleanAddress: string;
   shippingFee: number;
   shippingType: "free" | "paid";
+  shippingCost: number;
   notes: string;
 }
 
 const parseAddressField = (fullAddress: string): ParsedAddress => {
-  if (!fullAddress) return { cleanAddress: "", shippingFee: 0, shippingType: "free", notes: "" };
+  if (!fullAddress) return { cleanAddress: "", shippingFee: 0, shippingType: "free", shippingCost: 0, notes: "" };
   const parts = fullAddress.split("\n\n--- SHIPPING & NOTES ---\n");
   const cleanAddress = parts[0] || "";
   let shippingFee = 0;
   let shippingType: "free" | "paid" = "free";
+  let shippingCost = 0;
   let notes = "";
 
   if (parts[1]) {
@@ -221,16 +223,20 @@ const parseAddressField = (fullAddress: string): ParsedAddress => {
         shippingFee = parseFloat(shipMatch[1].replace(/[^0-9.]/g, "")) || 0;
       }
     }
+    const costMatch = parts[1].match(/Cost:\s*₹?(\d+)/i);
+    if (costMatch) {
+      shippingCost = parseFloat(costMatch[1]) || 0;
+    }
     const notesMatch = parts[1].match(/Notes:\s*(.*)/i);
     if (notesMatch) {
       notes = notesMatch[1].trim() === "None" ? "" : notesMatch[1].trim();
     }
   }
-  return { cleanAddress, shippingFee, shippingType, notes };
+  return { cleanAddress, shippingFee, shippingType, shippingCost, notes };
 };
 
-const serializeAddressField = (cleanAddress: string, shippingType: "free" | "paid", shippingFee: number, notes: string): string => {
-  const suffix = `\n\n--- SHIPPING & NOTES ---\nShipping: ${shippingType === "free" ? "Free" : `₹${shippingFee}`}\nNotes: ${notes.trim() || "None"}`;
+const serializeAddressField = (cleanAddress: string, shippingType: "free" | "paid", shippingFee: number, shippingCost: number, notes: string): string => {
+  const suffix = `\n\n--- SHIPPING & NOTES ---\nShipping: ${shippingType === "free" ? "Free" : `₹${shippingFee}`}\nCost: ₹${shippingCost}\nNotes: ${notes.trim() || "None"}`;
   return `${cleanAddress.trim()}${suffix}`;
 };
 
@@ -282,6 +288,7 @@ export default function SalesPage() {
   const [activeDrawerTab, setActiveDrawerTab] = useState<"customer" | "products" | "checkout">("customer");
   const [shippingType, setShippingType] = useState<"free" | "paid">("free");
   const [shippingFee, setShippingFee] = useState<number>(0);
+  const [shippingCost, setShippingCost] = useState<number>(0);
   const [orderNotes, setOrderNotes] = useState<string>("");
 
   const fetchOrders = async () => {
@@ -358,6 +365,7 @@ export default function SalesPage() {
       
       setShippingType("free");
       setShippingFee(0);
+      setShippingCost(0);
       setOrderNotes("");
       setActiveDrawerTab("customer");
       setIsAddDrawerOpen(true);
@@ -401,6 +409,7 @@ export default function SalesPage() {
     setNewOrderAddress(parsed.cleanAddress);
     setShippingType(parsed.shippingType);
     setShippingFee(parsed.shippingFee);
+    setShippingCost(parsed.shippingCost || 0);
     setOrderNotes(parsed.notes);
     setActiveDrawerTab("customer");
     setNewOrderPayment(order.payment || "UPI / Online");
@@ -433,7 +442,7 @@ export default function SalesPage() {
         .update({
           customer: newOrderCustomer.trim(),
           phone: newOrderPhone.trim(),
-          address: serializeAddressField(newOrderAddress, shippingType, shippingFee, orderNotes),
+          address: serializeAddressField(newOrderAddress, shippingType, shippingFee, shippingCost, orderNotes),
           payment: newOrderPayment,
           amount: `₹${totalAmount.toLocaleString("en-IN")}`
         })
@@ -627,7 +636,7 @@ export default function SalesPage() {
       const newOrderObj = {
         display_id: displayId,
         customer: newOrderCustomer.trim(),
-        address: serializeAddressField(newOrderAddress, shippingType, shippingFee, orderNotes),
+        address: serializeAddressField(newOrderAddress, shippingType, shippingFee, shippingCost, orderNotes),
         phone: newOrderPhone.trim(),
         amount: `₹${totalAmount.toLocaleString("en-IN")}`,
         payment: newOrderPayment,
@@ -689,6 +698,7 @@ export default function SalesPage() {
       setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
       setShippingType("free");
       setShippingFee(0);
+      setShippingCost(0);
       setOrderNotes("");
       setActiveDrawerTab("customer");
 
@@ -806,6 +816,7 @@ export default function SalesPage() {
             setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
             setShippingType("free");
             setShippingFee(0);
+            setShippingCost(0);
             setOrderNotes("");
             setActiveDrawerTab("customer");
             setIsAddDrawerOpen(true);
@@ -1450,6 +1461,21 @@ export default function SalesPage() {
                         />
                       </div>
                     )}
+
+                    <div className="mt-4">
+                      <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Actual Shipping Cost (Cost to Business)</label>
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-1 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+                        <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
+                        <input 
+                          type="number"
+                          min={0}
+                          placeholder="Enter actual cost paid by business to ship..."
+                          value={shippingCost || ""} 
+                          onChange={(e) => setShippingCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                          className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 )}
@@ -1801,6 +1827,21 @@ export default function SalesPage() {
                           />
                         </div>
                       )}
+                    </div>
+                    
+                    <div className="mt-4">
+                      <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Actual Shipping Cost (Cost to Business)</label>
+                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-1 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+                        <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
+                        <input 
+                          type="number"
+                          min={0}
+                          placeholder="Enter actual cost paid by business to ship..."
+                          value={shippingCost || ""} 
+                          onChange={(e) => setShippingCost(Math.max(0, parseFloat(e.target.value) || 0))}
+                          className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

@@ -60,6 +60,21 @@ export default function ReportsPage() {
         totalExpensesSum += Number(e.amount || 0);
       });
 
+      // Calculate actual shipping costs from orders
+      let totalShippingCost = 0;
+      orders?.forEach(o => {
+        if (o.address) {
+          const parts = o.address.split("\n\n--- SHIPPING & NOTES ---\n");
+          if (parts[1]) {
+            const costMatch = parts[1].match(/Cost:\s*₹?(\d+)/i);
+            if (costMatch) {
+              totalShippingCost += parseFloat(costMatch[1]) || 0;
+            }
+          }
+        }
+      });
+      totalExpensesSum += totalShippingCost;
+
       // Map product names to purchase prices, selling prices, and categories
       const productCostMap: Record<string, { purchasePrice: number; sellingPrice: number; category: string }> = {};
       products?.forEach(p => {
@@ -125,6 +140,9 @@ export default function ReportsPage() {
         const amt = Number(exp.amount || 0);
         expenseMap[cat] = (expenseMap[cat] || 0) + amt;
       });
+      if (totalShippingCost > 0) {
+        expenseMap["Shipping Cost"] = totalShippingCost;
+      }
 
       const expensesSplit = Object.entries(expenseMap).map(([name, amount], index) => {
         const pct = totalExpensesSum > 0 ? Math.round((amount / totalExpensesSum) * 100) : 0;

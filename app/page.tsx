@@ -164,6 +164,21 @@ export default function Dashboard() {
     totalExpensesSum += (e.amount || 0);
   });
 
+  // Calculate actual shipping costs from orders
+  let totalShippingCost = 0;
+  filteredOrders.forEach(o => {
+    if (o.address) {
+      const parts = o.address.split("\n\n--- SHIPPING & NOTES ---\n");
+      if (parts[1]) {
+        const costMatch = parts[1].match(/Cost:\s*₹?(\d+)/i);
+        if (costMatch) {
+          totalShippingCost += parseFloat(costMatch[1]) || 0;
+        }
+      }
+    }
+  });
+  totalExpensesSum += totalShippingCost;
+
   const grossProfitSum = totalSalesSum - totalExpensesSum;
   const netProfitSum = grossProfitSum;
   const marginPct = totalSalesSum > 0 ? (netProfitSum / totalSalesSum) * 100 : 0;
