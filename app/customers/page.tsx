@@ -540,38 +540,38 @@ export default function CustomersPage() {
           {filteredCustomers.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/60 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <th className="p-4 pl-6">Customer Name</th>
-                  <th className="p-4">Contact</th>
-                  <th className="p-4">City</th>
-                  <th className="p-4 text-center">Total Orders</th>
-                  <th className="p-4 text-right">Total Spent</th>
-                  <th className="p-4 text-right pr-6">Actions</th>
+                <tr className="bg-gray-50/70 border-b border-gray-100">
+                  <th className="p-4 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Customer Name & ID</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Contact Details</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">City</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Total Orders</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Total Spent</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
+              <tbody className="divide-y divide-gray-100">
                 {filteredCustomers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-gray-50/20 transition-colors">
+                  <tr key={cust.id} className="hover:bg-gray-50/20 transition-colors group">
                     <td className="p-4 pl-6 whitespace-nowrap">
-                      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => { setProfileTab("orders"); setViewingCustomer(cust); }}>
-                        <div className="w-8 h-8 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-xs">
+                      <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setProfileTab("orders"); setViewingCustomer(cust); }}>
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                           {cust.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-[#2E8C13] group-hover:underline">{cust.name}</span>
-                          <span className="text-[10px] text-gray-400 font-semibold">{cust.id}</span>
+                          <span className="text-sm font-semibold text-primary group-hover:underline">{cust.name}</span>
+                          <span className="text-xs text-gray-500 mt-0.5">{cust.id}</span>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="text-gray-900 text-xs">{cust.phone}</span>
-                        <span className="text-[11px] text-gray-400 font-medium">{cust.email}</span>
+                        <span className="text-sm font-medium text-gray-900">{cust.phone}</span>
+                        <span className="text-xs text-gray-500 mt-0.5">{cust.email}</span>
                       </div>
                     </td>
-                    <td className="p-4 whitespace-nowrap text-gray-650 text-xs">{cust.city}</td>
-                    <td className="p-4 whitespace-nowrap text-center text-gray-800 text-xs font-bold">{cust.totalOrders}</td>
-                    <td className="p-4 whitespace-nowrap text-right text-gray-805 text-xs font-bold">{formatCurrency(cust.totalSpent)}</td>
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-600 font-medium">{cust.city}</td>
+                    <td className="p-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium">{cust.totalOrders}</td>
+                    <td className="p-4 whitespace-nowrap text-right text-sm text-gray-900 font-semibold">{formatCurrency(cust.totalSpent)}</td>
                     <td className="p-4 whitespace-nowrap text-right pr-6">
                       <DropdownMenu items={getDropdownItems(cust)} />
                     </td>
