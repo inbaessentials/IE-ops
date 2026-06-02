@@ -5,10 +5,8 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { 
-  Search, Filter, Download, Plus, Star, ShoppingBag, 
-  MapPin, Calendar, CheckCircle2, Package, Truck, 
-  Users, Award, TrendingUp, Trophy, Coins, Activity, AlertCircle, MessageSquare,
-  Phone, Clock, Flame, ShoppingCart, Info, User, DollarSign, ListOrdered, Edit, Trash2, Heart, PlusCircle
+  Search, Download, Plus, MapPin, Phone, Clock,
+  Users, Trophy, DollarSign, TrendingUp, User, ListOrdered, Edit, Heart, MessageSquare, PlusCircle
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -69,6 +67,9 @@ export default function CustomersPage() {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
+  // Tab state in Profile Drawer
+  const [profileTab, setProfileTab] = useState<"orders" | "categories" | "notes">("orders");
 
   // Form states (Add/Edit)
   const [fullName, setFullName] = useState("");
@@ -241,7 +242,6 @@ export default function CustomersPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Ensure shippingAddress mapping if from legacy storage
         const mapped = parsed.map((c: any) => ({
           ...c,
           shippingAddress: c.shippingAddress || c.notes || "No address provided."
@@ -395,7 +395,7 @@ export default function CustomersPage() {
 
   // Simplified dropdown action menu items
   const getDropdownItems = (customer: Customer) => [
-    { label: "View Details", onClick: () => setViewingCustomer(customer) },
+    { label: "View Details", onClick: () => { setProfileTab("orders"); setViewingCustomer(customer); } },
     { label: "Edit Customer", onClick: () => handleOpenEditDrawer(customer) },
     { label: "Create Order", onClick: () => { window.location.href = `/sales?newOrder=true&customer=${encodeURIComponent(customer.name)}`; } },
     { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer.id), destructive: true }
@@ -409,7 +409,6 @@ export default function CustomersPage() {
     const totalSpentSum = customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
     const aovValue = total > 0 ? Math.round(totalSpentSum / customers.reduce((sum, c) => sum + (c.totalOrders || 0), 0) || 0) : 0;
     
-    // Customers joined in the last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const newCustomersCount = customers.filter(c => new Date(c.joinedDate) >= thirtyDaysAgo).length;
@@ -448,7 +447,7 @@ export default function CustomersPage() {
             dlAnchorElem.click();
             toast("Customer inventory list exported successfully!", "success");
           }}>
-            <Download className="w-4 h-4 text-gray-400" />
+            <Download className="w-4 h-4 text-gray-405" />
             Export
           </Button>
           <Button className="gap-2 text-xs font-semibold bg-[#2E8C13] hover:bg-[#257310] text-white" onClick={() => setIsAddDrawerOpen(true)}>
@@ -524,7 +523,7 @@ export default function CustomersPage() {
       {/* Filter and Search */}
       <Card className="p-4 border-gray-100 shadow-xs">
         <div className="relative flex-1 w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-450" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-440" />
           <input 
             type="text" 
             placeholder="Search customers by name, phone, email..." 
@@ -535,7 +534,7 @@ export default function CustomersPage() {
         </div>
       </Card>
 
-      {/* Primary Customer Directory Table */}
+      {/* Primary Customer Table */}
       <Card className="border-gray-100 shadow-xs rounded-2xl overflow-visible">
         <div className="overflow-x-auto min-h-[300px]">
           {filteredCustomers.length > 0 ? (
@@ -554,7 +553,7 @@ export default function CustomersPage() {
                 {filteredCustomers.map((cust) => (
                   <tr key={cust.id} className="hover:bg-gray-50/20 transition-colors">
                     <td className="p-4 pl-6 whitespace-nowrap">
-                      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setViewingCustomer(cust)}>
+                      <div className="flex items-center gap-3 cursor-pointer group" onClick={() => { setProfileTab("orders"); setViewingCustomer(cust); }}>
                         <div className="w-8 h-8 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-xs">
                           {cust.name.charAt(0)}
                         </div>
@@ -657,7 +656,7 @@ export default function CustomersPage() {
         </form>
       </Drawer>
 
-      {/* Refactored airy, spacious Customer Profile Drawer */}
+      {/* Customer Profile Drawer */}
       <Drawer 
         isOpen={!!viewingCustomer} 
         onClose={() => setViewingCustomer(null)} 
@@ -667,49 +666,58 @@ export default function CustomersPage() {
         {viewingCustomer && (
           <div className="space-y-6 p-1">
             
-            {/* 1. Customer Information Card */}
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-semibold text-lg uppercase shrink-0">
+            {/* 1. Profile Details Card (Fully Reorganized) */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-semibold text-lg uppercase shrink-0 mt-0.5">
                   {viewingCustomer.name.charAt(0)}
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-base font-semibold text-gray-900">{viewingCustomer.name}</h3>
-                  <p className="text-[11px] text-gray-400 font-medium">ID: {viewingCustomer.id} • Registered {viewingCustomer.joinedDate}</p>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 font-medium pt-0.5">
-                    <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gray-400" /> {viewingCustomer.phone}</span>
-                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-gray-400" /> {viewingCustomer.email}</span>
+                <div className="space-y-2 flex-1">
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 leading-tight">{viewingCustomer.name}</h3>
+                    <p className="text-[10px] text-gray-400 font-bold tracking-wider mt-0.5">CUSTOMER ID: {viewingCustomer.id}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-gray-600 font-medium">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span className="truncate">{viewingCustomer.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span>{viewingCustomer.phone}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-gray-100/50 space-y-1">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                      <MapPin className="w-3 h-3" /> Shipping Address
+                    </p>
+                    <p className="text-[11px] text-gray-500 leading-relaxed font-semibold">
+                      {viewingCustomer.shippingAddress || "No shipping address provided."}
+                    </p>
                   </div>
                 </div>
               </div>
-              
-              <div className="flex flex-row sm:flex-col gap-2 shrink-0">
-                <Button size="sm" variant="primary" className="bg-[#2E8C13] text-white font-medium text-xs px-3 py-1.5" onClick={() => {
+
+              {/* Action Buttons Below Info Card */}
+              <div className="flex items-center gap-3 pt-3 border-t border-gray-150/40">
+                <Button size="sm" variant="primary" className="bg-[#2E8C13] text-white font-medium text-xs px-4 py-2 flex items-center gap-1.5" onClick={() => {
                   window.location.href = `/sales?newOrder=true&customer=${encodeURIComponent(viewingCustomer.name)}`;
                 }}>
-                  <PlusCircle className="w-3.5 h-3.5 mr-1" /> Create Order
+                  <PlusCircle className="w-3.5 h-3.5" /> Create Order
                 </Button>
-                <Button size="sm" variant="outline" className="border-gray-200 text-xs font-medium px-3 py-1.5" onClick={() => {
+                <Button size="sm" variant="outline" className="border-gray-200 text-xs font-medium px-4 py-2 flex items-center gap-1.5" onClick={() => {
                   const target = viewingCustomer;
                   setViewingCustomer(null);
                   handleOpenEditDrawer(target);
                 }}>
-                  <Edit className="w-3.5 h-3.5 mr-1" /> Edit Profile
+                  <Edit className="w-3.5 h-3.5" /> Edit Profile
                 </Button>
               </div>
             </div>
 
-            {/* Shipping Address Box */}
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
-              <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-gray-400" /> Shipping Address
-              </h4>
-              <p className="text-xs text-gray-650 font-medium leading-relaxed bg-gray-50/50 p-3 rounded-lg border border-gray-100/50">
-                {viewingCustomer.shippingAddress || "No shipping address provided."}
-              </p>
-            </div>
-
-            {/* 2. Purchase Summary Grid */}
+            {/* 2. Purchase Summary Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
@@ -733,103 +741,132 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            {/* 3. Recent Orders & Favorite Categories Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Recent Orders List */}
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex flex-col space-y-3">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <ListOrdered className="w-3.5 h-3.5 text-gray-455" /> Recent Orders
-                </h4>
-                <div className="space-y-3 overflow-y-auto max-h-[220px] pr-1">
-                  {viewingCustomer.orders.length > 0 ? (
-                    viewingCustomer.orders.map((ord, idx) => (
-                      <div key={idx} className="p-3 bg-gray-50/50 hover:bg-gray-50 border border-gray-100 rounded-xl text-xs space-y-1.5 transition-colors">
-                        <div className="flex items-center justify-between font-semibold">
-                          <span className="text-[#2E8C13]">{ord.id}</span>
-                          <span className="text-gray-400 text-[10px]">{ord.date}</span>
+            {/* 3. Segment Tabs (Recent Orders, Favourites, Customer Notes) */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
+              {/* Tab headers */}
+              <div className="flex border-b border-gray-100 bg-gray-50/50">
+                <button
+                  onClick={() => setProfileTab("orders")}
+                  className={`flex-1 py-3 text-xs font-semibold transition-all border-b-2 outline-none flex items-center justify-center gap-1.5 ${
+                    profileTab === "orders"
+                      ? "border-[#2E8C13] text-[#2E8C13] bg-white"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  <ListOrdered className="w-3.5 h-3.5" />
+                  Recent Orders
+                </button>
+                <button
+                  onClick={() => setProfileTab("categories")}
+                  className={`flex-1 py-3 text-xs font-semibold transition-all border-b-2 outline-none flex items-center justify-center gap-1.5 ${
+                    profileTab === "categories"
+                      ? "border-[#2E8C13] text-[#2E8C13] bg-white"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  <Heart className="w-3.5 h-3.5" />
+                  Favourites
+                </button>
+                <button
+                  onClick={() => setProfileTab("notes")}
+                  className={`flex-1 py-3 text-xs font-semibold transition-all border-b-2 outline-none flex items-center justify-center gap-1.5 ${
+                    profileTab === "notes"
+                      ? "border-[#2E8C13] text-[#2E8C13] bg-white"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Customer Notes
+                </button>
+              </div>
+
+              {/* Tab content panel */}
+              <div className="p-5 min-h-[220px]">
+                {profileTab === "orders" && (
+                  <div className="space-y-3">
+                    {viewingCustomer.orders.length > 0 ? (
+                      viewingCustomer.orders.map((ord, idx) => (
+                        <div key={idx} className="p-3 bg-gray-50/60 border border-gray-100 rounded-xl text-xs space-y-1.5 transition-colors">
+                          <div className="flex items-center justify-between font-semibold">
+                            <span className="text-[#2E8C13]">{ord.id}</span>
+                            <span className="text-gray-400 text-[10px]">{ord.date}</span>
+                          </div>
+                          <div className="text-gray-650 space-y-0.5">
+                            {ord.items.map((it, i) => (
+                              <div key={i} className="flex justify-between text-[11px]">
+                                <span>{it.name} <span className="text-gray-400">x{it.qty}</span></span>
+                                <span>{formatCurrency(it.price * it.qty)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between border-t border-gray-100/60 pt-1.5 mt-1 font-semibold text-gray-900 text-[11px]">
+                            <span>Total</span>
+                            <span>{formatCurrency(ord.total)}</span>
+                          </div>
                         </div>
-                        <div className="text-gray-650 space-y-0.5">
-                          {ord.items.map((it, i) => (
-                            <div key={i} className="flex justify-between text-[11px]">
-                              <span>{it.name} <span className="text-gray-400">x{it.qty}</span></span>
-                              <span>{formatCurrency(it.price * it.qty)}</span>
+                      ))
+                    ) : (
+                      <p className="text-xs text-gray-400 font-medium p-4 text-center">No orders documented yet.</p>
+                    )}
+                  </div>
+                )}
+
+                {profileTab === "categories" && (
+                  <div className="space-y-4">
+                    {viewingCustomer.favoriteCategories.length > 0 ? (
+                      viewingCustomer.favoriteCategories.map((fc, i) => (
+                        <div key={i} className="space-y-1">
+                          <div className="flex justify-between text-[11px] font-semibold text-gray-650">
+                            <span>{fc.category}</span>
+                            <span>{fc.share}%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-[#2E8C13] h-full rounded-full transition-all duration-350" 
+                              style={{ width: `${fc.share}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-gray-450 font-medium p-4 text-center">No categories purchased yet.</p>
+                    )}
+                  </div>
+                )}
+
+                {profileTab === "notes" && (
+                  <div className="space-y-4">
+                    {/* Add note input */}
+                    <form onSubmit={(e) => handleAddNote(e, viewingCustomer.id)} className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={newNoteText}
+                        onChange={(e) => setNewNoteText(e.target.value)}
+                        placeholder="Add a packaging or shipping preference..."
+                        className="flex-1 px-3 py-1.5 border border-gray-205 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-gray-50/50 font-medium text-gray-800"
+                      />
+                      <Button type="submit" size="sm" className="bg-[#2E8C13] text-white font-medium text-xs px-3">
+                        Add Note
+                      </Button>
+                    </form>
+
+                    {/* Timeline feed */}
+                    <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+                      {viewingCustomer.customerNotes.length > 0 ? (
+                        viewingCustomer.customerNotes.map((note) => (
+                          <div key={note.id} className="p-3 bg-gray-50/60 border border-gray-100 rounded-xl text-[11px] space-y-1">
+                            <div className="flex items-center justify-between font-semibold text-[9px] text-gray-450 uppercase tracking-wider">
+                              <span>{note.author}</span>
+                              <span>{note.date}</span>
                             </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between border-t border-gray-100/60 pt-1.5 mt-1 font-semibold text-gray-900 text-[11px]">
-                          <span>Total</span>
-                          <span>{formatCurrency(ord.total)}</span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-gray-400 font-medium p-4 text-center">No orders documented yet.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Favorite Categories */}
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex flex-col space-y-3">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-rose-450" /> Favorite Categories
-                </h4>
-                <div className="space-y-4 flex-1">
-                  {viewingCustomer.favoriteCategories.length > 0 ? (
-                    viewingCustomer.favoriteCategories.map((fc, i) => (
-                      <div key={i} className="space-y-1">
-                        <div className="flex justify-between text-[11px] font-semibold text-gray-650">
-                          <span>{fc.category}</span>
-                          <span>{fc.share}%</span>
-                        </div>
-                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                          <div 
-                            className="bg-[#2E8C13] h-full rounded-full transition-all duration-300" 
-                            style={{ width: `${fc.share}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-gray-450 font-medium p-4 text-center">No categories purchased yet.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* 5. Customer Notes Section */}
-            <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs space-y-4">
-              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-blue-500" /> Customer Notes
-              </h4>
-              
-              {/* Note input form */}
-              <form onSubmit={(e) => handleAddNote(e, viewingCustomer.id)} className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={newNoteText}
-                  onChange={(e) => setNewNoteText(e.target.value)}
-                  placeholder="Type a new client note (e.g. packaging updates)..."
-                  className="flex-1 px-3 py-1.5 border border-gray-205 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-gray-50/50 font-medium text-gray-800"
-                />
-                <Button type="submit" size="sm" className="bg-[#2E8C13] text-white font-medium text-xs px-3">
-                  Add Note
-                </Button>
-              </form>
-
-              {/* Note feed timeline */}
-              <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1">
-                {viewingCustomer.customerNotes.length > 0 ? (
-                  viewingCustomer.customerNotes.map((note) => (
-                    <div key={note.id} className="p-3 bg-gray-50 border border-gray-100 rounded-xl text-[11px] space-y-1">
-                      <div className="flex items-center justify-between font-semibold text-[9px] text-gray-450 uppercase tracking-wider">
-                        <span>{note.author}</span>
-                        <span>{note.date}</span>
-                      </div>
-                      <p className="text-gray-650 font-medium leading-relaxed">{note.text}</p>
+                            <p className="text-gray-655 font-medium leading-relaxed">{note.text}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-450 font-medium p-4 text-center">No notes recorded.</p>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-450 font-medium p-4 text-center">No notes recorded.</p>
+                  </div>
                 )}
               </div>
             </div>
