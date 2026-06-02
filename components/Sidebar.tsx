@@ -22,7 +22,6 @@ const navItems = [
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Sales", href: "/sales", icon: ShoppingCart },
   { name: "Purchases", href: "/purchases", icon: Briefcase },
-  { name: "Returns", href: "/returns", icon: ArchiveRestore },
   { name: "Expenses", href: "/expenses", icon: Wallet },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },

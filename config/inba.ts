@@ -4,7 +4,6 @@ export const InbaConfig = {
     { name: "Inventory", label: "Inventory" },
     { name: "Sales", label: "Sales" },
     { name: "Purchases", label: "Purchases" },
-    { name: "Returns", label: "Returns" },
     { name: "Expenses", label: "Expenses" },
     { name: "Customers", label: "Customers" },
     { name: "Reports", label: "Reports" },
