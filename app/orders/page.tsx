@@ -1432,7 +1432,7 @@ export default function SalesPage() {
                             : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
-                        Free Shipping
+                        Paid by Us
                       </button>
                       <button
                         type="button"
@@ -1443,22 +1443,25 @@ export default function SalesPage() {
                             : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
-                        Flat Rate / Paid
+                        Paid by Customer
                       </button>
                     </div>
 
                     {shippingType === "paid" && (
-                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
-                        <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
-                        <input 
-                          required
-                          type="number"
-                          min={0}
-                          placeholder="Enter flat rate shipping fee..."
-                          value={shippingFee || ""} 
-                          onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
-                          className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
-                        />
+                      <div className="mt-4 animate-in slide-in-from-top-2 duration-150">
+                        <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Shipping Fee (Charged to Customer)</label>
+                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-1 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+                          <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
+                          <input 
+                            required
+                            type="number"
+                            min={0}
+                            placeholder="Enter shipping fee charged to customer..."
+                            value={shippingFee || ""} 
+                            onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
+                            className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                          />
+                        </div>
                       </div>
                     )}
 
@@ -1479,18 +1482,6 @@ export default function SalesPage() {
                   </div>
                 </div>
                 )}
-
-                {/* 3. Order Notes Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-                  <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
-                  <textarea 
-                    rows={2} 
-                    value={orderNotes}
-                    onChange={(e) => setOrderNotes(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 bg-slate-50/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-900 transition-all leading-relaxed" 
-                    placeholder="Enter special notes, custom requests, packing instructions, speed post, etc."
-                  ></textarea>
-                </div>
                 
                 {/* 4. Stripe-like Receipt Summary Card */}
                 <div className="bg-[#2E8C13]/[0.03] border border-[#2E8C13]/10 rounded-2xl p-5 space-y-3 mt-4">
@@ -1798,7 +1789,7 @@ export default function SalesPage() {
                               : "text-slate-500 hover:text-slate-800"
                           }`}
                         >
-                          Free Shipping
+                          Paid by Us
                         </button>
                         <button
                           type="button"
@@ -1809,22 +1800,25 @@ export default function SalesPage() {
                               : "text-slate-500 hover:text-slate-800"
                           }`}
                         >
-                          Flat Rate / Paid
+                          Paid by Customer
                         </button>
                       </div>
 
                       {shippingType === "paid" && (
-                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all animate-in slide-in-from-top-2 duration-150">
-                          <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
-                          <input 
-                            required
-                            type="number"
-                            min={0}
-                            placeholder="Enter flat rate shipping fee..."
-                            value={shippingFee || ""} 
-                            onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
-                            className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
-                          />
+                        <div className="mt-4 animate-in slide-in-from-top-2 duration-150">
+                          <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2">Shipping Fee (Charged to Customer)</label>
+                          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mt-1 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+                            <span className="text-slate-400 text-xs font-bold mr-1.5 select-none">₹</span>
+                            <input 
+                              required
+                              type="number"
+                              min={0}
+                              placeholder="Enter shipping fee charged to customer..."
+                              value={shippingFee || ""} 
+                              onChange={(e) => setShippingFee(Math.max(0, parseFloat(e.target.value) || 0))}
+                              className="w-full text-xs font-bold text-slate-800 bg-transparent outline-none border-0 p-0 focus:ring-0" 
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1845,18 +1839,6 @@ export default function SalesPage() {
                     </div>
                   </div>
                 )}
-
-                {/* 3. Order Notes Card */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-6">
-                  <label className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-1">Order Notes / Custom Requests</label>
-                  <textarea 
-                    rows={2} 
-                    value={orderNotes}
-                    onChange={(e) => setOrderNotes(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 bg-slate-50/50 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all leading-relaxed" 
-                    placeholder="Enter special notes, custom requests, packing instructions, speed post, etc."
-                  ></textarea>
-                </div>
                 
                 {/* 4. Stripe-like Receipt Summary Card */}
                 <div className="bg-[#2E8C13]/[0.03] border border-[#2E8C13]/10 rounded-2xl p-5 space-y-3 mt-4">
