@@ -316,42 +316,21 @@ export default function SalesPage() {
       setCategories(uniqueCats);
     }
 
-    // Fetch dynamic customers list
+    // Fetch dynamic customers list from Customers module
     let customerList: any[] = [];
-    const savedCustom = localStorage.getItem("inba_custom_customers");
-    if (savedCustom) {
+    const savedCustomersModule = localStorage.getItem("inba_customers_module");
+    if (savedCustomersModule) {
       try {
-        customerList = JSON.parse(savedCustom);
+        const parsed = JSON.parse(savedCustomersModule);
+        customerList = parsed.map((c: any) => ({
+          name: c.name,
+          phone: c.phone || "N/A",
+          address: c.shippingAddress || "No address provided"
+        }));
       } catch (e) {}
     }
 
-    if (ordersData) {
-      ordersData.forEach(o => {
-        if (o.customer && !customerList.some(c => c.name.toLowerCase() === o.customer.toLowerCase())) {
-          customerList.push({
-            name: o.customer,
-            phone: o.phone || "N/A",
-            address: o.address || "No address provided"
-          });
-        }
-      });
-    }
-
-    // Filter out deleted customers
-    let deletedKeys: string[] = [];
-    const savedDeleted = localStorage.getItem("inba_deleted_customers");
-    if (savedDeleted) {
-      try {
-        deletedKeys = JSON.parse(savedDeleted);
-      } catch (e) {}
-    }
-
-    const activeCustomers = customerList.filter(c => {
-      const key = (c.phone && c.phone !== "N/A" ? c.phone : c.name).trim().toLowerCase();
-      return !deletedKeys.includes(key);
-    });
-
-    setDbCustomers(activeCustomers);
+    setDbCustomers(customerList);
   };
 
   useEffect(() => {
