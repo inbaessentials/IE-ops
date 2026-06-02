@@ -35,7 +35,23 @@ export default function InventoryPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [inventoryTab, setInventoryTab] = useState<"all" | "categories">("all");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+
+  const handleAddCategory = (newCatName: string) => {
+    if (!newCatName.trim()) return;
+    const trimmed = newCatName.trim();
+    if (categories.includes(trimmed)) {
+      toast("Category already exists", "error");
+      return;
+    }
+    const updated = [...categories, trimmed];
+    setCategories(updated);
+    const formatted = updated.map(name => ({ name }));
+    localStorage.setItem("inba_categories", JSON.stringify(formatted));
+    toast("Category added successfully!", "success");
+  };
 
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
     return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
@@ -150,8 +166,8 @@ export default function InventoryPage() {
     }
   };
 
-  const handleOpenAdd = () => {
-    setEditingProduct(null);
+  const handleOpenAdd = (defaultCategory?: string) => {
+    setEditingProduct(defaultCategory ? { category: defaultCategory, name: "", sku: "" } : null);
     setUploadedImage(null);
     setActiveTab("info");
     setTimelineEvents([]);
@@ -748,6 +764,25 @@ export default function InventoryPage() {
     return matchesSearch && matchesCategory;
   });
 
+  const groupedProducts = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    categories.forEach(cat => {
+      groups[cat] = [];
+    });
+    groups["Uncategorized"] = [];
+
+    filteredProducts.forEach(p => {
+      const cat = p.category;
+      if (cat && groups[cat]) {
+        groups[cat].push(p);
+      } else {
+        groups["Uncategorized"].push(p);
+      }
+    });
+
+    return groups;
+  }, [filteredProducts, categories]);
+
   // Dynamic metrics calculation for Inventory widgets based on currently filtered products subset
   const totalProductsCount = filteredProducts.length;
   const totalStockCount = filteredProducts.reduce((sum, p) => sum + (p.stock || 0), 0);
@@ -792,7 +827,7 @@ export default function InventoryPage() {
             <Sliders className="w-4 h-4" />
             Bulk Edit {getModuleProp('Inventory', 'displayName')}
           </Button>
-          <Button className="gap-2 font-semibold" onClick={handleOpenAdd}>
+          <Button className="gap-2 font-semibold" onClick={() => handleOpenAdd()}>
             <Plus className="w-4 h-4" />
             Add {getModuleProp('Inventory', 'singularDisplayName')}
           </Button>
@@ -848,241 +883,425 @@ export default function InventoryPage() {
         </Card>
       </div>
 
-      <Card>
-        <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4 flex-1">
-            {/* Search Input */}
-            <div className="relative flex-1 min-w-[240px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder={getHelperText("searchProducts", "Search catalog...")} 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-medium"
-              />
+      <div className="flex border-b border-gray-200 gap-6">
+        <button
+          type="button"
+          onClick={() => setInventoryTab("all")}
+          className={`pb-3 px-1 font-bold text-sm border-b-2 transition-all ${
+            inventoryTab === "all"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          All Items
+        </button>
+        <button
+          type="button"
+          onClick={() => setInventoryTab("categories")}
+          className={`pb-3 px-1 font-bold text-sm border-b-2 transition-all ${
+            inventoryTab === "categories"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          Category
+        </button>
+      </div>
+
+      {inventoryTab === "categories" ? (
+        <div className="space-y-6">
+          {/* Add Category Section */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Product Categories</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Manage and organize your products into custom categories.</p>
             </div>
-
-            {/* Category Filter */}
-            <div className="w-[180px]">
-              <Select 
-                options={["All", ...categories]}
-                value={categoryFilter}
-                onChange={setCategoryFilter}
-                placeholder="All Categories"
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Category name (e.g. Wellness)..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none text-gray-800 focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] transition-all font-medium min-w-[200px]"
               />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle (Table / Grid) for Course platform */}
-            {(platform as string) === "online-course" && (
-              <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0 mr-2">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("table")}
-                  className={`p-1.5 rounded-md transition-all ${
-                    viewMode === "table"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-900"
-                  }`}
-                  title="Table View"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("cards")}
-                  className={`p-1.5 rounded-md transition-all ${
-                    viewMode === "cards"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-900"
-                  }`}
-                  title="Course Summary Cards"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Clear Filters Button */}
-            {(searchTerm || categoryFilter !== "All") && (
-              <Button 
-                variant="ghost" 
-                className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
+              <Button
                 onClick={() => {
-                  setSearchTerm("");
-                  setCategoryFilter("All");
+                  if (!newCategoryName.trim()) return;
+                  handleAddCategory(newCategoryName);
+                  setNewCategoryName("");
                 }}
+                className="gap-1.5 text-xs font-bold bg-[#2E8C13] hover:bg-[#257310]"
               >
-                Clear Filters
+                <Plus className="w-3.5 h-3.5" />
+                Add Category
               </Button>
-            )}
+            </div>
           </div>
-        </div>
 
-        {(platform as string) === "online-course" && viewMode === "cards" ? (
-          /* Course Summary Cards Grid View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/30">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-150 flex flex-col justify-between bg-white">
-                  <div className="p-5 space-y-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="w-14 h-14 bg-green-50 rounded-xl border border-green-100 flex items-center justify-center overflow-hidden shrink-0">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package className="w-6 h-6 text-green-600" />
-                        )}
-                      </div>
-                      <Badge 
-                        variant={
-                          product.status === 'Active' ? 'success' : 
-                          product.status === 'Low Stock' ? 'warning' :
-                          product.status === 'Inactive' ? 'default' : 'error'
-                        }
-                      >
-                        {product.status === 'Inactive' ? 'Archived' : product.status}
-                      </Badge>
+          {/* List of Category Groups */}
+          {categories.map((cat) => {
+            const catProducts = groupedProducts[cat] || [];
+            return (
+              <Card key={cat} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
+                <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center border border-green-100">
+                      <Tag className="w-4 h-4 text-[#2E8C13]" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-gray-900 hover:text-green-700 hover:underline cursor-pointer transition-all" onClick={() => handleOpenEdit(product)}>
-                        {product.name}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1 font-semibold">SKU: {product.sku}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                        <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Price</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
-                      </div>
-                      <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                        <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Students</p>
-                        <p className="text-sm font-medium text-gray-800 mt-0.5">{product.stock} enrolled</p>
-                      </div>
-                    </div>
-                    <div className="bg-[#2E8C13]/5 border border-[#2E8C13]/10 p-3 rounded-lg flex justify-between items-center">
-                      <span className="text-xs font-bold text-[#2E8C13] uppercase tracking-wider">Total Revenue</span>
-                      <span className="text-sm font-extrabold text-gray-950">₹{(product.stock * product.price).toLocaleString("en-IN")}</span>
+                      <h3 className="text-sm font-bold text-gray-900">{cat}</h3>
+                      <p className="text-xs text-gray-500 font-semibold">{catProducts.length} items</p>
                     </div>
                   </div>
-                  <div className="bg-gray-50/50 px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" className="text-xs font-semibold" onClick={() => handleOpenEdit(product)}>
-                      Edit Details
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700" 
-                      onClick={async () => {
-                        const newStatus = product.status === "Inactive" ? "Active" : "Inactive";
-                        const { error } = await supabase.from('products').update({ status: newStatus }).eq('id', product.id);
-                        if (!error) {
-                          toast(product.status === "Inactive" ? "Course Restored!" : "Course Archived!", "success");
-                          fetchProducts();
-                        } else {
-                          toast("Failed to update course status", "error");
-                        }
-                      }}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenAdd(cat)}
+                      className="gap-1.5 text-xs font-bold border-gray-200"
                     >
-                      {product.status === "Inactive" ? "Restore" : "Archive Course"}
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Product
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        window.location.href = `/sales?newOrder=true`;
+                      }}
+                      className="gap-1.5 text-xs font-bold text-[#2E8C13] border-[#2E8C13]/20 hover:bg-green-50"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      Create Order
                     </Button>
                   </div>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center text-gray-400 font-medium bg-white rounded-xl border border-dashed border-gray-200">
-                No courses match the active search and filters.
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Table View Mode (Courses / standard Inba Products list) */
-          <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-                    {(platform as string) === "online-course" ? "Course Name" : "Product Info"}
-                  </th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-                    {(platform as string) === "online-course" ? "Students Enrolled" : "Stock"}
-                  </th>
-                  {(platform as string) === "online-course" && (
-                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
+                </div>
+
+                <div className="overflow-x-auto">
+                  {catProducts.length > 0 ? (
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-white border-b border-gray-100">
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Product Info</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {catProducts.map((product) => (
+                          <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group">
+                            <td className="p-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEdit(product)}
+                                  className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0"
+                                >
+                                  {product.image_url ? (
+                                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">Img</span>
+                                  )}
+                                </button>
+                                <div className="text-left">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEdit(product)}
+                                    className="text-sm font-bold text-primary hover:text-[#257310] hover:underline text-left block"
+                                  >
+                                    {product.name}
+                                  </button>
+                                  <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                              ₹{product.price}
+                            </td>
+                            <td className="p-4 whitespace-nowrap text-sm">
+                              <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                {product.stock} units
+                              </span>
+                            </td>
+                            <td className="p-4 whitespace-nowrap">
+                              <Badge
+                                variant={
+                                  product.status === 'Active' ? 'success' :
+                                  product.status === 'Low Stock' ? 'warning' :
+                                  product.status === 'Inactive' ? 'default' : 'error'
+                                }
+                              >
+                                {product.status}
+                              </Badge>
+                            </td>
+                            <td className="p-4 whitespace-nowrap text-right">
+                              <div className="flex justify-end gap-2 items-center">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-xs font-bold text-[#2E8C13] hover:bg-green-50 px-2 py-1"
+                                  onClick={() => {
+                                    window.location.href = `/sales?newOrder=true&product=${encodeURIComponent(product.name)}`;
+                                  }}
+                                >
+                                  Create Order
+                                </Button>
+                                <DropdownMenu items={getDropdownItems(product)} />
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="py-8 text-center text-gray-400 text-xs font-medium">
+                      No products in this category. Click "Add Product" to create one.
+                    </div>
                   )}
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group relative">
-                    <td className="p-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <button 
-                          type="button"
-                          onClick={() => handleOpenEdit(product)}
-                          className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80 transition-opacity"
-                        >
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card>
+          <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4 flex-1">
+              {/* Search Input */}
+              <div className="relative flex-1 min-w-[240px] max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input 
+                  type="text" 
+                  placeholder={getHelperText("searchProducts", "Search catalog...")} 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-medium"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <div className="w-[180px]">
+                <Select 
+                  options={["All", ...categories]}
+                  value={categoryFilter}
+                  onChange={setCategoryFilter}
+                  placeholder="All Categories"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* View Mode Toggle (Table / Grid) for Course platform */}
+              {(platform as string) === "online-course" && (
+                <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0 mr-2">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("table")}
+                    className={`p-1.5 rounded-md transition-all ${
+                      viewMode === "table"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                    title="Table View"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("cards")}
+                    className={`p-1.5 rounded-md transition-all ${
+                      viewMode === "cards"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                    title="Course Summary Cards"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Clear Filters Button */}
+              {(searchTerm || categoryFilter !== "All") && (
+                <Button 
+                  variant="ghost" 
+                  className="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCategoryFilter("All");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {(platform as string) === "online-course" && viewMode === "cards" ? (
+            /* Course Summary Cards Grid View */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/30">
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-150 flex flex-col justify-between bg-white">
+                    <div className="p-5 space-y-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="w-14 h-14 bg-green-50 rounded-xl border border-green-100 flex items-center justify-center overflow-hidden shrink-0">
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-gray-400 text-xs">Img</span>
+                            <Package className="w-6 h-6 text-green-600" />
                           )}
-                        </button>
-                        <div className="text-left">
+                        </div>
+                        <Badge 
+                          variant={
+                            product.status === 'Active' ? 'success' : 
+                            product.status === 'Low Stock' ? 'warning' :
+                            product.status === 'Inactive' ? 'default' : 'error'
+                          }
+                        >
+                          {product.status === 'Inactive' ? 'Archived' : product.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 hover:text-green-700 hover:underline cursor-pointer transition-all" onClick={() => handleOpenEdit(product)}>
+                          {product.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1 font-semibold">SKU: {product.sku}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 pt-2">
+                        <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Price</p>
+                          <p className="text-sm font-medium text-gray-800 mt-0.5">₹{product.price.toLocaleString("en-IN")}</p>
+                        </div>
+                        <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                          <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Students</p>
+                          <p className="text-sm font-medium text-gray-800 mt-0.5">{product.stock} enrolled</p>
+                        </div>
+                      </div>
+                      <div className="bg-[#2E8C13]/5 border border-[#2E8C13]/10 p-3 rounded-lg flex justify-between items-center">
+                        <span className="text-xs font-bold text-[#2E8C13] uppercase tracking-wider">Total Revenue</span>
+                        <span className="text-sm font-extrabold text-gray-950">₹{(product.stock * product.price).toLocaleString("en-IN")}</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-50/50 px-5 py-3 border-t border-gray-100 flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" className="text-xs font-semibold" onClick={() => handleOpenEdit(product)}>
+                        Edit Details
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs font-semibold text-rose-600 hover:bg-rose-50 hover:text-rose-700" 
+                        onClick={async () => {
+                          const newStatus = product.status === "Inactive" ? "Active" : "Inactive";
+                          const { error } = await supabase.from('products').update({ status: newStatus }).eq('id', product.id);
+                          if (!error) {
+                            toast(product.status === "Inactive" ? "Course Restored!" : "Course Archived!", "success");
+                            fetchProducts();
+                          } else {
+                            toast("Failed to update course status", "error");
+                          }
+                        }}
+                      >
+                        {product.status === "Inactive" ? "Restore" : "Archive Course"}
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full py-16 text-center text-gray-400 font-medium bg-white rounded-xl border border-dashed border-gray-200">
+                  No courses match the active search and filters.
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Table View Mode (Courses / standard Inba Products list) */
+            <div className="overflow-x-auto min-h-[400px]">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/70 border-b border-gray-100">
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      {(platform as string) === "online-course" ? "Course Name" : "Product Info"}
+                    </th>
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                      {(platform as string) === "online-course" ? "Students Enrolled" : "Stock"}
+                    </th>
+                    {(platform as string) === "online-course" && (
+                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue Generated</th>
+                    )}
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                      <td className="p-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
                           <button 
                             type="button"
                             onClick={() => handleOpenEdit(product)}
-                            className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left block"
+                            className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 hover:opacity-80 transition-opacity"
                           >
-                            {product.name}
+                            {product.image_url ? (
+                              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-gray-400 text-xs">Img</span>
+                            )}
                           </button>
-                          <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                          <div className="text-left">
+                            <button 
+                              type="button"
+                              onClick={() => handleOpenEdit(product)}
+                              className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left block"
+                            >
+                              {product.name}
+                            </button>
+                            <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4 whitespace-nowrap text-sm text-gray-600">
-                      {product.category}
-                    </td>
-                    <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      ₹{product.price}
-                    </td>
-                    <td className="p-4 whitespace-nowrap text-sm">
-                      <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                        {product.stock} {(platform as string) === "online-course" ? "students" : "units"}
-                      </span>
-                    </td>
-                    {(platform as string) === "online-course" && (
-                      <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                        ₹{(product.stock * product.price).toLocaleString("en-IN")}
                       </td>
-                    )}
-                    <td className="p-4 whitespace-nowrap">
-                      <Badge 
-                        variant={
-                          product.status === 'Active' ? 'success' : 
-                          product.status === 'Low Stock' ? 'warning' :
-                          product.status === 'Inactive' ? 'default' : 'error'
-                        }
-                      >
-                        {product.status === 'Inactive' && (platform as string) === 'online-course' ? 'Archived' : product.status}
-                      </Badge>
-                    </td>
-                    <td className="p-4 whitespace-nowrap text-right">
-                      <DropdownMenu items={getDropdownItems(product)} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+                      <td className="p-4 whitespace-nowrap text-sm text-gray-600">
+                        {product.category}
+                      </td>
+                      <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        ₹{product.price}
+                      </td>
+                      <td className="p-4 whitespace-nowrap text-sm">
+                        <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {product.stock} {(platform as string) === "online-course" ? "students" : "units"}
+                        </span>
+                      </td>
+                      {(platform as string) === "online-course" && (
+                        <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                          ₹{(product.stock * product.price).toLocaleString("en-IN")}
+                        </td>
+                      )}
+                      <td className="p-4 whitespace-nowrap">
+                        <Badge 
+                          variant={
+                            product.status === 'Active' ? 'success' : 
+                            product.status === 'Low Stock' ? 'warning' :
+                            product.status === 'Inactive' ? 'default' : 'error'
+                          }
+                        >
+                          {product.status === 'Inactive' && (platform as string) === 'online-course' ? 'Archived' : product.status}
+                        </Badge>
+                      </td>
+                      <td className="p-4 whitespace-nowrap text-right">
+                        <DropdownMenu items={getDropdownItems(product)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Product Drawer */}
       <Drawer 

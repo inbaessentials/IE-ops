@@ -356,6 +356,33 @@ export default function SalesPage() {
 
   useEffect(() => {
     fetchOrders();
+    if (typeof window !== "undefined" && window.location.search.includes("newOrder=true")) {
+      const params = new URLSearchParams(window.location.search);
+      const preselectedProduct = params.get("product");
+      
+      setNewOrderCustomer("");
+      setNewOrderPhone("");
+      setNewOrderAddress("");
+      setNewOrderPayment("UPI / Online");
+      
+      if (preselectedProduct) {
+        setNewOrderItems([{ product: preselectedProduct, qty: 1, price: 0 }]);
+        supabase.from('products').select('price').eq('name', preselectedProduct).single()
+          .then(({ data }) => {
+            if (data && data.price) {
+              setNewOrderItems([{ product: preselectedProduct, qty: 1, price: data.price }]);
+            }
+          });
+      } else {
+        setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+      }
+      
+      setShippingType("free");
+      setShippingFee(0);
+      setOrderNotes("");
+      setActiveDrawerTab("customer");
+      setIsAddDrawerOpen(true);
+    }
   }, []);
 
   const handleStatusChange = async (displayId: string, newStatus: string) => {
