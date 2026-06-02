@@ -323,124 +323,81 @@ export default function Dashboard() {
 
       <DashboardCharts categoryFilter={categoryFilter} />
 
-      {/* Upcoming Events (Calendar Widget) */}
-      <div className="mt-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-blue-600" /> Upcoming Activities
-          </h2>
-          <Link href="/settings">
-            <Button variant="outline" size="sm" className="gap-2">View Full Calendar <ArrowRight className="w-4 h-4" /></Button>
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Today */}
-          <Card className="border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="bg-blue-50/50 p-3 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 text-sm">Today</h3>
-              <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">2 Events</span>
-            </div>
-            <div className="p-4 space-y-3 flex-1 bg-white">
-              <div className="p-3 border border-blue-100 bg-blue-50/30 rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-blue-600 uppercase">10:00 AM (2h)</span>
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                </div>
-                <h4 className="text-xs font-semibold text-gray-900">Cohort 12 Live Session</h4>
-                <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><UserCheck className="w-3 h-3" /> Sarah Staff</p>
-              </div>
-              
-              <div className="p-3 border border-purple-100 bg-purple-50/30 rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-purple-600 uppercase">02:00 PM (1h)</span>
-                </div>
-                <h4 className="text-xs font-semibold text-gray-900">1:1 Coaching - Rahul</h4>
-                <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><UserCheck className="w-3 h-3" /> Admin User</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Tomorrow */}
-          <Card className="border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="bg-amber-50/50 p-3 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 text-sm">Tomorrow</h3>
-              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">1 Event</span>
-            </div>
-            <div className="p-4 space-y-3 flex-1 bg-white">
-              <div className="p-3 border border-amber-100 bg-amber-50/30 rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-amber-600 uppercase">11:30 AM (30m)</span>
-                </div>
-                <h4 className="text-xs font-semibold text-gray-900">Follow-up: Priya (Lead)</h4>
-                <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><UserCheck className="w-3 h-3" /> Sarah Staff</p>
-              </div>
-            </div>
-          </Card>
-
-          {/* This Week */}
-          <Card className="border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="bg-gray-50/50 p-3 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 text-sm">Later This Week</h3>
-              <span className="text-[10px] font-bold bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">2 Events</span>
-            </div>
-            <div className="p-4 space-y-3 flex-1 bg-white">
-              <div className="p-3 border border-emerald-100 bg-emerald-50/30 rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-emerald-600 uppercase">Jun 02, 04:00 PM</span>
-                </div>
-                <h4 className="text-xs font-semibold text-gray-900">Membership Renewal Calls</h4>
-                <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><UserCheck className="w-3 h-3" /> Admin User</p>
-              </div>
-              <div className="p-3 border border-gray-200 bg-gray-50/50 rounded-xl">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold text-gray-600 uppercase">Jun 03, 09:00 AM</span>
-                </div>
-                <h4 className="text-xs font-semibold text-gray-900">Staff Sync Meeting</h4>
-                <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><UserCheck className="w-3 h-3" /> Admin User</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
         <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="border-b border-gray-50/50 pb-4">
-            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#2E8C13]" />
-              Top Selling {getModuleProp('Inventory', 'displayName')}
-            </CardTitle>
-            <p className="text-xs text-gray-500 mt-1">High demand {getModuleProp('Inventory', 'displayName').toLowerCase()} based on units sold</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-[#2E8C13]" />
+                  Top Selling {getModuleProp('Inventory', 'displayName')}
+                </CardTitle>
+                <p className="text-xs text-gray-500 mt-1">High demand {getModuleProp('Inventory', 'displayName').toLowerCase()} based on units sold</p>
+              </div>
+              <span className="text-[10px] font-bold bg-[#2E8C13]/10 text-[#2E8C13] px-2.5 py-1 rounded-full uppercase tracking-wider">
+                Active Performance
+              </span>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             {topProducts.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getModuleProp('Inventory', 'singularDisplayName')}</th>
-                      <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                      <th className="p-4 text-center text-[10px] font-medium text-gray-500 uppercase tracking-wider">Units Sold</th>
-                      <th className="p-4 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                      <th className="p-4 text-right text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                    <tr className="bg-gray-50/85 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-12 text-center">Rank</th>
+                      <th className="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">{getModuleProp('Inventory', 'singularDisplayName')}</th>
+                      <th className="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Category</th>
+                      <th className="py-3 px-4 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-40">Popularity Bar</th>
+                      <th className="py-3 px-4 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Units Sold</th>
+                      <th className="py-3 px-4 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="py-3 px-4 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
-                    {topProducts.map((prod, i) => (
-                      <tr key={i} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="py-3.5 px-6 font-semibold text-gray-900">{prod.name}</td>
-                        <td className="py-3.5 px-6">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-                            {prod.category}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-6 text-center font-bold text-gray-600">{prod.qty}</td>
-                        <td className="py-3.5 px-6 text-right font-semibold text-gray-900">₹{prod.revenue.toLocaleString("en-IN")}</td>
-                        <td className="py-3.5 px-6 text-right font-semibold text-[#2E8C13]">₹{prod.margin.toLocaleString("en-IN")}</td>
-                      </tr>
-                    ))}
+                    {(() => {
+                      const maxQty = topProducts[0]?.qty || 1;
+                      return topProducts.map((prod, i) => {
+                        const rankStyles = [
+                          "bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-500 text-white shadow-xs",
+                          "bg-gradient-to-br from-gray-200 via-slate-300 to-slate-400 text-slate-800",
+                          "bg-gradient-to-br from-orange-200 via-amber-600 to-amber-700 text-white",
+                        ];
+                        const barWidthPct = Math.max(8, Math.round((prod.qty / maxQty) * 100));
+                        
+                        return (
+                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
+                            <td className="py-4 px-4 text-center">
+                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${
+                                i < 3 ? rankStyles[i] : "bg-gray-100 text-gray-500"
+                              }`}>
+                                {i + 1}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 font-semibold text-gray-900 group-hover:text-[#2E8C13] transition-colors">{prod.name}</td>
+                            <td className="py-4 px-4">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-100 shadow-3xs">
+                                {prod.category}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                  <div 
+                                    className="bg-gradient-to-r from-[#2E8C13] to-emerald-400 h-full rounded-full transition-all duration-500" 
+                                    style={{ width: `${barWidthPct}%` }}
+                                  />
+                                </div>
+                                <span className="text-[10px] font-semibold text-gray-400 min-w-8">{barWidthPct}%</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center font-bold text-gray-700">{prod.qty}</td>
+                            <td className="py-4 px-4 text-right font-semibold text-gray-900">₹{prod.revenue.toLocaleString("en-IN")}</td>
+                            <td className="py-4 px-4 text-right font-bold text-[#2E8C13]">₹{prod.margin.toLocaleString("en-IN")}</td>
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -451,36 +408,61 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
-
+ 
         <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="border-b border-gray-50/50 pb-4">
-            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              {getModuleProp('Inventory', 'singularDisplayName')} Action Center
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                {getModuleProp('Inventory', 'singularDisplayName')} Action Center
+              </CardTitle>
+              {lowStockItems.length > 0 && (
+                <span className="animate-pulse w-2 h-2 rounded-full bg-red-500"></span>
+              )}
+            </div>
             <p className="text-xs text-gray-500 mt-1">Critical low stock {getModuleProp('Inventory', 'displayName').toLowerCase()} needing immediate attention</p>
           </CardHeader>
           <CardContent className="p-0">
             {lowStockItems.length > 0 ? (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-100">
                 {lowStockItems.map((prod, i) => {
-                  const isCritical = (prod.stock || 0) <= 5;
+                  const stockCount = prod.stock || 0;
+                  const isCritical = stockCount <= 2;
+                  const progressPct = Math.min(100, Math.max(5, (stockCount / 10) * 100));
+                  
                   return (
-                    <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50/30 transition-colors">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-800">{prod.name}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5">{prod.category || "Uncategorized"}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
+                    <div key={i} className="p-4 flex flex-col gap-3 hover:bg-gray-50/50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 leading-none">{prod.name}</h4>
+                          <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-50 text-gray-500 border border-gray-100">
+                            {prod.category || "Uncategorized"}
+                          </span>
+                        </div>
+                        
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
                           isCritical ? "bg-red-50 text-red-600 border border-red-100" : "bg-amber-50 text-amber-600 border border-amber-100"
                         }`}>
-                          {prod.stock || 0} left
+                          {stockCount} left
                         </span>
-                        <Link href="/inventory">
-                          <span className="text-xs font-bold text-[#2E8C13] hover:text-[#2E8C13]/80 hover:underline transition-colors cursor-pointer">
-                            Restock
-                          </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between gap-4 mt-1">
+                        <div className="flex-1">
+                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                isCritical ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-amber-500 to-yellow-400"
+                              }`} 
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <Link href="/inventory" className="shrink-0">
+                          <Button size="sm" variant="outline" className="border-emerald-200 text-[#2E8C13] hover:bg-emerald-50 hover:text-emerald-800 text-[11px] px-3.5 py-1 h-auto rounded-full font-bold transition-all shadow-3xs flex items-center gap-1">
+                            <Plus className="w-3 h-3" /> Restock
+                          </Button>
                         </Link>
                       </div>
                     </div>
