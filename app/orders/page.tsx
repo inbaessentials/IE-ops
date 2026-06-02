@@ -1216,7 +1216,7 @@ export default function SalesPage() {
                       type="tel" 
                       value={newOrderPhone}
                       onChange={(e) => setNewOrderPhone(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all" 
+                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all" 
                       placeholder="+91 98765 43210" 
                     />
                   </div>
@@ -1226,7 +1226,7 @@ export default function SalesPage() {
                       rows={3} 
                       value={newOrderAddress}
                       onChange={(e) => setNewOrderAddress(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 leading-relaxed transition-all" 
+                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 leading-relaxed transition-all" 
                       placeholder="Enter complete delivery address..."
                     ></textarea>
                   </div>
@@ -1557,7 +1557,7 @@ export default function SalesPage() {
                       type="tel" 
                       value={newOrderPhone}
                       onChange={(e) => setNewOrderPhone(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all" 
+                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 transition-all" 
                       placeholder="+91 98765 43210" 
                     />
                   </div>
@@ -1567,7 +1567,7 @@ export default function SalesPage() {
                       rows={3} 
                       value={newOrderAddress}
                       onChange={(e) => setNewOrderAddress(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 leading-relaxed transition-all" 
+                      className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50/30 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 leading-relaxed transition-all" 
                       placeholder="Enter complete delivery address..."
                     ></textarea>
                   </div>
