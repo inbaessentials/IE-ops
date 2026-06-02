@@ -15,11 +15,11 @@ import { usePlatform } from "@/lib/PlatformContext";
 import { CourseSalesView } from "./CourseSalesView";
 
 const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
-  Paid: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
-  Pending: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-500" },
-  Failed: { bg: "bg-rose-50/80", text: "text-rose-700", border: "border-rose-200", dot: "bg-rose-500" },
-  Refunded: { bg: "bg-gray-50/80", text: "text-gray-700", border: "border-gray-200", dot: "bg-gray-500" },
-  "Partial Payment": { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
+  New: { bg: "bg-blue-50/80", text: "text-blue-700", border: "border-blue-200", dot: "bg-blue-500" },
+  Packed: { bg: "bg-amber-50/80", text: "text-amber-700", border: "border-amber-200", dot: "bg-amber-500" },
+  Shipped: { bg: "bg-purple-50/80", text: "text-purple-700", border: "border-purple-200", dot: "bg-purple-500" },
+  Delivered: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
+  Cancelled: { bg: "bg-rose-50/80", text: "text-rose-700", border: "border-rose-200", dot: "bg-rose-500" },
 };
 
 function StatusDropdown({ value, onChange }: { value: string, onChange: (val: string) => void }) {
@@ -782,8 +782,8 @@ export default function SalesPage() {
       }
     }, 0);
 
-  const pendingOrdersCount = filteredOrders.filter(o => o.status === "Pending").length;
-  const completedOrdersCount = filteredOrders.filter(o => o.status === "Paid" || o.status === "Partial Payment").length;
+  const pendingOrdersCount = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
+  const completedOrdersCount = filteredOrders.filter(o => o.status === "Shipped" || o.status === "Delivered").length;
 
   // Sum up quantities of all items in filtered orders (excluding cancelled orders)
   const totalItemsSold = filteredOrders
@@ -882,7 +882,7 @@ export default function SalesPage() {
             }}
           />
           <KpiCard 
-            title={(platform as string) === 'online-course' ? 'Active Students' : 'Paid / Enrolled'}
+            title={(platform as string) === 'online-course' ? 'Active Students' : 'Shipped / Delivered'}
             value={completedOrdersCount}
             valueClass="text-indigo-600"
             icon={<CheckCircle2 />}
@@ -925,7 +925,7 @@ export default function SalesPage() {
               {/* Status Select Filter */}
               <div className="w-[125px] shrink-0">
                 <Select 
-                  options={["All", "Paid", "Pending", "Failed", "Refunded", "Partial Payment"]}
+                  options={["All", "New", "Packed", "Shipped", "Delivered", "Cancelled"]}
                   value={statusFilter}
                   onChange={setStatusFilter}
                   placeholder="All Statuses"
