@@ -46,9 +46,7 @@ interface Customer {
   phone: string;
   email: string;
   city: string;
-  status: "Active" | "VIP" | "Inactive" | "Blocked";
-  lastActivity: string;
-  notes: string;
+  shippingAddress: string;
   joinedDate: string;
   totalOrders: number;
   totalSpent: number;
@@ -65,7 +63,6 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
   
   // Drawer states
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
@@ -78,13 +75,12 @@ export default function CustomersPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
-  const [status, setStatus] = useState<"Active" | "VIP" | "Inactive" | "Blocked">("Active");
-  const [notes, setNotes] = useState("");
+  const [shippingAddress, setShippingAddress] = useState("");
   const [newNoteText, setNewNoteText] = useState("");
 
   const toast = useToast();
 
-  // Realistic default Inba Essentials inventory customers data
+  // Realistic Inba Essentials customer data
   const defaultCustomers: Customer[] = [
     {
       id: "CUST-001",
@@ -92,9 +88,7 @@ export default function CustomersPage() {
       phone: "+91 98765 12345",
       email: "amit.sharma@gmail.com",
       city: "Delhi",
-      status: "VIP",
-      lastActivity: "2 hours ago",
-      notes: "Prefers organic beauty products and premium skincare oils.",
+      shippingAddress: "Block C-4, Flat 12A, Rajouri Garden, New Delhi, 110027",
       joinedDate: "2026-01-15",
       totalOrders: 14,
       totalSpent: 6420,
@@ -123,9 +117,7 @@ export default function CustomersPage() {
       phone: "+91 91234 56780",
       email: "sneha.reddy@yahoo.com",
       city: "Hyderabad",
-      status: "Active",
-      lastActivity: "Yesterday",
-      notes: "Regular cosmetic buyer. Requests Rose Water Spray updates.",
+      shippingAddress: "Door No 4-12-89, Lane 3, Road No 5, Jubilee Hills, Hyderabad, 500033",
       joinedDate: "2026-02-10",
       totalOrders: 8,
       totalSpent: 2880,
@@ -151,9 +143,7 @@ export default function CustomersPage() {
       phone: "+91 99887 76600",
       email: "vikram.malhotra@rediffmail.com",
       city: "Mumbai",
-      status: "Active",
-      lastActivity: "3 days ago",
-      notes: "Loves wellness lifestyle gear. Bought custom insulation travel products.",
+      shippingAddress: "Flat 402, Sea Breeze Apartments, Carter Road, Bandra West, Mumbai, 400050",
       joinedDate: "2026-04-05",
       totalOrders: 3,
       totalSpent: 1050,
@@ -178,9 +168,7 @@ export default function CustomersPage() {
       phone: "+91 97777 88888",
       email: "ananya.sen@outlook.com",
       city: "Kolkata",
-      status: "Inactive",
-      lastActivity: "1 month ago",
-      notes: "Has registered but not executed a commercial checkout.",
+      shippingAddress: "55A, Ballygunge Circular Road, Near ICICI Bank, Kolkata, 700019",
       joinedDate: "2026-03-20",
       totalOrders: 0,
       totalSpent: 0,
@@ -200,9 +188,7 @@ export default function CustomersPage() {
       phone: "+91 96666 55555",
       email: "rohan.das@live.com",
       city: "Bangalore",
-      status: "VIP",
-      lastActivity: "Today",
-      notes: "Procures high-quality cotton textiles and design collections regularly.",
+      shippingAddress: "12, 4th Cross, 5th Block, Koramangala, Bangalore, 560095",
       joinedDate: "2026-01-02",
       totalOrders: 22,
       totalSpent: 18700,
@@ -228,9 +214,7 @@ export default function CustomersPage() {
       phone: "+91 95555 44444",
       email: "karan.johar@gmail.com",
       city: "Pune",
-      status: "Blocked",
-      lastActivity: "2 weeks ago",
-      notes: "Consistently bounced cash collection orders. Account holds payment alert flag.",
+      shippingAddress: "B-2, Golden Winds, Kalyani Nagar, Pune, 411006",
       joinedDate: "2026-02-28",
       totalOrders: 3,
       totalSpent: 225,
@@ -257,8 +241,13 @@ export default function CustomersPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setCustomers(parsed);
-        setFilteredCustomers(parsed);
+        // Ensure shippingAddress mapping if from legacy storage
+        const mapped = parsed.map((c: any) => ({
+          ...c,
+          shippingAddress: c.shippingAddress || c.notes || "No address provided."
+        }));
+        setCustomers(mapped);
+        setFilteredCustomers(mapped);
       } catch (err) {
         setCustomers(defaultCustomers);
         setFilteredCustomers(defaultCustomers);
@@ -286,11 +275,8 @@ export default function CustomersPage() {
         c.city.toLowerCase().includes(q)
       );
     }
-    if (statusFilter !== "All") {
-      result = result.filter(c => c.status === statusFilter);
-    }
     setFilteredCustomers(result);
-  }, [searchQuery, statusFilter, customers]);
+  }, [searchQuery, customers]);
 
   const saveCustomersList = (updated: Customer[]) => {
     setCustomers(updated);
@@ -310,9 +296,7 @@ export default function CustomersPage() {
       phone: phone.trim(),
       email: email.trim() || "N/A",
       city: city.trim() || "N/A",
-      status: status,
-      lastActivity: "Just now",
-      notes: notes.trim() || "No additional notes.",
+      shippingAddress: shippingAddress.trim() || "No shipping address provided.",
       joinedDate: new Date().toISOString().split("T")[0],
       totalOrders: 0,
       totalSpent: 0,
@@ -322,14 +306,14 @@ export default function CustomersPage() {
       favoriteCategory: "N/A",
       orders: [],
       favoriteCategories: [],
-      customerNotes: notes.trim() ? [{ id: `N-${Date.now()}`, date: new Date().toISOString().split("T")[0], text: notes.trim(), author: "Admin User" }] : []
+      customerNotes: shippingAddress.trim() ? [{ id: `N-${Date.now()}`, date: new Date().toISOString().split("T")[0], text: `Customer registered with address: ${shippingAddress.trim()}`, author: "Admin User" }] : []
     };
 
     const updated = [newCust, ...customers];
     saveCustomersList(updated);
 
     // Reset Form & Close
-    setFullName(""); setPhone(""); setEmail(""); setCity(""); setNotes(""); setStatus("Active");
+    setFullName(""); setPhone(""); setEmail(""); setCity(""); setShippingAddress("");
     setIsAddDrawerOpen(false);
     toast("New Customer Added Successfully!", "success");
   };
@@ -340,8 +324,7 @@ export default function CustomersPage() {
     setPhone(customer.phone);
     setEmail(customer.email);
     setCity(customer.city);
-    setStatus(customer.status);
-    setNotes(customer.notes);
+    setShippingAddress(customer.shippingAddress || "");
     setIsEditDrawerOpen(true);
   };
 
@@ -357,9 +340,7 @@ export default function CustomersPage() {
           phone: phone.trim(),
           email: email.trim(),
           city: city.trim(),
-          status: status,
-          notes: notes.trim(),
-          lastActivity: "Updated details"
+          shippingAddress: shippingAddress.trim()
         };
       }
       return c;
@@ -368,7 +349,7 @@ export default function CustomersPage() {
     saveCustomersList(updated);
     setIsEditDrawerOpen(false);
     setEditingCustomer(null);
-    setFullName(""); setPhone(""); setEmail(""); setCity(""); setNotes(""); setStatus("Active");
+    setFullName(""); setPhone(""); setEmail(""); setCity(""); setShippingAddress("");
     toast("Customer details successfully updated!", "success");
   };
 
@@ -392,11 +373,9 @@ export default function CustomersPage() {
           text: newNoteText.trim(),
           author: "Admin User"
         };
-        const updatedNotes = [newNote, ...c.customerNotes];
         return {
           ...c,
-          customerNotes: updatedNotes,
-          notes: newNoteText.trim()
+          customerNotes: [newNote, ...c.customerNotes]
         };
       }
       return c;
@@ -414,43 +393,33 @@ export default function CustomersPage() {
     toast("Added Note successfully!", "success");
   };
 
-  const markCustomerStatus = (customerId: string, nextStatus: "Active" | "VIP" | "Inactive" | "Blocked") => {
-    const updated = customers.map(c => {
-      if (c.id === customerId) {
-        return { ...c, status: nextStatus, lastActivity: `Status marked ${nextStatus}` };
-      }
-      return c;
-    });
-    saveCustomersList(updated);
-    toast(`Customer status changed to ${nextStatus}`, "success");
-  };
-
-  // Actions menu generation
+  // Simplified dropdown action menu items
   const getDropdownItems = (customer: Customer) => [
-    { label: "View Customer", onClick: () => setViewingCustomer(customer) },
+    { label: "View Details", onClick: () => setViewingCustomer(customer) },
     { label: "Edit Customer", onClick: () => handleOpenEditDrawer(customer) },
-    { label: "View Orders", onClick: () => { window.location.href = `/sales?customer=${encodeURIComponent(customer.name)}`; } },
-    { label: "Add Notes", onClick: () => setViewingCustomer(customer) },
     { label: "Create Order", onClick: () => { window.location.href = `/sales?newOrder=true&customer=${encodeURIComponent(customer.name)}`; } },
-    { label: "Mark Inactive", onClick: () => markCustomerStatus(customer.id, "Inactive") },
     { label: "Delete Customer", onClick: () => handleDeleteCustomer(customer.id), destructive: true }
   ];
 
   // Dynamic KPI Metric Calculations
   const metrics = useMemo(() => {
     const total = customers.length;
-    const active = customers.filter(c => c.status === "Active").length;
-    const vip = customers.filter(c => c.status === "VIP").length;
     const repeat = customers.filter(c => c.totalOrders > 1).length;
     const pendingAmount = customers.reduce((sum, c) => sum + (c.pendingPayments || 0), 0);
-    const inactive = customers.filter(c => c.status === "Inactive").length;
+    const totalSpentSum = customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
+    const aovValue = total > 0 ? Math.round(totalSpentSum / customers.reduce((sum, c) => sum + (c.totalOrders || 0), 0) || 0) : 0;
+    
+    // Customers joined in the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const newCustomersCount = customers.filter(c => new Date(c.joinedDate) >= thirtyDaysAgo).length;
 
     return {
       total,
-      active: active + vip, // Active category includes active and VIPs
       repeat,
       pendingAmount,
-      inactive
+      aov: aovValue,
+      newCust: newCustomersCount
     };
   }, [customers]);
 
@@ -467,11 +436,11 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Customers</h1>
+          <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Customers</h1>
           <p className="text-sm text-gray-500 mt-1">Manage customers, purchase history, order activity, and communication records.</p>
         </div>
         <div className="flex gap-2.5">
-          <Button variant="outline" className="gap-2 border-gray-200 font-semibold" onClick={() => {
+          <Button variant="outline" className="gap-2 border-gray-200 text-xs font-semibold" onClick={() => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customers, null, 2));
             const dlAnchorElem = document.createElement('a');
             dlAnchorElem.setAttribute("href", dataStr);
@@ -479,167 +448,131 @@ export default function CustomersPage() {
             dlAnchorElem.click();
             toast("Customer inventory list exported successfully!", "success");
           }}>
-            <Download className="w-4 h-4 text-gray-500" />
+            <Download className="w-4 h-4 text-gray-400" />
             Export
           </Button>
-          <Button className="gap-2 font-semibold bg-[#2E8C13] hover:bg-[#257310] text-white" onClick={() => setIsAddDrawerOpen(true)}>
+          <Button className="gap-2 text-xs font-semibold bg-[#2E8C13] hover:bg-[#257310] text-white" onClick={() => setIsAddDrawerOpen(true)}>
             <Plus className="w-4 h-4" />
-            Add New Customer
+            Add Customer
           </Button>
         </div>
       </div>
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-sm">
+        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Customers</p>
-              <h3 className="text-2xl font-bold tracking-tight text-gray-900 mt-1">{metrics.total}</h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Customers</p>
+              <h3 className="text-xl font-bold tracking-tight text-gray-900 mt-1">{metrics.total}</h3>
             </div>
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-              <Users className="w-5 h-5" />
+            <div className="p-2.5 bg-blue-50/50 text-blue-600 rounded-xl">
+              <Users className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-sm">
+        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Customers</p>
-              <h3 className="text-2xl font-bold tracking-tight text-emerald-600 mt-1">{metrics.active}</h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Repeat Customers</p>
+              <h3 className="text-xl font-bold tracking-tight text-emerald-600 mt-1">{metrics.repeat}</h3>
             </div>
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-              <User className="w-5 h-5" />
+            <div className="p-2.5 bg-emerald-50/50 text-emerald-600 rounded-xl">
+              <Trophy className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-sm">
+        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Repeat Customers</p>
-              <h3 className="text-2xl font-bold tracking-tight text-[#2E8C13] mt-1">{metrics.repeat}</h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pending Payments</p>
+              <h3 className="text-xl font-bold tracking-tight text-amber-600 mt-1">{formatCurrency(metrics.pendingAmount)}</h3>
             </div>
-            <div className="p-2.5 bg-green-50 text-[#2E8C13] rounded-xl">
-              <Trophy className="w-5 h-5 animate-bounce" />
+            <div className="p-2.5 bg-amber-50/50 text-amber-600 rounded-xl">
+              <DollarSign className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-sm">
+        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pending Payments</p>
-              <h3 className="text-2xl font-bold tracking-tight text-amber-600 mt-1">{formatCurrency(metrics.pendingAmount)}</h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Average Order Value</p>
+              <h3 className="text-xl font-bold tracking-tight text-indigo-600 mt-1">{formatCurrency(metrics.aov)}</h3>
             </div>
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-              <DollarSign className="w-5 h-5" />
+            <div className="p-2.5 bg-indigo-50/50 text-indigo-600 rounded-xl">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-sm">
+        <Card className="hover:shadow-md transition-shadow border-gray-100 shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Inactive Customers</p>
-              <h3 className="text-2xl font-bold tracking-tight text-gray-500 mt-1">{metrics.inactive}</h3>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">New Customers (30d)</p>
+              <h3 className="text-xl font-bold tracking-tight text-gray-600 mt-1">{metrics.newCust}</h3>
             </div>
-            <div className="p-2.5 bg-gray-100 text-gray-500 rounded-xl">
-              <AlertCircle className="w-5 h-5" />
+            <div className="p-2.5 bg-gray-50 text-gray-500 rounded-xl">
+              <User className="w-4 h-4" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filter and Search */}
-      <Card className="p-4 border-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative flex-1 w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search customers by name, phone, email..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-            />
-          </div>
-          <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 justify-end">
-            <span className="text-sm font-semibold text-gray-500">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3.5 py-1.5 border border-gray-200 rounded-xl text-xs font-semibold bg-white text-gray-700 outline-none"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="VIP">VIP</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Blocked">Blocked</option>
-            </select>
-          </div>
+      <Card className="p-4 border-gray-100 shadow-xs">
+        <div className="relative flex-1 w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-450" />
+          <input 
+            type="text" 
+            placeholder="Search customers by name, phone, email..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-205 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-gray-900"
+          />
         </div>
       </Card>
 
       {/* Primary Customer Directory Table */}
-      <Card className="border-gray-100 shadow-sm rounded-2xl overflow-visible">
+      <Card className="border-gray-100 shadow-xs rounded-2xl overflow-visible">
         <div className="overflow-x-auto min-h-[300px]">
           {filteredCustomers.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <tr className="bg-gray-50/60 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <th className="p-4 pl-6">Customer Name</th>
                   <th className="p-4">Contact</th>
                   <th className="p-4">City</th>
                   <th className="p-4 text-center">Total Orders</th>
                   <th className="p-4 text-right">Total Spent</th>
-                  <th className="p-4">Last Purchase</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Last Activity</th>
                   <th className="p-4 text-right pr-6">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
                 {filteredCustomers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-gray-50/30 transition-colors">
+                  <tr key={cust.id} className="hover:bg-gray-50/20 transition-colors">
                     <td className="p-4 pl-6 whitespace-nowrap">
                       <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setViewingCustomer(cust)}>
                         <div className="w-8 h-8 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-xs">
                           {cust.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[14px] font-semibold text-[#2E8C13] group-hover:underline">{cust.name}</span>
+                          <span className="text-sm font-semibold text-[#2E8C13] group-hover:underline">{cust.name}</span>
                           <span className="text-[10px] text-gray-400 font-semibold">{cust.id}</span>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="text-gray-900">{cust.phone}</span>
-                        <span className="text-xs text-gray-500 font-semibold">{cust.email}</span>
+                        <span className="text-gray-900 text-xs">{cust.phone}</span>
+                        <span className="text-[11px] text-gray-400 font-medium">{cust.email}</span>
                       </div>
                     </td>
-                    <td className="p-4 whitespace-nowrap text-gray-600 font-semibold">{cust.city}</td>
-                    <td className="p-4 whitespace-nowrap text-center text-gray-900 font-bold">{cust.totalOrders}</td>
-                    <td className="p-4 whitespace-nowrap text-right text-gray-900 font-bold">{formatCurrency(cust.totalSpent)}</td>
-                    <td className="p-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-800 font-semibold">{cust.lastPurchaseItem}</span>
-                        {cust.lastPurchaseDate !== "N/A" && <span className="text-[10px] text-gray-400 font-bold">{cust.lastPurchaseDate}</span>}
-                      </div>
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      <Badge variant="default" className={`
-                        ${cust.status === "VIP" ? "bg-amber-50 text-amber-700 border-amber-200" : ""}
-                        ${cust.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}
-                        ${cust.status === "Inactive" ? "bg-gray-100 text-gray-600 border-gray-200" : ""}
-                        ${cust.status === "Blocked" ? "bg-rose-50 text-rose-700 border-rose-200" : ""}
-                      `}>
-                        {cust.status}
-                      </Badge>
-                    </td>
-                    <td className="p-4 whitespace-nowrap text-xs text-gray-500 font-bold">{cust.lastActivity}</td>
+                    <td className="p-4 whitespace-nowrap text-gray-650 text-xs">{cust.city}</td>
+                    <td className="p-4 whitespace-nowrap text-center text-gray-800 text-xs font-bold">{cust.totalOrders}</td>
+                    <td className="p-4 whitespace-nowrap text-right text-gray-805 text-xs font-bold">{formatCurrency(cust.totalSpent)}</td>
                     <td className="p-4 whitespace-nowrap text-right pr-6">
                       <DropdownMenu items={getDropdownItems(cust)} />
                     </td>
@@ -648,55 +581,44 @@ export default function CustomersPage() {
               </tbody>
             </table>
           ) : (
-            <div className="flex flex-col items-center justify-center p-12 text-center text-gray-400 min-h-[300px]">
-              <Users className="w-10 h-10 text-gray-300 stroke-[1.5] mb-2" />
-              <p className="text-sm font-semibold">No customers matched your filter query.</p>
+            <div className="flex flex-col items-center justify-center p-12 text-center text-gray-450 min-h-[300px]">
+              <Users className="w-8 h-8 text-gray-300 stroke-[1.5] mb-2" />
+              <p className="text-xs font-semibold">No customers found matching search criteria.</p>
             </div>
           )}
         </div>
       </Card>
 
-      {/* Add New Customer Drawer */}
-      <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Add New Customer">
+      {/* Add Customer Drawer */}
+      <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Add Customer">
         <form className="space-y-4" onSubmit={handleSaveCustomer}>
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs space-y-5">
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name *</label>
-              <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" placeholder="e.g. Rahul Sen" />
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Name *</label>
+              <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="e.g. Rahul Sen" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mobile Number *</label>
-                <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" placeholder="+91 98765 00000" />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Mobile Number *</label>
+                <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="+91 98765 00000" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Email Address</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" placeholder="customer@example.com" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">City</label>
-                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" placeholder="e.g. Chennai" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Customer Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-sm font-semibold text-gray-900">
-                  <option value="Active">Active</option>
-                  <option value="VIP">VIP</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Blocked">Blocked</option>
-                </select>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="customer@example.com" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Initial Notes</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" placeholder="Add custom notes about packaging preferences, category interests..." />
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">City</label>
+              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="e.g. Chennai" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Shipping Address</label>
+              <textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} rows={3} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="Full postal delivery address..." />
             </div>
           </div>
-          <div className="pt-4 flex justify-end gap-3">
+          <div className="pt-2 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setIsAddDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" className="bg-[#2E8C13] text-white hover:bg-[#257310]">Save Customer</Button>
+            <Button type="submit" variant="primary" className="bg-[#2E8C13] text-white hover:bg-[#257310] text-xs font-semibold">Save Customer</Button>
           </div>
         </form>
       </Drawer>
@@ -704,49 +626,38 @@ export default function CustomersPage() {
       {/* Edit Customer Drawer */}
       <Drawer isOpen={isEditDrawerOpen} onClose={() => { setIsEditDrawerOpen(false); setEditingCustomer(null); }} title="Edit Customer Details">
         <form className="space-y-4" onSubmit={handleUpdateCustomer}>
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs space-y-5">
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name *</label>
-              <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" />
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Name *</label>
+              <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mobile Number *</label>
-                <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" />
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Mobile Number *</label>
+                <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Email Address</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">City</label>
-                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Customer Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value as any)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-sm font-semibold text-gray-900">
-                  <option value="Active">Active</option>
-                  <option value="VIP">VIP</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Blocked">Blocked</option>
-                </select>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Email Address</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Historical Notes</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-semibold text-gray-900" />
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">City</label>
+              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Shipping Address</label>
+              <textarea value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} rows={3} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
             </div>
           </div>
-          <div className="pt-4 flex justify-end gap-3">
+          <div className="pt-2 flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => { setIsEditDrawerOpen(false); setEditingCustomer(null); }}>Cancel</Button>
-            <Button type="submit" variant="primary" className="bg-[#2E8C13] text-white hover:bg-[#257310]">Update Customer</Button>
+            <Button type="submit" variant="primary" className="bg-[#2E8C13] text-white hover:bg-[#257310] text-xs font-semibold">Update Customer</Button>
           </div>
         </form>
       </Drawer>
 
-      {/* Customer Profile Drawer */}
+      {/* Refactored airy, spacious Customer Profile Drawer */}
       <Drawer 
         isOpen={!!viewingCustomer} 
         onClose={() => setViewingCustomer(null)} 
@@ -754,173 +665,171 @@ export default function CustomersPage() {
         size="lg"
       >
         {viewingCustomer && (
-          <div className="space-y-6">
+          <div className="space-y-6 p-1">
             
             {/* 1. Customer Information Card */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-bold text-xl uppercase">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-semibold text-lg uppercase shrink-0">
                   {viewingCustomer.name.charAt(0)}
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    {viewingCustomer.name}
-                    <Badge variant="default" className={`
-                      ${viewingCustomer.status === "VIP" ? "bg-amber-50 text-amber-700 border-amber-250 font-bold" : ""}
-                      ${viewingCustomer.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-250 font-bold" : ""}
-                      ${viewingCustomer.status === "Inactive" ? "bg-gray-50 text-gray-500 border-gray-200 font-bold" : ""}
-                      ${viewingCustomer.status === "Blocked" ? "bg-rose-50 text-rose-700 border-rose-250 font-bold" : ""}
-                    `}>
-                      {viewingCustomer.status}
-                    </Badge>
-                  </h3>
-                  <p className="text-xs text-gray-400 font-semibold">{viewingCustomer.id} • Registered {viewingCustomer.joinedDate}</p>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1 mt-2 text-xs font-semibold text-gray-600">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-gray-900">{viewingCustomer.name}</h3>
+                  <p className="text-[11px] text-gray-400 font-medium">ID: {viewingCustomer.id} • Registered {viewingCustomer.joinedDate}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 font-medium pt-0.5">
                     <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gray-400" /> {viewingCustomer.phone}</span>
-                    <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400" /> {viewingCustomer.city}</span>
+                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-gray-400" /> {viewingCustomer.email}</span>
                   </div>
-                  <p className="text-xs text-gray-500 font-semibold mt-1 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-gray-400" /> {viewingCustomer.email}
-                  </p>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5 w-full md:w-auto">
-                <Button size="sm" variant="primary" className="bg-[#2E8C13] text-white font-bold text-xs" onClick={() => {
+              
+              <div className="flex flex-row sm:flex-col gap-2 shrink-0">
+                <Button size="sm" variant="primary" className="bg-[#2E8C13] text-white font-medium text-xs px-3 py-1.5" onClick={() => {
                   window.location.href = `/sales?newOrder=true&customer=${encodeURIComponent(viewingCustomer.name)}`;
                 }}>
                   <PlusCircle className="w-3.5 h-3.5 mr-1" /> Create Order
                 </Button>
-                <Button size="sm" variant="outline" className="border-gray-200 text-xs font-bold" onClick={() => {
-                  setIsAddDrawerOpen(false);
+                <Button size="sm" variant="outline" className="border-gray-200 text-xs font-medium px-3 py-1.5" onClick={() => {
+                  const target = viewingCustomer;
                   setViewingCustomer(null);
-                  handleOpenEditDrawer(viewingCustomer);
+                  handleOpenEditDrawer(target);
                 }}>
                   <Edit className="w-3.5 h-3.5 mr-1" /> Edit Profile
                 </Button>
               </div>
             </div>
 
-            {/* 2. Purchase Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Shipping Address Box */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-2">
+              <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-gray-400" /> Shipping Address
+              </h4>
+              <p className="text-xs text-gray-650 font-medium leading-relaxed bg-gray-50/50 p-3 rounded-lg border border-gray-100/50">
+                {viewingCustomer.shippingAddress || "No shipping address provided."}
+              </p>
+            </div>
+
+            {/* 2. Purchase Summary Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Spent</p>
-                <h4 className="text-lg font-bold text-gray-900 mt-1">{formatCurrency(viewingCustomer.totalSpent)}</h4>
+                <h4 className="text-base font-semibold text-gray-900 mt-1">{formatCurrency(viewingCustomer.totalSpent)}</h4>
               </div>
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
-                <h4 className="text-lg font-bold text-gray-900 mt-1">{viewingCustomer.totalOrders} Orders</h4>
+                <h4 className="text-base font-semibold text-gray-900 mt-1">{viewingCustomer.totalOrders} Orders</h4>
               </div>
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Order Value</p>
-                <h4 className="text-lg font-bold text-gray-900 mt-1">
+                <h4 className="text-base font-semibold text-gray-900 mt-1">
                   {formatCurrency(viewingCustomer.totalOrders > 0 ? Math.round(viewingCustomer.totalSpent / viewingCustomer.totalOrders) : 0)}
                 </h4>
               </div>
               <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pending Dues</p>
-                <h4 className={`text-lg font-bold mt-1 ${viewingCustomer.pendingPayments > 0 ? "text-amber-600 animate-pulse" : "text-gray-900"}`}>
+                <h4 className={`text-base font-semibold mt-1 ${viewingCustomer.pendingPayments > 0 ? "text-amber-600 animate-pulse" : "text-gray-900"}`}>
                   {formatCurrency(viewingCustomer.pendingPayments)}
                 </h4>
               </div>
             </div>
 
             {/* 3. Recent Orders & Favorite Categories Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Recent Orders List */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-                  <ListOrdered className="w-4 h-4 text-[#2E8C13]" /> Recent Orders
+              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex flex-col space-y-3">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <ListOrdered className="w-3.5 h-3.5 text-gray-455" /> Recent Orders
                 </h4>
-                <div className="space-y-3 flex-1 overflow-y-auto max-h-[220px]">
+                <div className="space-y-3 overflow-y-auto max-h-[220px] pr-1">
                   {viewingCustomer.orders.length > 0 ? (
                     viewingCustomer.orders.map((ord, idx) => (
                       <div key={idx} className="p-3 bg-gray-50/50 hover:bg-gray-50 border border-gray-100 rounded-xl text-xs space-y-1.5 transition-colors">
-                        <div className="flex items-center justify-between font-bold">
+                        <div className="flex items-center justify-between font-semibold">
                           <span className="text-[#2E8C13]">{ord.id}</span>
-                          <span className="text-gray-400">{ord.date}</span>
+                          <span className="text-gray-400 text-[10px]">{ord.date}</span>
                         </div>
-                        <div className="text-gray-600 font-semibold">
+                        <div className="text-gray-650 space-y-0.5">
                           {ord.items.map((it, i) => (
-                            <div key={i} className="flex justify-between">
-                              <span>{it.name} x{it.qty}</span>
+                            <div key={i} className="flex justify-between text-[11px]">
+                              <span>{it.name} <span className="text-gray-400">x{it.qty}</span></span>
                               <span>{formatCurrency(it.price * it.qty)}</span>
                             </div>
                           ))}
                         </div>
-                        <div className="flex items-center justify-between border-t border-gray-100 pt-1.5 mt-1 font-bold text-gray-900">
+                        <div className="flex items-center justify-between border-t border-gray-100/60 pt-1.5 mt-1 font-semibold text-gray-900 text-[11px]">
                           <span>Total</span>
                           <span>{formatCurrency(ord.total)}</span>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-400 font-semibold p-4 text-center">No orders documented yet.</p>
+                    <p className="text-xs text-gray-400 font-medium p-4 text-center">No orders documented yet.</p>
                   )}
                 </div>
               </div>
 
               {/* Favorite Categories */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-                  <Heart className="w-4 h-4 text-rose-500" /> Favorite Categories
+              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex flex-col space-y-3">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-rose-450" /> Favorite Categories
                 </h4>
                 <div className="space-y-4 flex-1">
                   {viewingCustomer.favoriteCategories.length > 0 ? (
                     viewingCustomer.favoriteCategories.map((fc, i) => (
                       <div key={i} className="space-y-1">
-                        <div className="flex justify-between text-xs font-bold text-gray-700">
+                        <div className="flex justify-between text-[11px] font-semibold text-gray-650">
                           <span>{fc.category}</span>
                           <span>{fc.share}%</span>
                         </div>
-                        <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                           <div 
-                            className="bg-[#2E8C13] h-full rounded-full transition-all duration-500" 
+                            className="bg-[#2E8C13] h-full rounded-full transition-all duration-300" 
                             style={{ width: `${fc.share}%` }}
                           />
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-400 font-semibold p-4 text-center">No categories purchased yet.</p>
+                    <p className="text-xs text-gray-450 font-medium p-4 text-center">No categories purchased yet.</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* 5. Customer Notes Section */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-              <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4 text-blue-500" /> Customer Notes & Logs
+            <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-blue-500" /> Customer Notes
               </h4>
               
               {/* Note input form */}
-              <form onSubmit={(e) => handleAddNote(e, viewingCustomer.id)} className="flex gap-2 mb-4">
+              <form onSubmit={(e) => handleAddNote(e, viewingCustomer.id)} className="flex gap-2">
                 <input 
                   type="text" 
                   value={newNoteText}
                   onChange={(e) => setNewNoteText(e.target.value)}
-                  placeholder="Type a new client note (e.g. shipping updates)..."
-                  className="flex-1 px-3.5 py-1.5 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-gray-50/50"
+                  placeholder="Type a new client note (e.g. packaging updates)..."
+                  className="flex-1 px-3 py-1.5 border border-gray-205 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-gray-50/50 font-medium text-gray-800"
                 />
-                <Button type="submit" size="sm" className="bg-[#2E8C13] text-white font-bold text-xs">
+                <Button type="submit" size="sm" className="bg-[#2E8C13] text-white font-medium text-xs px-3">
                   Add Note
                 </Button>
               </form>
 
-              {/* Timeline list */}
-              <div className="space-y-3.5 max-h-[220px] overflow-y-auto">
+              {/* Note feed timeline */}
+              <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1">
                 {viewingCustomer.customerNotes.length > 0 ? (
                   viewingCustomer.customerNotes.map((note) => (
-                    <div key={note.id} className="p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs space-y-1">
-                      <div className="flex items-center justify-between font-bold text-[10px] text-gray-400 uppercase tracking-wider">
+                    <div key={note.id} className="p-3 bg-gray-50 border border-gray-100 rounded-xl text-[11px] space-y-1">
+                      <div className="flex items-center justify-between font-semibold text-[9px] text-gray-450 uppercase tracking-wider">
                         <span>{note.author}</span>
                         <span>{note.date}</span>
                       </div>
-                      <p className="text-gray-700 font-semibold leading-relaxed">{note.text}</p>
+                      <p className="text-gray-650 font-medium leading-relaxed">{note.text}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-400 font-semibold p-4 text-center">No notes recorded.</p>
+                  <p className="text-xs text-gray-450 font-medium p-4 text-center">No notes recorded.</p>
                 )}
               </div>
             </div>
