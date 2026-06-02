@@ -258,70 +258,36 @@ export default function PurchasesPage() {
 
   const loadPurchaseOrders = () => {
     const saved = localStorage.getItem("inba_purchases");
+    const initialCampaigns: PurchaseOrder[] = [];
+    const initialPOs: PurchaseOrder[] = [];
+
     if (platform === "online-course") {
-      const initialCampaigns: PurchaseOrder[] = [
-        {
-          id: "po-1",
-          po_number: "PO-0001",
-          supplier: "Meta Ads",
-          notes: "Summer Cohort Acquisition Campaign",
-          amount: 15000,
-          status: "Received",
-          date: "2026-05-20"
-        },
-        {
-          id: "po-2",
-          po_number: "PO-0002",
-          supplier: "Google Ads",
-          notes: "AI Masterclass Launch Search Campaign",
-          amount: 12000,
-          status: "Ordered",
-          date: "2026-05-22"
-        },
-        {
-          id: "po-3",
-          po_number: "PO-0003",
-          supplier: "YouTube Ads",
-          notes: "UI/UX Bootcamp Video Banner",
-          amount: 8000,
-          status: "Received",
-          date: "2026-05-24"
-        }
-      ];
-      // Seed if not loaded or if not containing platform specific suppliers
-      if (!saved || !JSON.parse(saved).some((p: any) => p.supplier === "Meta Ads" || p.supplier === "Google Ads")) {
+      if (!saved) {
         localStorage.setItem("inba_purchases", JSON.stringify(initialCampaigns));
         setPurchaseOrders(initialCampaigns);
       } else {
-        setPurchaseOrders(JSON.parse(saved));
+        let parsed = JSON.parse(saved);
+        // Auto-purge old mock campaigns
+        const mockSuppliers = ["Meta Ads", "Google Ads", "YouTube Ads"];
+        parsed = parsed.filter((p: any) => !mockSuppliers.includes(p.supplier));
+        if (parsed.length !== JSON.parse(saved).length) {
+          localStorage.setItem("inba_purchases", JSON.stringify(parsed));
+        }
+        setPurchaseOrders(parsed);
       }
       return;
     }
 
     if (saved) {
-      setPurchaseOrders(JSON.parse(saved));
+      let parsed = JSON.parse(saved);
+      // Auto-purge old mock POs
+      const mockSuppliers = ["Inba Organic Farms", "Vedic Botanicals"];
+      parsed = parsed.filter((p: any) => !mockSuppliers.includes(p.supplier));
+      if (parsed.length !== JSON.parse(saved).length) {
+        localStorage.setItem("inba_purchases", JSON.stringify(parsed));
+      }
+      setPurchaseOrders(parsed);
     } else {
-      // Seed initial POs
-      const initialPOs: PurchaseOrder[] = [
-        {
-          id: "po-1",
-          po_number: "PO-0001",
-          supplier: "Inba Organic Farms",
-          notes: "50kg raw aloe extracts, 100 bottles cold pressed castor oil",
-          amount: 12500,
-          status: "Received",
-          date: "2026-05-18"
-        },
-        {
-          id: "po-2",
-          po_number: "PO-0002",
-          supplier: "Vedic Botanicals",
-          notes: "Raw herbal ingredients, neem oils, and containers",
-          amount: 8200,
-          status: "Ordered",
-          date: "2026-05-19"
-        }
-      ];
       localStorage.setItem("inba_purchases", JSON.stringify(initialPOs));
       setPurchaseOrders(initialPOs);
     }
