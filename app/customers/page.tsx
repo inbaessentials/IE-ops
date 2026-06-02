@@ -11,6 +11,7 @@ import {
 import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/Toast";
+import { supabase } from "@/lib/supabase";
 
 interface OrderItem {
   name: string;
@@ -62,6 +63,16 @@ export default function CustomersPage() {
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Db tables states
+  const [dbOrders, setDbOrders] = useState<any[]>([]);
+  const [dbOrderItems, setDbOrderItems] = useState<any[]>([]);
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+
+  // Sorting and Filtering states
+  const [sortBy, setSortBy] = useState<"name" | "orders" | "spent" | "city">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [cityFilter, setCityFilter] = useState("All");
+
   // Drawer states
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
@@ -83,33 +94,127 @@ export default function CustomersPage() {
 
   const defaultCustomers: Customer[] = [];
 
-  const loadData = () => {
-    const saved = localStorage.getItem("inba_customers_module");
-    if (saved) {
-      try {
-        let parsed = JSON.parse(saved);
+  const loadData = async () => {
+    try {
+      // 1. Fetch from Supabase
+      const { data: orders } = await supabase.from("orders").select("*");
+      const { data: orderItems } = await supabase.from("order_items").select("*");
+      const { data: products } = await supabase.from("products").select("*");
+
+      const ordersData = orders || [];
+      const orderItemsData = orderItems || [];
+      const productsData = products || [];
+
+      setDbOrders(ordersData);
+      setDbOrderItems(orderItemsData);
+      setDbProducts(productsData);
+
+      // 2. Fetch local storage customers
+      const saved = localStorage.getItem("inba_customers_module");
+      let parsed: any[] = [];
+      if (saved) {
+        parsed = JSON.parse(saved);
         // Automatically purge old mock customers
         const mockIds = ["CUST-001", "CUST-002", "CUST-003", "CUST-004", "CUST-005", "CUST-006"];
         parsed = parsed.filter((c: any) => !mockIds.includes(c.id));
-        
-        if (parsed.length !== JSON.parse(saved).length) {
-          localStorage.setItem("inba_customers_module", JSON.stringify(parsed));
-        }
-
-        const mapped = parsed.map((c: any) => ({
-          ...c,
-          shippingAddress: c.shippingAddress || c.notes || "No address provided."
-        }));
-        setCustomers(mapped);
-        setFilteredCustomers(mapped);
-      } catch (err) {
-        setCustomers(defaultCustomers);
-        setFilteredCustomers(defaultCustomers);
       }
-    } else {
-      localStorage.setItem("inba_customers_module", JSON.stringify(defaultCustomers));
-      setCustomers(defaultCustomers);
-      setFilteredCustomers(defaultCustomers);
+
+      // Map product names to categories
+      const productCategoryMap: Record<string, string> = {};
+      productsData.forEach((p: any) => {
+        if (p.name) productCategoryMap[p.name.trim().toLowerCase()] = p.category || "General";
+      });
+
+      // 3. Map orders & calculate metrics dynamically for each customer
+      const mapped = parsed.map((cust: any, index: number) => {
+        // Clean sequential ID: CUST-0001, CUST-0002
+        const formattedId = `CUST-${String(index + 1).padStart(4, "0")}`;
+
+        // Find orders matching this customer by phone or by name
+        const matchedOrders = ordersData.filter((o: any) => {
+          const matchPhone = o.phone && cust.phone && o.phone.trim() === cust.phone.trim();
+          const matchName = o.customer && cust.name && o.customer.trim().toLowerCase() === cust.name.trim().toLowerCase();
+          return matchPhone || matchName;
+        });
+
+        // Map matching orders to CustomerOrder objects
+        const mappedOrders: CustomerOrder[] = matchedOrders.map((o: any) => {
+          const matchedItems = orderItemsData.filter((oi: any) => oi.order_id === o.id);
+          const items: OrderItem[] = matchedItems.map((oi: any) => ({
+            name: oi.name || "Unknown Product",
+            qty: oi.qty || 1,
+            price: parseFloat((oi.price || "").toString().replace(/[^0-9.]/g, "")) || 0
+          }));
+
+          const total = parseFloat((o.amount || "").toString().replace(/[^0-9.]/g, "")) || 0;
+
+          let status: "Completed" | "Pending" | "Processing" | "Cancelled" = "Processing";
+          if (o.status === "Delivered" || o.status === "Completed" || o.status === "Delivered/Paid") status = "Completed";
+          else if (o.status === "Cancelled") status = "Cancelled";
+          else if (o.status === "New" || o.status === "Pending") status = "Pending";
+
+          const dateStr = o.created_at ? new Date(o.created_at).toISOString().split("T")[0] : o.date || "N/A";
+
+          return {
+            id: o.id || `ORD-${o.id}`,
+            date: dateStr,
+            items,
+            total,
+            status
+          };
+        });
+
+        const totalOrders = mappedOrders.length;
+        const totalSpent = mappedOrders.reduce((sum, o) => sum + o.total, 0);
+
+        const sortedOrders = [...mappedOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const lastPurchaseDate = sortedOrders[0]?.date || "N/A";
+        const lastPurchaseItem = sortedOrders[0]?.items.map(it => it.name).join(", ") || "N/A";
+
+        // Category breakdown
+        const categoryCountMap: Record<string, number> = {};
+        mappedOrders.forEach(o => {
+          o.items.forEach(it => {
+            const cat = productCategoryMap[it.name.trim().toLowerCase()] || "General";
+            categoryCountMap[cat] = (categoryCountMap[cat] || 0) + (it.qty || 1);
+          });
+        });
+
+        const totalItemsPurchased = Object.values(categoryCountMap).reduce((sum, count) => sum + count, 0) || 1;
+        const favoriteCategories: CategoryShare[] = Object.entries(categoryCountMap).map(([category, count]) => ({
+          category,
+          share: Math.round((count / totalItemsPurchased) * 100)
+        })).sort((a, b) => b.share - a.share);
+
+        const favoriteCategory = favoriteCategories[0]?.category || "N/A";
+
+        return {
+          ...cust,
+          id: formattedId,
+          totalOrders,
+          totalSpent,
+          lastPurchaseDate,
+          lastPurchaseItem,
+          favoriteCategory,
+          favoriteCategories,
+          orders: mappedOrders,
+          shippingAddress: cust.shippingAddress || cust.notes || "No address provided."
+        };
+      });
+
+      setCustomers(mapped);
+      setFilteredCustomers(mapped);
+    } catch (err) {
+      console.error("Error loading data from Supabase:", err);
+      // Fallback local storage
+      const saved = localStorage.getItem("inba_customers_module");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setCustomers(parsed);
+          setFilteredCustomers(parsed);
+        } catch (_) {}
+      }
     }
   };
 
@@ -117,20 +222,70 @@ export default function CustomersPage() {
     loadData();
   }, []);
 
-  // Filter and Search logic
+  const cities = useMemo(() => {
+    const allCities = customers.map(c => c.city).filter(Boolean);
+    return Array.from(new Set(allCities)) as string[];
+  }, [customers]);
+
+  const handleSortClick = (field: "name" | "orders" | "spent" | "city") => {
+    if (sortBy === field) {
+      setSortOrder(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder(field === "name" || field === "city" ? "asc" : "desc");
+    }
+  };
+
+  // Filter, Search, and Sort logic
   useEffect(() => {
-    let result = customers;
+    let result = [...customers];
+    
+    // Search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(c => 
         c.name.toLowerCase().includes(q) ||
         c.phone.toLowerCase().includes(q) ||
         c.email.toLowerCase().includes(q) ||
-        c.city.toLowerCase().includes(q)
+        c.city.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q)
       );
     }
+
+    // City Filter
+    if (cityFilter !== "All") {
+      result = result.filter(c => c.city === cityFilter);
+    }
+
+    // Sorting
+    result.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+
+      if (sortBy === "orders") {
+        valA = a.totalOrders;
+        valB = b.totalOrders;
+      } else if (sortBy === "spent") {
+        valA = a.totalSpent;
+        valB = b.totalSpent;
+      } else {
+        valA = (a as any)[sortBy];
+        valB = (b as any)[sortBy];
+      }
+
+      if (typeof valA === "string") {
+        return sortOrder === "asc" 
+          ? valA.localeCompare(valB) 
+          : valB.localeCompare(valA);
+      } else {
+        return sortOrder === "asc"
+          ? (valA || 0) - (valB || 0)
+          : (valB || 0) - (valA || 0);
+      }
+    });
+
     setFilteredCustomers(result);
-  }, [searchQuery, customers]);
+  }, [searchQuery, customers, cityFilter, sortBy, sortOrder]);
 
   const saveCustomersList = (updated: Customer[]) => {
     setCustomers(updated);
@@ -375,16 +530,55 @@ export default function CustomersPage() {
       </div>
 
       {/* Filter and Search */}
-      <Card className="p-4 border-gray-100 shadow-xs">
-        <div className="relative flex-1 w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-440" />
+      <Card className="p-4 border-gray-100 shadow-xs flex flex-wrap gap-4 items-center justify-between">
+        <div className="relative flex-1 w-full max-w-md min-w-[260px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text" 
-            placeholder="Search customers by name, phone, email..." 
+            placeholder="Search customers by name, phone, email, ID..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-205 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-gray-900"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-gray-900"
           />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* City Filter */}
+          <div className="flex items-center gap-1.5 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-200">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider select-none">City:</span>
+            <select
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="bg-transparent border-none text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer p-0 pr-6"
+            >
+              <option value="All">All Cities</option>
+              {cities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort By */}
+          <div className="flex items-center gap-1.5 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-200">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider select-none">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-transparent border-none text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer p-0 pr-6"
+            >
+              <option value="name">Name</option>
+              <option value="orders">Total Orders</option>
+              <option value="spent">Total Spent</option>
+              <option value="city">City</option>
+            </select>
+            <button 
+              type="button" 
+              onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+              className="ml-1 text-[11px] font-extrabold text-primary hover:text-[#257310] transition-colors px-1"
+            >
+              {sortOrder === "asc" ? "▲" : "▼"}
+            </button>
+          </div>
         </div>
       </Card>
 
@@ -395,12 +589,20 @@ export default function CustomersPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
-                  <th className="p-4 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Customer Name & ID</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Contact Details</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">City</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Total Orders</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Total Spent</th>
-                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
+                  <th className="p-4 pl-6 text-[10px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors select-none" onClick={() => handleSortClick("name")}>
+                    Customer Name & ID {sortBy === "name" && (sortOrder === "asc" ? " ▲" : " ▼")}
+                  </th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider select-none">Contact Details</th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors select-none" onClick={() => handleSortClick("city")}>
+                    City {sortBy === "city" && (sortOrder === "asc" ? " ▲" : " ▼")}
+                  </th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center cursor-pointer hover:text-primary transition-colors select-none" onClick={() => handleSortClick("orders")}>
+                    Total Orders {sortBy === "orders" && (sortOrder === "asc" ? " ▲" : " ▼")}
+                  </th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right cursor-pointer hover:text-primary transition-colors select-none" onClick={() => handleSortClick("spent")}>
+                    Total Spent {sortBy === "spent" && (sortOrder === "asc" ? " ▲" : " ▼")}
+                  </th>
+                  <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6 select-none">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

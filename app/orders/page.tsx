@@ -276,7 +276,7 @@ export default function SalesPage() {
   const [newOrderPhone, setNewOrderPhone] = useState("");
   const [newOrderAddress, setNewOrderAddress] = useState("");
   const [newOrderPayment, setNewOrderPayment] = useState("UPI / Online");
-  const [newOrderItems, setNewOrderItems] = useState([{ product: "", qty: 1, price: 0 }]);
+  const [newOrderItems, setNewOrderItems] = useState<any[]>([]);
   const [dbProducts, setDbProducts] = useState<any[]>([]);
   const [dbCustomers, setDbCustomers] = useState<any[]>([]);
 
@@ -360,7 +360,7 @@ export default function SalesPage() {
             }
           });
       } else {
-        setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+        setNewOrderItems([]);
       }
       
       setShippingType("free");
@@ -695,7 +695,7 @@ export default function SalesPage() {
       setNewOrderPhone("");
       setNewOrderAddress("");
       setNewOrderPayment("UPI / Online");
-      setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+      setNewOrderItems([]);
       setShippingType("free");
       setShippingFee(0);
       setShippingCost(0);
@@ -813,7 +813,7 @@ export default function SalesPage() {
             setNewOrderPhone("");
             setNewOrderAddress("");
             setNewOrderPayment("UPI / Online");
-            setNewOrderItems([{ product: "", qty: 1, price: 0 }]);
+            setNewOrderItems([]);
             setShippingType("free");
             setShippingFee(0);
             setShippingCost(0);
@@ -1277,35 +1277,23 @@ export default function SalesPage() {
                         <div key={idx} className="relative py-4 border-b border-slate-100 flex flex-col gap-3 animate-in slide-in-from-top-1 min-w-0 w-full last:border-b-0 last:pb-0">
                           {/* Header Info Row */}
                           <div className="flex items-start justify-between gap-2.5 min-w-0 pr-8">
-                            {item.product ? (
-                              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                                {dbProducts.find(p => p.name === item.product)?.image_url ? (
-                                  <img 
-                                    src={dbProducts.find(p => p.name === item.product)?.image_url} 
-                                    alt={item.product} 
-                                    className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0 animate-in fade-in"
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-extrabold shrink-0">No Img</div>
-                                )}
-                                <div className="flex-1 min-w-0 text-left">
-                                  <p className="text-xs font-bold text-gray-800 break-words line-clamp-2 leading-tight pr-6">{item.product}</p>
-                                  <p className="text-[10px] text-gray-400 font-semibold mt-0.5 leading-none">
-                                    Stock: <span className="text-gray-500 font-bold">{dbProducts.find(p => p.name === item.product)?.stock ?? 0} units</span>
-                                  </p>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex-1 min-w-0">
-                                <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-1">Select Custom Product</label>
-                                <Select 
-                                  options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Stock: ${p.stock ?? 0} units` }))}
-                                  value={item.product}
-                                  onChange={(val) => handleItemChange(idx, 'product', val)}
-                                  placeholder="Choose product..."
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                              {dbProducts.find(p => p.name === item.product)?.image_url ? (
+                                <img 
+                                  src={dbProducts.find(p => p.name === item.product)?.image_url} 
+                                  alt={item.product} 
+                                  className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0 animate-in fade-in"
                                 />
+                              ) : (
+                                <div className="w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-extrabold shrink-0">No Img</div>
+                              )}
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-xs font-bold text-gray-800 break-words line-clamp-2 leading-tight pr-6">{item.product}</p>
+                                <p className="text-[10px] text-gray-400 font-semibold mt-0.5 leading-none">
+                                  Stock: <span className="text-gray-500 font-bold">{dbProducts.find(p => p.name === item.product)?.stock ?? 0} units</span>
+                                </p>
                               </div>
-                            )}
+                            </div>
 
                             <button 
                               type="button" 
@@ -1364,14 +1352,10 @@ export default function SalesPage() {
                       ))
                     ) : (
                       <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl">
-                        <p className="text-xs text-gray-400 font-medium italic">No products added. Select products above or add a custom row.</p>
+                        <p className="text-xs text-gray-400 font-medium italic">No products added. Select products above to get started.</p>
                       </div>
                     )}
                   </div>
-                  
-                  <Button type="button" variant="outline" className="w-full text-xs font-bold py-2 border-dashed border-gray-300 hover:border-primary hover:text-primary transition-all animate-none" onClick={handleAddItem}>
-                    + Add Custom Item Row
-                  </Button>
                 </div>
                 
                 <div className="pt-4 flex justify-between items-center gap-3">
@@ -1634,35 +1618,23 @@ export default function SalesPage() {
                         <div key={idx} className="relative py-4 border-b border-slate-100 flex flex-col gap-3 animate-in slide-in-from-top-1 min-w-0 w-full last:border-b-0 last:pb-0">
                           {/* Header Info Row */}
                           <div className="flex items-start justify-between gap-2.5 min-w-0 pr-8">
-                            {item.product ? (
-                              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                                {dbProducts.find(p => p.name === item.product)?.image_url ? (
-                                  <img 
-                                    src={dbProducts.find(p => p.name === item.product)?.image_url} 
-                                    alt={item.product} 
-                                    className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0 animate-in fade-in"
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-extrabold shrink-0">No Img</div>
-                                )}
-                                <div className="flex-1 min-w-0 text-left">
-                                  <p className="text-xs font-bold text-gray-800 break-words line-clamp-2 leading-tight pr-6">{item.product}</p>
-                                  <p className="text-[10px] text-gray-400 font-semibold mt-0.5 leading-none">
-                                    Stock: <span className="text-gray-500 font-bold">{dbProducts.find(p => p.name === item.product)?.stock ?? 0} units</span>
-                                  </p>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex-1 min-w-0">
-                                <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-1">Select Custom Product</label>
-                                <Select 
-                                  options={dbProducts.map(p => ({ label: p.name, image: p.image_url, sublabel: `Stock: ${p.stock ?? 0} units` }))}
-                                  value={item.product}
-                                  onChange={(val) => handleItemChange(idx, 'product', val)}
-                                  placeholder="Choose product..."
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                              {dbProducts.find(p => p.name === item.product)?.image_url ? (
+                                <img 
+                                  src={dbProducts.find(p => p.name === item.product)?.image_url} 
+                                  alt={item.product} 
+                                  className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm shrink-0 animate-in fade-in"
                                 />
+                              ) : (
+                                <div className="w-10 h-10 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400 font-extrabold shrink-0">No Img</div>
+                              )}
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className="text-xs font-bold text-gray-800 break-words line-clamp-2 leading-tight pr-6">{item.product}</p>
+                                <p className="text-[10px] text-gray-400 font-semibold mt-0.5 leading-none">
+                                  Stock: <span className="text-gray-500 font-bold">{dbProducts.find(p => p.name === item.product)?.stock ?? 0} units</span>
+                                </p>
                               </div>
-                            )}
+                            </div>
 
                             <button 
                               type="button" 
@@ -1721,14 +1693,10 @@ export default function SalesPage() {
                       ))
                     ) : (
                       <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl">
-                        <p className="text-xs text-gray-400 font-medium italic">No products added. Select products above or add a custom row.</p>
+                        <p className="text-xs text-gray-400 font-medium italic">No products added. Select products above to get started.</p>
                       </div>
                     )}
                   </div>
-                  
-                  <Button type="button" variant="outline" className="w-full text-xs font-bold py-2 border-dashed border-gray-300 hover:border-primary hover:text-primary transition-all animate-none" onClick={handleAddItem}>
-                    + Add Custom Item Row
-                  </Button>
                 </div>
                 
                 <div className="pt-4 flex justify-between items-center gap-3">
