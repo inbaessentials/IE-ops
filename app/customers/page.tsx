@@ -87,7 +87,15 @@ export default function CustomersPage() {
     const saved = localStorage.getItem("inba_customers_module");
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        let parsed = JSON.parse(saved);
+        // Automatically purge old mock customers
+        const mockIds = ["CUST-001", "CUST-002", "CUST-003", "CUST-004", "CUST-005", "CUST-006"];
+        parsed = parsed.filter((c: any) => !mockIds.includes(c.id));
+        
+        if (parsed.length !== JSON.parse(saved).length) {
+          localStorage.setItem("inba_customers_module", JSON.stringify(parsed));
+        }
+
         const mapped = parsed.map((c: any) => ({
           ...c,
           shippingAddress: c.shippingAddress || c.notes || "No address provided."
