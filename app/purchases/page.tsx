@@ -646,44 +646,59 @@ export default function PurchasesPage() {
         <>
           {/* Dynamic Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <KpiCard 
-              title={`Total ${getModuleProp('Purchases', 'displayName')}`}
-              value={purchaseOrders.length}
-              icon={<FileText />}
-              iconBgClass="bg-blue-50"
-              iconTextClass="text-blue-600"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("All");
-              }}
-            />
-            <KpiCard 
-              title="Total Spend"
-              value={`₹${purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString("en-IN")}`}
-              icon={<DollarSign />}
-              iconBgClass="bg-indigo-50"
-              iconTextClass="text-indigo-600"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("All");
-              }}
-            />
-            <KpiCard 
-              title="Pending Actions"
-              value={purchaseOrders.filter(o => o.status !== "Received").length}
-              valueClass="text-amber-600"
-              icon={<Clock />}
-              iconBgClass="bg-amber-50"
-              iconTextClass="text-amber-600"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("Pending");
-              }}
-            />
+            <div
+              className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 rounded-xl p-5 cursor-pointer transition-all group"
+              onClick={() => { setSearchTerm(""); setStatusFilter("All"); }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{`Total ${getModuleProp('Purchases', 'displayName')}`}</p>
+                  <h3 className="text-2xl font-bold tracking-tight text-gray-900 mt-1">{purchaseOrders.length}</h3>
+                  <p className="text-xs text-gray-400 mt-1 font-medium">All purchase orders</p>
+                </div>
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
+                  <FileText className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+            <div
+              className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-100 rounded-xl p-5 cursor-pointer transition-all group"
+              onClick={() => { setSearchTerm(""); setStatusFilter("All"); }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
+                  <h3 className="text-2xl font-bold tracking-tight text-indigo-600 mt-1">
+                    ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString("en-IN")}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1 font-medium">Cumulative PO value</p>
+                </div>
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-100 transition-colors">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+            <div
+              className="bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-amber-100 rounded-xl p-5 cursor-pointer transition-all group"
+              onClick={() => { setSearchTerm(""); setStatusFilter("Pending"); }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending Actions</p>
+                  <h3 className="text-2xl font-bold tracking-tight text-amber-600 mt-1">
+                    {purchaseOrders.filter(o => o.status !== "Received").length}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1 font-medium">Awaiting fulfillment</p>
+                </div>
+                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors">
+                  <Clock className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Main Listing Section */}
-          <Card className="p-4 border border-gray-100 mb-6 shadow-sm">
+          <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 mb-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="relative flex-1 w-full max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -692,7 +707,7 @@ export default function PurchasesPage() {
                   placeholder="Search by PO number, supplier, or notes..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-semibold"
+                  className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 font-medium"
                 />
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
@@ -707,9 +722,9 @@ export default function PurchasesPage() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
-          <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
+          <div className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-visible">
             {filteredOrders.length > 0 ? (
               <div className="overflow-x-auto min-h-[300px]">
                 <table className="w-full text-left border-collapse">
@@ -717,7 +732,7 @@ export default function PurchasesPage() {
                     <tr className="bg-gray-50/70 border-b border-gray-100">
                       {platform === "online-course" ? (
                         <>
-                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">Campaign Info & Date</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">Campaign Info &amp; Date</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Platform</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Spend</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-center">Leads</th>
@@ -727,7 +742,7 @@ export default function PurchasesPage() {
                         </>
                       ) : (
                         <>
-                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">PO ID & Date</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">PO ID &amp; Date</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Items Description</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
@@ -814,7 +829,7 @@ export default function PurchasesPage() {
                           <td className="p-4 text-sm text-gray-600 max-w-xs truncate font-medium" title={po.notes}>
                             {po.notes || <span className="text-gray-300 italic font-normal">No description</span>}
                           </td>
-                          <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">₹{po.amount.toLocaleString()}</td>
+                          <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">₹{po.amount.toLocaleString()}</td>
                           <td className="p-4 whitespace-nowrap">
                             <StatusDropdown 
                               value={po.status}
@@ -831,12 +846,38 @@ export default function PurchasesPage() {
                 </table>
               </div>
             ) : (
-              <div className="p-12 text-center text-gray-500 min-h-[220px] flex flex-col items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-gray-300 mb-2" />
-                <p className="text-sm font-medium">No purchase orders found matching your search filters.</p>
+              <div className="p-12 text-center min-h-[300px] flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <FileText className="w-8 h-8 text-blue-400" />
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
+                  {searchTerm || statusFilter !== "All" ? "No results found" : "No purchase orders yet"}
+                </h3>
+                <p className="text-sm text-gray-500 max-w-sm font-medium">
+                  {searchTerm || statusFilter !== "All"
+                    ? "Try adjusting your search filters to find what you're looking for."
+                    : `Create your first purchase order to track supplier deliveries and raw material costs.`
+                  }
+                </p>
+                {!searchTerm && statusFilter === "All" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSupplier(suppliers[0]?.name || "");
+                      setPoNotes("");
+                      setPoAmount("");
+                      setPoStatus("Ordered");
+                      setIsAddDrawerOpen(true);
+                    }}
+                    className="mt-5 inline-flex items-center gap-2 bg-[#2E8C13] hover:bg-[#257310] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Purchase Order
+                  </button>
+                )}
               </div>
             )}
-          </Card>
+          </div>
 
           {/* Create Purchase Order Drawer */}
           <Drawer isOpen={isAddDrawerOpen} onClose={() => setIsAddDrawerOpen(false)} title="Create Purchase Order">
