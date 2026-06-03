@@ -62,6 +62,42 @@ export default function InventoryPage() {
   };
   const toast = useToast();
 
+  const handleDeleteCategory = (catToDelete: string) => {
+    const confirmDelete = window.confirm(`Are you sure you want to delete the category "${catToDelete}"? Products in this category will become Uncategorized.`);
+    if (!confirmDelete) return;
+
+    const updated = categories.filter(c => c !== catToDelete);
+    setCategories(updated);
+    localStorage.setItem("inba_categories", JSON.stringify(updated.map(name => ({ name }))));
+    toast(`Category "${catToDelete}" deleted`, "success");
+    
+    // Update products in db
+    supabase.from('products').update({ category: "Uncategorized" }).eq('category', catToDelete).then(({ error }) => {
+       if (!error) fetchProducts();
+    });
+  };
+
+  const handleEditCategory = (oldName: string) => {
+    const newName = window.prompt("Enter new category name:", oldName);
+    if (!newName || !newName.trim() || newName.trim() === oldName) return;
+    const trimmed = newName.trim();
+    if (categories.includes(trimmed)) {
+      toast("Category name already exists", "error");
+      return;
+    }
+    const updated = categories.map(c => c === oldName ? trimmed : c);
+    setCategories(updated);
+    localStorage.setItem("inba_categories", JSON.stringify(updated.map(name => ({ name }))));
+    
+    // Update products in db
+    supabase.from('products').update({ category: trimmed }).eq('category', oldName).then(({ error }) => {
+      if (!error) {
+         fetchProducts();
+         toast(`Category renamed to "${trimmed}"`, "success");
+      }
+    });
+  };
+
   // Search & Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -983,24 +1019,34 @@ export default function InventoryPage() {
                       <h3 className="text-sm font-bold text-gray-900">{cat}</h3>
                       <p className="text-xs text-gray-500 font-semibold">{catProducts.length} items</p>
                     </div>
+                    <div className="flex items-center gap-1 ml-2">
+                      <button onClick={() => handleEditCategory(cat)} className="p-1.5 text-gray-400 hover:text-[#2E8C13] hover:bg-green-50 rounded-md transition-colors" title="Edit Category">
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDeleteCategory(cat)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Category">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Financial Metrics */}
                   <div className="hidden md:flex items-center gap-6 mr-6 ml-auto">
                       <div className="text-right">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Bought</p>
-                        <p className="font-bold text-sm text-gray-800">₹{catTotalBought.toLocaleString()}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Current Value</p>
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Value of items currently in stock">Stock Value</p>
                         <p className="font-bold text-sm text-gray-800">₹{catCurrentValue.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Sold</p>
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Total revenue from all sold items">Total Revenue</p>
                         <p className="font-bold text-sm text-gray-800">₹{catTotalSold.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Margin</p>
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Net profit (Revenue - Cost of Goods Sold)">Net Profit</p>
+                        <p className={`font-bold text-sm ${catProfit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                          {catProfit >= 0 ? "+" : ""}₹{catProfit.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Profit margin percentage">Margin</p>
                         <p className={`font-bold text-sm flex items-center justify-end gap-1 ${margin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                           {margin >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                           {margin.toFixed(1)}%
@@ -1028,9 +1074,8 @@ export default function InventoryPage() {
                         <tr className="bg-white border-b border-gray-100">
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Product Info</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Sold Out</th>
-                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stock / Ordered</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue / Profit</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -1077,15 +1122,21 @@ export default function InventoryPage() {
                                 ₹{product.price}
                               </td>
                               <td className="p-4 whitespace-nowrap text-sm">
-                                <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                                  {product.stock} units
+                                <span className={`font-bold ${product.stock <= 15 ? 'text-red-600' : 'text-gray-900'}`}>
+                                  {product.stock.toString().padStart(2, '0')}
+                                </span>
+                                <span className="text-gray-300 font-medium mx-1.5">/</span>
+                                <span className="font-bold text-gray-500">
+                                  {(product.stock + pQtySold).toString().padStart(2, '0')}
                                 </span>
                               </td>
-                              <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {pQtySold} units
-                              </td>
-                              <td className={`p-4 whitespace-nowrap text-sm font-bold ${pProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {pProfit >= 0 ? '+' : '-'}₹{Math.abs(pProfit).toLocaleString()}
+                              <td className="p-4 whitespace-nowrap text-sm">
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-gray-800">₹{pRevenue.toLocaleString()}</span>
+                                  <span className={`text-[11px] font-bold mt-0.5 ${pProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    {pProfit >= 0 ? '+' : '-'}₹{Math.abs(pProfit).toLocaleString()}
+                                  </span>
+                                </div>
                               </td>
                               <td className="p-4 whitespace-nowrap">
                                 <Badge
