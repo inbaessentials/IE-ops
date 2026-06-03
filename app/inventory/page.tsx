@@ -1032,8 +1032,12 @@ export default function InventoryPage() {
                   {/* Financial Metrics */}
                   <div className="hidden md:flex items-center gap-6 mr-6 ml-auto">
                       <div className="text-right">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Value of items currently in stock">Stock Value</p>
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Value of items currently in stock">Current Stock Value</p>
                         <p className="font-bold text-sm text-gray-800">₹{catCurrentValue.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Total investment in all stock (current + sold)">Total Purchase</p>
+                        <p className="font-bold text-sm text-gray-800">₹{catTotalBought.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5" title="Total revenue from all sold items">Total Revenue</p>
