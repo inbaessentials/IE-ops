@@ -120,6 +120,7 @@ export default function InventoryPage() {
   const [bulkEditLoading, setBulkEditLoading] = useState(false);
 
   const [allOrderItems, setAllOrderItems] = useState<any[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
 
   const fetchProducts = async () => {
     const { data, error } = await supabase.from('products').select('*').order('display_id', { ascending: true });
@@ -144,6 +145,13 @@ export default function InventoryPage() {
         const parsed = JSON.parse(saved);
         const list = parsed.map((c: any) => c.name);
         setCategories(list);
+      } catch (e) {}
+    }
+
+    const savedPOs = localStorage.getItem("inba_purchases");
+    if (savedPOs) {
+      try {
+        setPurchaseOrders(JSON.parse(savedPOs));
       } catch (e) {}
     }
   }, []);
@@ -1000,10 +1008,14 @@ export default function InventoryPage() {
               }, 0);
               
               catCurrentValue += (Number(p.purchase_price) || 0) * (Number(p.stock) || 0);
-              catTotalBought += (Number(p.purchase_price) || 0) * ((Number(p.stock) || 0) + pQtySold);
               catTotalSold += pRevenue;
               catCogs += (Number(p.purchase_price) || 0) * pQtySold;
             });
+
+            // Calculate actual total purchase from POs for this category
+            catTotalBought = purchaseOrders
+              .filter(po => po.category === cat)
+              .reduce((sum, po) => sum + (Number(po.amount) || 0), 0);
             
             const catProfit = catTotalSold - catCogs;
             const margin = catCogs > 0 ? (catProfit / catCogs) * 100 : (catTotalSold > 0 ? 100 : 0);
