@@ -790,7 +790,7 @@ export default function PurchasesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{`Total ${getModuleProp('Purchases', 'displayName')}`}</p>
-                  <h3 className="text-2xl font-bold tracking-tight text-gray-900 mt-1">{purchaseOrders.length}</h3>
+                  <h3 className="text-2xl font-bold tracking-tight text-gray-900 mt-1">{filteredOrders.length}</h3>
                   <p className="text-xs text-gray-400 mt-1 font-medium">All purchase orders</p>
                 </div>
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
@@ -806,7 +806,7 @@ export default function PurchasesPage() {
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Total Spend</p>
                   <h3 className="text-2xl font-bold tracking-tight text-indigo-600 mt-1">
-                    ₹{purchaseOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString("en-IN")}
+                    ₹{filteredOrders.reduce((sum, o) => sum + o.amount, 0).toLocaleString("en-IN")}
                   </h3>
                   <p className="text-xs text-gray-400 mt-1 font-medium">Cumulative PO value</p>
                 </div>
@@ -823,7 +823,7 @@ export default function PurchasesPage() {
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Pending Actions</p>
                   <h3 className="text-2xl font-bold tracking-tight text-amber-600 mt-1">
-                    {purchaseOrders.filter(o => o.status !== "Received").length}
+                    {filteredOrders.filter(o => o.status !== "Received").length}
                   </h3>
                   <p className="text-xs text-gray-400 mt-1 font-medium">Awaiting fulfillment</p>
                 </div>
