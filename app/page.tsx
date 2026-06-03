@@ -174,7 +174,21 @@ export default function Dashboard() {
   });
   totalExpensesSum += totalShippingCost;
 
-  const grossProfitSum = totalSalesSum - totalExpensesSum;
+  let grossProfitSum = totalSalesSum;
+  if (categoryFilter === "All") {
+    grossProfitSum -= totalExpensesSum;
+  } else {
+    // For specific category, subtract the cost of goods sold (COGS) instead of total general expenses
+    let cogsSum = 0;
+    filteredOrderItems.forEach(item => {
+      const pName = (item.name || "").trim().toLowerCase();
+      const product = rawProducts.find(p => (p.name || "").trim().toLowerCase() === pName);
+      const cost = product ? Number(product.purchase_price) || 0 : 0;
+      cogsSum += cost * (item.qty || 1);
+    });
+    grossProfitSum -= cogsSum;
+  }
+  
   const netProfitSum = grossProfitSum;
   const marginPct = totalSalesSum > 0 ? (netProfitSum / totalSalesSum) * 100 : 0;
   const aovValue = filteredOrders.length > 0 ? totalSalesSum / filteredOrders.length : 0;
@@ -184,6 +198,8 @@ export default function Dashboard() {
   // Calculate overall Total Purchase Value (base investment)
   let totalPurchaseValueSum = 0;
   rawProducts.forEach(p => {
+    if (categoryFilter !== "All" && p.category !== categoryFilter) return;
+    
     const pName = (p.name || "").trim().toLowerCase();
     const purchasePrice = Number(p.purchase_price) || 0;
     const stock = Number(p.stock) || 0;

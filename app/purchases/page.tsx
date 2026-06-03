@@ -104,6 +104,7 @@ interface PurchaseOrder {
   amount: number;
   status: "Ordered" | "Pending" | "Received";
   date: string;
+  category?: string;
 }
 
 export default function PurchasesPage() {
@@ -115,6 +116,7 @@ export default function PurchasesPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
   
   // Add Supplier states
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
@@ -161,6 +163,7 @@ export default function PurchasesPage() {
   const [poNotes, setPoNotes] = useState("");
   const [poAmount, setPoAmount] = useState("");
   const [poStatus, setPoStatus] = useState<"Ordered" | "Pending" | "Received">("Ordered");
+  const [poCategory, setPoCategory] = useState("General");
   const [editingPo, setEditingPo] = useState<PurchaseOrder | null>(null);
 
   const loadCoupons = () => {
@@ -247,6 +250,14 @@ export default function PurchasesPage() {
     loadSuppliers();
     loadPurchaseOrders();
     loadCoupons();
+    
+    const savedCats = localStorage.getItem("inba_categories");
+    if (savedCats) {
+      setCategories(JSON.parse(savedCats).map((c: any) => c.name));
+    } else {
+      setCategories(["Uncategorized", "General"]);
+    }
+
     if (platform !== "online-course") {
       fetchSupplierAnalytics();
     }
@@ -414,7 +425,8 @@ export default function PurchasesPage() {
       notes: poNotes,
       amount: parseFloat(poAmount),
       status: poStatus,
-      date: new Date().toISOString().split("T")[0]
+      date: new Date().toISOString().split("T")[0],
+      category: poCategory
     };
 
     const updated = [newPO, ...purchaseOrders];
@@ -426,6 +438,7 @@ export default function PurchasesPage() {
     setPoNotes("");
     setPoAmount("");
     setPoStatus("Ordered");
+    setPoCategory("General");
     
     setIsAddDrawerOpen(false);
     toast(`Purchase Order ${nextPoNum} created successfully!`, "success");
@@ -438,6 +451,7 @@ export default function PurchasesPage() {
     setPoNotes(po.notes);
     setPoAmount(po.amount.toString());
     setPoStatus(po.status);
+    setPoCategory(po.category || "General");
     setIsEditDrawerOpen(true);
   };
 
@@ -461,7 +475,8 @@ export default function PurchasesPage() {
           supplier: selectedSupplier,
           notes: poNotes,
           amount: parseFloat(poAmount),
-          status: poStatus
+          status: poStatus,
+          category: poCategory
         };
       }
       return o;
@@ -958,8 +973,15 @@ export default function PurchasesPage() {
                               <span className="font-semibold text-primary">{po.supplier}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-sm text-gray-600 max-w-xs truncate font-medium" title={po.notes}>
-                            {po.notes || <span className="text-gray-300 italic font-normal">No description</span>}
+                          <td className="p-4 text-sm text-gray-600 max-w-xs font-medium" title={po.notes}>
+                            <div className="flex flex-col gap-1.5 items-start">
+                              <span className="truncate w-full">{po.notes || <span className="text-gray-300 italic font-normal">No description</span>}</span>
+                              {po.category && (
+                                <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-[10px] font-bold tracking-wide">
+                                  {po.category}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-semibold">₹{po.amount.toLocaleString()}</td>
                           <td className="p-4 whitespace-nowrap">
@@ -1047,6 +1069,19 @@ export default function PurchasesPage() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Category</label>
+                  <select 
+                    value={poCategory}
+                    onChange={(e) => setPoCategory(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+                  >
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">Total Cost (₹)</label>
                   <input 
                     required 
@@ -1116,6 +1151,19 @@ export default function PurchasesPage() {
                       placeholder="List purchased materials, packaging units, restock details..."
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-1">Category</label>
+                    <select 
+                      value={poCategory}
+                      onChange={(e) => setPoCategory(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-gray-900 bg-white font-medium"
+                    >
+                      {categories.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
