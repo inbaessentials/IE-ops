@@ -20,12 +20,18 @@ import {
   Clock, 
   AlertCircle,
   ChevronDown,
-  Check
+  Check,
+  TrendingUp,
+  Package,
+  Activity,
+  ArrowUpRight,
+  TrendingDown
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
 import { usePlatform } from "@/lib/PlatformContext";
 import { DropdownMenu } from "@/components/ui/Dropdown";
+import { supabase } from "@/lib/supabase";
 
 const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
   Received: { bg: "bg-emerald-50/80", text: "text-emerald-700", border: "border-emerald-200", dot: "bg-emerald-500" },
@@ -111,6 +117,10 @@ export default function PurchasesPage() {
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // Tab State for Purchases
+  const [purchasesTab, setPurchasesTab] = useState<"orders" | "suppliers">("orders");
+  const [supplierAnalytics, setSupplierAnalytics] = useState<any[]>([]);
 
   // Coupon Offer Management States (Module 6)
   interface Coupon {
@@ -228,7 +238,78 @@ export default function PurchasesPage() {
     loadSuppliers();
     loadPurchaseOrders();
     loadCoupons();
+    if (platform !== "online-course") {
+      fetchSupplierAnalytics();
+    }
   }, [platform]); // Reload on platform change!
+
+  const fetchSupplierAnalytics = async () => {
+    try {
+      // 1. Fetch products and order items
+      const { data: productsData } = await supabase.from("products").select("name, category, price, purchase_price");
+      const { data: orderItemsData } = await supabase.from("order_items").select("product_name, quantity, price");
+      
+      const prods = productsData || [];
+      const items = orderItemsData || [];
+      
+      // Load current POs from localStorage
+      const savedPOs = localStorage.getItem("inba_purchases");
+      const currentPOs: PurchaseOrder[] = savedPOs ? JSON.parse(savedPOs) : [];
+      
+      // Load suppliers
+      const savedSuppliers = localStorage.getItem("inba_suppliers");
+      const currentSuppliers = savedSuppliers ? JSON.parse(savedSuppliers) : [
+        { id: 1, name: "Inba Organic Farms" },
+        { id: 2, name: "Vedic Botanicals" },
+        { id: 3, name: "Ganga Textiles & Oils" }
+      ];
+
+      // Build analytics per supplier
+      const analytics = currentSuppliers.map((supplier: any) => {
+        // Find POs for this supplier
+        const supplierPOs = currentPOs.filter(po => po.supplier === supplier.name);
+        const amountBought = supplierPOs.reduce((sum, po) => sum + po.amount, 0);
+        
+        // Map categories to suppliers (heuristic for demo insights)
+        let mappedCategories: string[] = [];
+        if (supplier.name.includes("Organic") || supplier.name.includes("Vedic")) {
+          mappedCategories = ["Herbal", "Wellness", "Organic"];
+        } else if (supplier.name.includes("Textiles")) {
+          mappedCategories = ["Clothing", "Textiles", "Accessories"];
+        } else {
+          mappedCategories = ["General", "Cosmetic", "Grocery"];
+        }
+        
+        // Find products matching these categories
+        const supplierProducts = prods.filter(p => mappedCategories.some(c => p.category?.includes(c) || p.name?.includes(c)));
+        const productNames = supplierProducts.map(p => p.name);
+        
+        // Calculate sales for these products
+        const supplierSales = items.filter(item => productNames.includes(item.product_name));
+        const qtySold = supplierSales.reduce((sum, item) => sum + item.quantity, 0);
+        const amountGained = supplierSales.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        
+        const percentageGained = amountBought > 0 ? ((amountGained - amountBought) / amountBought) * 100 : 0;
+        
+        // Aggregate things bought from PO notes or categories
+        const thingsBought = Array.from(new Set(supplierPOs.map(po => po.notes).filter(Boolean)));
+        
+        return {
+          ...supplier,
+          amountBought,
+          qtySold,
+          amountGained,
+          percentageGained,
+          thingsBought: thingsBought.length > 0 ? thingsBought : mappedCategories,
+          productsCount: supplierProducts.length
+        };
+      });
+      
+      setSupplierAnalytics(analytics);
+    } catch (err) {
+      console.error("Failed to fetch supplier analytics", err);
+    }
+  };
 
   const loadSuppliers = () => {
     if (platform === "online-course") {
