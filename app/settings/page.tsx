@@ -290,18 +290,22 @@ export default function SettingsPage() {
 
           {activeTab === "billing" && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+              <Card className="p-6 border border-gray-200 shadow-lg rounded-2xl bg-white text-gray-900">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-lg font-bold text-white mb-1">Current Plan</h2>
-                    <div className="text-3xl font-bold text-white my-4">Business Pro</div>
-                    <p className="text-sm text-gray-300">Active until Dec 31, 2026</p>
+                    <h2 className="text-lg font-bold text-gray-900 mb-1">Current Plan</h2>
+                    <div className="text-3xl font-bold text-gray-900 my-4">Business Pro</div>
+                    <p className="text-sm text-gray-500 font-medium">Active until Dec 31, 2026</p>
                   </div>
-                  <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Active</Badge>
+                  <Badge variant="default" className="bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm px-3 py-1">Active</Badge>
                 </div>
-                <div className="mt-8 pt-6 border-t border-gray-700 flex gap-3">
-                  <Button variant="primary" className="bg-[#2E8C13] hover:bg-[#257310] text-white border-none font-bold px-6 py-2.5 shadow-md transition-all duration-150">Upgrade Plan</Button>
-                  <Button variant="outline" className="bg-transparent text-gray-200 border-gray-600 hover:border-gray-400 hover:bg-white/10 hover:text-white font-semibold px-6 py-2.5 transition-all">Cancel Subscription</Button>
+                <div className="mt-8 pt-6 border-t border-gray-100 flex gap-4">
+                  <Button variant="primary" className="bg-[#2E8C13] hover:bg-[#257310] text-white border-none font-bold px-8 py-3 shadow-md transition-all duration-200 ring-2 ring-transparent hover:ring-[#2E8C13]/30">
+                    Upgrade Plan
+                  </Button>
+                  <Button variant="outline" className="bg-white text-rose-600 border-rose-200 hover:border-rose-300 hover:bg-rose-50 font-bold px-8 py-3 transition-all duration-200">
+                    Cancel Subscription
+                  </Button>
                 </div>
               </Card>
               
@@ -386,16 +390,19 @@ export default function SettingsPage() {
                         </body>
                         </html>
                       `;
-                      const blob = new Blob([invoiceHtml], { type: "text/html" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = "Invoice_INB-2026-001.html";
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      toast("Invoice downloaded successfully!", "success");
+                      const printWindow = window.open('', '_blank');
+                      if (printWindow) {
+                        printWindow.document.write(invoiceHtml);
+                        printWindow.document.close();
+                        printWindow.focus();
+                        // Delay print slightly to ensure styles are loaded
+                        setTimeout(() => {
+                          printWindow.print();
+                        }, 250);
+                      } else {
+                        toast("Popup blocked! Please allow popups for this site.", "error");
+                      }
+                      toast("Invoice ready for printing/saving!", "success");
                     }}
                     className="text-primary hover:underline font-semibold"
                   >

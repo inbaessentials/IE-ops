@@ -451,36 +451,7 @@ export default function ReportCharts() {
               <p className="text-xs text-gray-500 mt-1">Category split of product store income</p>
             </CardHeader>
             <CardContent className="p-6 flex flex-col justify-between h-[300px]">
-              <div className="h-[150px] w-full relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={productSalesData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={65}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {productSalesData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)" }}
-                      formatter={(v) => [`₹${Number(v).toLocaleString("en-IN")}`]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center">
-                  <span className="text-base font-bold tracking-tight text-gray-800">
-                    ₹{(totalProdRev/1000).toFixed(1)}k
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Total Sales</span>
-                </div>
-              </div>
-              
+
               <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50 text-[10px] font-bold">
                 {productSalesData.map((cat) => (
                   <div key={cat.name} className="flex items-center gap-1.5">

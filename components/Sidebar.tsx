@@ -79,17 +79,6 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold text-xs">
-            AD
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-secondary">Admin User</span>
-            <span className="text-xs text-gray-500">neemtreeapps@gmail.com</span>
-          </div>
-        </div>
-      </div>
     </aside>
   );
 }
