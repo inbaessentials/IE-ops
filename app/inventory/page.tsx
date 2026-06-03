@@ -38,6 +38,8 @@ export default function InventoryPage() {
   const [inventoryTab, setInventoryTab] = useState<"all" | "categories">("all");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [selectExistingProductForCat, setSelectExistingProductForCat] = useState<string | null>(null);
 
   const handleAddCategory = (newCatName: string) => {
     if (!newCatName.trim()) return;
@@ -968,19 +970,8 @@ export default function InventoryPage() {
               <p className="text-xs text-gray-500 mt-0.5">Manage and organize your products into custom categories.</p>
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Category name (e.g. Wellness)..."
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none text-gray-800 focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] transition-all font-medium min-w-[200px]"
-              />
               <Button
-                onClick={() => {
-                  if (!newCategoryName.trim()) return;
-                  handleAddCategory(newCategoryName);
-                  setNewCategoryName("");
-                }}
+                onClick={() => setIsAddCategoryModalOpen(true)}
                 className="gap-1.5 text-xs font-bold bg-[#2E8C13] hover:bg-[#257310]"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1021,7 +1012,7 @@ export default function InventoryPage() {
             const margin = catCogs > 0 ? (catProfit / catCogs) * 100 : (catTotalSold > 0 ? 100 : 0);
 
             return (
-              <Card key={cat} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
+              <Card key={cat} id={`category-${cat}`} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
                 <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center border border-green-100">
@@ -1071,15 +1062,32 @@ export default function InventoryPage() {
                   </div>
 
                   <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenAdd(cat)}
-                      className="gap-1.5 text-xs font-bold border-gray-200 hover:bg-gray-50"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add Product
-                    </Button>
+                    <div className="relative group">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs font-bold border-gray-200 hover:bg-gray-50 bg-white"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Product
+                        <ChevronDown className="w-3.5 h-3.5 ml-1" />
+                      </Button>
+                      <div className="absolute right-0 top-[calc(100%+4px)] w-48 bg-white border border-gray-100 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                        <button 
+                          onClick={() => setSelectExistingProductForCat(cat)} 
+                          className="block w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-[#2E8C13]"
+                        >
+                          Map Existing Product
+                        </button>
+                        <div className="h-px bg-gray-100 w-full" />
+                        <button 
+                          onClick={() => handleOpenAdd(cat)} 
+                          className="block w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-[#2E8C13]"
+                        >
+                          Create New Product
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1609,6 +1617,87 @@ export default function InventoryPage() {
         )}
       </Drawer>
 
+      {/* Modals for Category functionality */}
+      <Modal isOpen={isAddCategoryModalOpen} onClose={() => setIsAddCategoryModalOpen(false)} title="Add Category">
+        <div className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+            <input 
+              autoFocus 
+              type="text" 
+              placeholder="e.g. Wellness"
+              value={newCategoryName} 
+              onChange={e => setNewCategoryName(e.target.value)} 
+              onKeyDown={e => {
+                if (e.key === 'Enter' && newCategoryName.trim()) {
+                  handleAddCategory(newCategoryName);
+                  const nameToScroll = newCategoryName.trim();
+                  setNewCategoryName("");
+                  setIsAddCategoryModalOpen(false);
+                  setTimeout(() => {
+                    const el = document.getElementById(`category-${nameToScroll}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 200);
+                }
+              }}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] transition-all font-medium"
+            />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setIsAddCategoryModalOpen(false)}>Cancel</Button>
+            <Button 
+              variant="primary" 
+              onClick={() => {
+                if (!newCategoryName.trim()) return;
+                handleAddCategory(newCategoryName);
+                const nameToScroll = newCategoryName.trim();
+                setNewCategoryName("");
+                setIsAddCategoryModalOpen(false);
+                setTimeout(() => {
+                  const el = document.getElementById(`category-${nameToScroll}`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 200);
+              }}
+            >
+              Save Category
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={!!selectExistingProductForCat} onClose={() => setSelectExistingProductForCat(null)} title={`Map Product to ${selectExistingProductForCat}`}>
+        <div className="p-5 space-y-4">
+          <p className="text-xs text-gray-500 mb-2">Select a product to move it to the <strong className="text-gray-700">{selectExistingProductForCat}</strong> category.</p>
+          <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            {products.map(p => (
+              <div key={p.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-[#2E8C13]/30 hover:bg-green-50/30 transition-colors">
+                <div>
+                  <div className="font-semibold text-sm text-gray-900">{p.name}</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
+                    <Tag className="w-3 h-3" /> Currently: {p.category || "Uncategorized"}
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant={p.category === selectExistingProductForCat ? "outline" : "primary"}
+                  disabled={p.category === selectExistingProductForCat}
+                  onClick={async () => {
+                    const { error } = await supabase.from('products').update({ category: selectExistingProductForCat }).eq('id', p.id);
+                    if (!error) {
+                      toast(`Mapped ${p.name} to ${selectExistingProductForCat}`, "success");
+                      fetchProducts();
+                    }
+                  }}
+                  className={p.category === selectExistingProductForCat ? "opacity-50" : ""}
+                >
+                  {p.category === selectExistingProductForCat ? "Mapped" : "Select"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Modal>
+
       {/* Bulk Product Upload Modal */}
       {isBulkUploadOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
@@ -1741,7 +1830,7 @@ export default function InventoryPage() {
                         </div>
 
                         {/* Editable Form Fields Grid */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 w-full">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 w-full">
                           {/* Name Input */}
                           <div className="lg:col-span-2">
                             <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Product Name</label>
@@ -1803,27 +1892,30 @@ export default function InventoryPage() {
                             </div>
                           </div>
 
-                          {/* Stock Level Input & Availability */}
+                          {/* Stock Level Input */}
                           <div>
-                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Stock Level & Availability</label>
-                            <div className="flex items-center gap-1">
-                              <input 
-                                type="number" 
-                                required
-                                value={item.stock}
-                                onChange={(e) => handleEditBulkQueueItem(item.id, { stock: e.target.value })}
-                                className="w-2/5 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-center font-bold"
-                                placeholder="Qty"
-                              />
-                              <select
-                                value={item.status}
-                                onChange={(e) => handleEditBulkQueueItem(item.id, { status: e.target.value })}
-                                className="w-3/5 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-medium text-gray-800"
-                              >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                              </select>
-                            </div>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Stock Level</label>
+                            <input 
+                              type="number" 
+                              required
+                              value={item.stock}
+                              onChange={(e) => handleEditBulkQueueItem(item.id, { stock: e.target.value })}
+                              className="w-full min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none text-center font-bold"
+                              placeholder="Qty"
+                            />
+                          </div>
+
+                          {/* Availability / Status */}
+                          <div>
+                            <label className="block text-[10px] font-medium uppercase tracking-wider text-gray-400 mb-1">Availability</label>
+                            <select
+                              value={item.status}
+                              onChange={(e) => handleEditBulkQueueItem(item.id, { status: e.target.value })}
+                              className="w-full min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#2E8C13]/20 focus:border-[#2E8C13] outline-none font-medium text-gray-800"
+                            >
+                              <option value="Active">Active</option>
+                              <option value="Inactive">Inactive</option>
+                            </select>
                           </div>
                         </div>
 
