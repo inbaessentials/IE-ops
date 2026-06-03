@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import {
   Calendar as CalendarIcon,
   IndianRupee, 
@@ -28,7 +29,9 @@ import {
   Clock,
   ArrowRight,
   Plus,
-  BookOpen
+  BookOpen,
+  ArrowUpRight,
+  Package
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import DashboardCharts from "@/components/DashboardCharts";
@@ -329,35 +332,37 @@ export default function Dashboard() {
 
       <DashboardCharts categoryFilter={categoryFilter} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-        <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="border-b border-gray-50/50 pb-4">
+      {/* Bottom Section: Top Performers & Action Center */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Selling Inventory */}
+        <Card className="lg:col-span-2 overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white to-gray-50/50 relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <CardHeader className="border-b border-gray-100/60 pb-5 pt-6 px-6 relative z-10 bg-white/50 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-[#2E8C13]" />
+                <CardTitle className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-500 drop-shadow-sm" />
                   Top Selling {getModuleProp('Inventory', 'displayName')}
                 </CardTitle>
-                <p className="text-xs text-gray-500 mt-1">High demand {getModuleProp('Inventory', 'displayName').toLowerCase()} based on units sold</p>
+                <p className="text-sm text-gray-500 mt-1.5 font-medium">High demand products driving your revenue</p>
               </div>
-              <span className="text-[10px] font-bold bg-[#2E8C13]/10 text-[#2E8C13] px-2.5 py-1 rounded-full uppercase tracking-wider">
-                Active Performance
-              </span>
+              <Badge variant="default" className="bg-[#2E8C13]/10 text-[#2E8C13] border-[#2E8C13]/20 px-3 py-1 shadow-sm font-bold tracking-wide">
+                Active Leaders
+              </Badge>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 relative z-10">
             {topProducts.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/85 border-b border-gray-100 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <th className="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-12 text-center">Rank</th>
-                      <th className="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">{getModuleProp('Inventory', 'singularDisplayName')}</th>
-                      <th className="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                      <th className="py-3 px-4 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider w-40">Popularity Bar</th>
-                      <th className="py-3 px-4 text-center text-[10px] font-bold text-gray-500 uppercase tracking-wider">Units Sold</th>
-                      <th className="py-3 px-4 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Revenue</th>
-                      <th className="py-3 px-4 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Profit</th>
+                    <tr className="bg-white/80 border-b border-gray-100/60 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="py-4 px-6 text-center w-16">Rank</th>
+                      <th className="py-4 px-4">{getModuleProp('Inventory', 'singularDisplayName')}</th>
+                      <th className="py-4 px-4">Performance</th>
+                      <th className="py-4 px-4 text-center">Units</th>
+                      <th className="py-4 px-4 text-right">Revenue</th>
+                      <th className="py-4 px-6 text-right">Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-sm">
@@ -365,41 +370,45 @@ export default function Dashboard() {
                       const maxQty = topProducts[0]?.qty || 1;
                       return topProducts.map((prod, i) => {
                         const rankStyles = [
-                          "bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-500 text-white shadow-xs",
-                          "bg-gradient-to-br from-gray-200 via-slate-300 to-slate-400 text-slate-800",
-                          "bg-gradient-to-br from-orange-200 via-amber-600 to-amber-700 text-white",
+                          "bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-500 text-white shadow-md ring-2 ring-amber-100",
+                          "bg-gradient-to-br from-gray-200 via-slate-300 to-slate-400 text-slate-800 shadow-md ring-2 ring-slate-100",
+                          "bg-gradient-to-br from-orange-200 via-amber-600 to-amber-700 text-white shadow-md ring-2 ring-orange-100",
                         ];
                         const barWidthPct = Math.max(8, Math.round((prod.qty / maxQty) * 100));
                         
                         return (
-                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
-                            <td className="py-4 px-4 text-center">
-                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${
-                                i < 3 ? rankStyles[i] : "bg-gray-100 text-gray-500"
+                          <tr key={i} className="hover:bg-white transition-all duration-300 group">
+                            <td className="py-5 px-6 text-center">
+                              <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-sm ${
+                                i < 3 ? rankStyles[i] : "bg-gray-100 text-gray-500 font-semibold"
                               }`}>
                                 {i + 1}
                               </span>
                             </td>
-                            <td className="py-4 px-4 font-semibold text-gray-900 group-hover:text-[#2E8C13] transition-colors">{prod.name}</td>
-                            <td className="py-4 px-4">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-100 shadow-3xs">
-                                {prod.category}
-                              </span>
+                            <td className="py-5 px-4">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-gray-900 group-hover:text-[#2E8C13] transition-colors line-clamp-1">{prod.name}</span>
+                                <span className="text-[10px] font-semibold text-gray-400 mt-0.5">{prod.category}</span>
+                              </div>
                             </td>
-                            <td className="py-4 px-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <td className="py-5 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-24 bg-gray-100 rounded-full h-1.5 overflow-hidden shadow-inner">
                                   <div 
-                                    className="bg-gradient-to-r from-[#2E8C13] to-emerald-400 h-full rounded-full transition-all duration-500" 
+                                    className="bg-gradient-to-r from-[#2E8C13] to-emerald-400 h-full rounded-full transition-all duration-1000 ease-out" 
                                     style={{ width: `${barWidthPct}%` }}
                                   />
                                 </div>
-                                <span className="text-[10px] font-semibold text-gray-400 min-w-8">{barWidthPct}%</span>
+                                <span className="text-xs font-bold text-gray-400 min-w-8">{barWidthPct}%</span>
                               </div>
                             </td>
-                            <td className="py-4 px-4 text-center font-bold text-gray-700">{prod.qty}</td>
-                            <td className="py-4 px-4 text-right font-semibold text-gray-900">₹{prod.revenue.toLocaleString("en-IN")}</td>
-                            <td className="py-4 px-4 text-right font-bold text-[#2E8C13]">₹{prod.margin.toLocaleString("en-IN")}</td>
+                            <td className="py-5 px-4 text-center font-bold text-gray-700">
+                              <div className="bg-gray-50 inline-flex px-2 py-1 rounded-md border border-gray-100">
+                                {prod.qty}
+                              </div>
+                            </td>
+                            <td className="py-5 px-4 text-right font-semibold text-gray-900">₹{prod.revenue.toLocaleString("en-IN")}</td>
+                            <td className="py-5 px-6 text-right font-bold text-[#2E8C13]">₹{prod.margin.toLocaleString("en-IN")}</td>
                           </tr>
                         );
                       });
@@ -408,57 +417,61 @@ export default function Dashboard() {
                 </table>
               </div>
             ) : (
-              <div className="p-8 text-center text-sm text-gray-400 font-medium">
-                No selling {getModuleProp('Inventory', 'displayName').toLowerCase()} found in this range.
+              <div className="p-12 flex flex-col items-center justify-center text-gray-400">
+                <Package className="w-10 h-10 mb-3 text-gray-200" />
+                <p className="text-sm font-semibold">No selling {getModuleProp('Inventory', 'displayName').toLowerCase()} found</p>
               </div>
             )}
           </CardContent>
         </Card>
  
-        <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader className="border-b border-gray-50/50 pb-4">
+        {/* Action Center */}
+        <Card className="overflow-hidden border-0 shadow-lg bg-white relative">
+          <CardHeader className="border-b border-gray-100/60 pb-5 pt-6 px-6 bg-gradient-to-r from-red-50/50 to-white">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                {getModuleProp('Inventory', 'singularDisplayName')} Action Center
+              <CardTitle className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-rose-500 drop-shadow-sm" />
+                Action Center
               </CardTitle>
               {lowStockItems.length > 0 && (
-                <span className="animate-pulse w-2 h-2 rounded-full bg-red-500"></span>
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Critical low stock {getModuleProp('Inventory', 'displayName').toLowerCase()} needing immediate attention</p>
+            <p className="text-sm text-gray-500 mt-1.5 font-medium">Critical low stock requiring attention</p>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-5">
             {lowStockItems.length > 0 ? (
-              <div className="divide-y divide-gray-100">
+              <div className="space-y-4">
                 {lowStockItems.map((prod, i) => {
                   const stockCount = prod.stock || 0;
                   const isCritical = stockCount <= 2;
                   const progressPct = Math.min(100, Math.max(5, (stockCount / 10) * 100));
                   
                   return (
-                    <div key={i} className="p-4 flex flex-col gap-3 hover:bg-gray-50/50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 leading-none">{prod.name}</h4>
-                          <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-50 text-gray-500 border border-gray-100">
-                            {prod.category || "Uncategorized"}
-                          </span>
+                    <div key={i} className={`p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${
+                      isCritical ? "bg-rose-50/30 border-rose-100 hover:border-rose-200" : "bg-amber-50/30 border-amber-100 hover:border-amber-200"
+                    }`}>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="pr-2">
+                          <h4 className="text-sm font-bold text-gray-900 leading-tight">{prod.name}</h4>
+                          <p className="text-[11px] font-semibold text-gray-500 mt-1">{prod.category || "Uncategorized"}</p>
                         </div>
-                        
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
-                          isCritical ? "bg-red-50 text-red-600 border border-red-100" : "bg-amber-50 text-amber-600 border border-amber-100"
+                        <Badge variant="default" className={`shrink-0 shadow-sm ${
+                          isCritical ? "bg-rose-100 text-rose-700 border-rose-200" : "bg-amber-100 text-amber-700 border-amber-200"
                         }`}>
                           {stockCount} left
-                        </span>
+                        </Badge>
                       </div>
                       
-                      <div className="flex items-center justify-between gap-4 mt-1">
+                      <div className="flex items-center justify-between gap-4 mt-2">
                         <div className="flex-1">
-                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="w-full bg-white rounded-full h-1.5 overflow-hidden shadow-inner border border-gray-100">
                             <div 
-                              className={`h-full rounded-full transition-all duration-300 ${
-                                isCritical ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-amber-500 to-yellow-400"
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                isCritical ? "bg-gradient-to-r from-rose-500 to-rose-400" : "bg-gradient-to-r from-amber-500 to-yellow-400"
                               }`} 
                               style={{ width: `${progressPct}%` }}
                             />
@@ -466,7 +479,7 @@ export default function Dashboard() {
                         </div>
                         
                         <Link href="/inventory" className="shrink-0">
-                          <Button size="sm" variant="outline" className="border-emerald-200 text-[#2E8C13] hover:bg-emerald-50 hover:text-emerald-800 text-[11px] px-3.5 py-1 h-auto rounded-full font-bold transition-all shadow-3xs flex items-center gap-1">
+                          <Button size="sm" className="bg-white text-gray-900 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-[11px] px-4 py-1.5 h-auto rounded-lg font-bold shadow-sm flex items-center gap-1.5 transition-all">
                             <Plus className="w-3 h-3" /> Restock
                           </Button>
                         </Link>
@@ -476,8 +489,12 @@ export default function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="p-8 text-center text-sm text-gray-400 font-medium">
-                All {getModuleProp('Inventory', 'displayName').toLowerCase()} in this category are healthy! 🎉
+              <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+                <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4 border border-emerald-100">
+                  <Package className="w-8 h-8 text-emerald-500" />
+                </div>
+                <h4 className="text-gray-900 font-bold mb-1">Inventory is Healthy</h4>
+                <p className="text-sm text-gray-500">No critical low stock alerts right now.</p>
               </div>
             )}
           </CardContent>
