@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/Toast";
 import { usePlatform } from "@/lib/PlatformContext";
 import { Badge } from "@/components/ui/Badge";
 import { DropdownMenu } from "@/components/ui/Dropdown";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
+import { Select } from "@/components/ui/Select";
 
 interface RefundRequest {
   id: string;
@@ -30,6 +32,7 @@ export default function ReturnsPage() {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [timeframe, setTimeframe] = useState("This Month");
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
 
   // Form Fields
@@ -203,8 +206,9 @@ export default function ReturnsPage() {
       r.refund_id.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === "All" || r.status === statusFilter;
+    const matchesDate = isDateInTimeframe(r.date, timeframe);
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const getDropdownItems = (ref: RefundRequest) => [
@@ -313,7 +317,16 @@ export default function ReturnsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 font-medium uppercase">Status:</span>
+            <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Timeframe:</span>
+            <div className="w-[140px]">
+              <Select
+                options={TIMEFRAME_OPTIONS}
+                value={timeframe}
+                onChange={setTimeframe}
+              />
+            </div>
+            <div className="w-[1px] h-6 bg-gray-200 hidden sm:block mx-1"></div>
+            <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}

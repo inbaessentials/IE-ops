@@ -33,11 +33,12 @@ import {
 import { supabase } from "@/lib/supabase";
 import DashboardCharts from "@/components/DashboardCharts";
 import { usePlatform } from "@/lib/PlatformContext";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
 
 
 export default function Dashboard() {
   const { config } = usePlatform();
-  const [dateRange, setDateRange] = useState("All time");
+  const [dateRange, setDateRange] = useState("This Month");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -87,35 +88,26 @@ export default function Dashboard() {
   // Helper date parsing and matching logic
   const now = new Date();
   
-  const isToday = (dateStr: string) => {
-    if (!dateStr) return false;
-    const d = new Date(dateStr);
-    return d.getDate() === now.getDate() &&
-           d.getMonth() === now.getMonth() &&
-           d.getFullYear() === now.getFullYear();
-  };
-
-  const isWithinDays = (dateStr: string, days: number) => {
-    if (!dateStr) return false;
-    const d = new Date(dateStr);
-    const diffTime = now.getTime() - d.getTime();
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    return diffDays <= days;
-  };
-
   // Filter Orders and Expenses by selected Date Range!
   let filteredOrders = rawOrders;
   let filteredExpenses = rawExpenses;
 
-  if (dateRange === "Today") {
-    filteredOrders = rawOrders.filter(o => isToday(o.created_at) || isToday(o.date));
-    filteredExpenses = rawExpenses.filter(e => isToday(e.date) || isToday(e.created_at));
-  } else if (dateRange === "Last 7 days") {
-    filteredOrders = rawOrders.filter(o => isWithinDays(o.created_at, 7) || isWithinDays(o.date, 7));
-    filteredExpenses = rawExpenses.filter(e => isWithinDays(e.date, 7) || isWithinDays(e.created_at, 7));
-  } else if (dateRange === "Last 30 days") {
-    filteredOrders = rawOrders.filter(o => isWithinDays(o.created_at, 30) || isWithinDays(o.date, 30));
-    filteredExpenses = rawExpenses.filter(e => isWithinDays(e.date, 30) || isWithinDays(e.created_at, 30));
+  if (dateRange === "Custom Date Range") {
+    if (startDate && endDate) {
+      const s = new Date(startDate).setHours(0,0,0,0);
+      const e = new Date(endDate).setHours(23,59,59,999);
+      filteredOrders = rawOrders.filter(o => {
+        const d = new Date(o.date || o.created_at).getTime();
+        return d >= s && d <= e;
+      });
+      filteredExpenses = rawExpenses.filter(exp => {
+        const d = new Date(exp.date || exp.created_at).getTime();
+        return d >= s && d <= e;
+      });
+    }
+  } else {
+    filteredOrders = rawOrders.filter(o => isDateInTimeframe(o.date || o.created_at, dateRange));
+    filteredExpenses = rawExpenses.filter(exp => isDateInTimeframe(exp.date || exp.created_at, dateRange));
   }
 
   // Generate categories from rawProducts dynamically
@@ -277,10 +269,9 @@ export default function Dashboard() {
             onChange={(e) => setDateRange(e.target.value)}
             className="bg-gray-50 border border-gray-200 text-sm font-medium text-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer hover:bg-gray-100 transition-colors"
           >
-            <option value="All time">All Time</option>
-            <option value="Today">Today</option>
-            <option value="Last 7 days">Last 7 Days</option>
-            <option value="Last 30 days">Last 30 Days</option>
+            {TIMEFRAME_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
             <option value="Custom Date Range">Custom Date Range</option>
           </select>
 

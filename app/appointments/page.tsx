@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { usePlatform } from "@/lib/PlatformContext";
 import { useToast } from "@/components/ui/Toast";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
+import { Select } from "@/components/ui/Select";
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -28,6 +30,7 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [timeframe, setTimeframe] = useState("This Month");
 
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [formPatientName, setFormPatientName] = useState("");
@@ -93,10 +96,10 @@ export default function AppointmentsPage() {
       const matchesSearch = a.patientName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "All" || a.status === statusFilter;
       // In queue view, only show today's appointments
-      const matchesDate = activeTab === "queue" ? a.date === todayStr : true;
+      const matchesDate = activeTab === "queue" ? a.date === todayStr : isDateInTimeframe(a.date, timeframe);
       return matchesSearch && matchesStatus && matchesDate;
     }).sort((a, b) => a.time.localeCompare(b.time));
-  }, [appointments, searchTerm, statusFilter, activeTab, todayStr]);
+  }, [appointments, searchTerm, statusFilter, activeTab, todayStr, timeframe]);
 
   if (platform !== "clinic") {
     return (
@@ -168,6 +171,19 @@ export default function AppointmentsPage() {
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+          {activeTab === "calendar" && (
+            <>
+              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Timeframe:</span>
+              <div className="w-[140px]">
+                <Select
+                  options={TIMEFRAME_OPTIONS}
+                  value={timeframe}
+                  onChange={setTimeframe}
+                />
+              </div>
+              <div className="w-[1px] h-6 bg-gray-200 hidden sm:block mx-1"></div>
+            </>
+          )}
           <span className="text-sm text-gray-500 font-medium">Status:</span>
           <select
             value={statusFilter}

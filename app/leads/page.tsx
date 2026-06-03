@@ -8,6 +8,8 @@ import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { usePlatform } from "@/lib/PlatformContext";
 import { useToast } from "@/components/ui/Toast";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
+import { Select } from "@/components/ui/Select";
 import { 
   Filter, Search, Plus, User, Phone, Mail, BookOpen, 
   Share2, Calendar, ClipboardList, Trash2, Edit, CheckCircle, AlertTriangle, 
@@ -150,6 +152,7 @@ export default function LeadCRM() {
   const [viewMode, setViewMode] = useState<"table">("table");
   const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState("All");
+  const [timeframe, setTimeframe] = useState("This Month");
   
   // Drawer States
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
@@ -356,9 +359,10 @@ export default function LeadCRM() {
         l.assignedTo.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCourse = courseFilter === "All" || l.course === courseFilter;
-      return matchesSearch && matchesCourse;
+      const matchesDate = isDateInTimeframe(l.dateCreated, timeframe);
+      return matchesSearch && matchesCourse && matchesDate;
     });
-  }, [leads, searchTerm, courseFilter]);
+  }, [leads, searchTerm, courseFilter, timeframe]);
 
   // Dashboard calculations
   const stats = useMemo(() => {
@@ -480,7 +484,16 @@ export default function LeadCRM() {
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
-          <span className="text-sm text-gray-500 font-medium">Course filter:</span>
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Timeframe:</span>
+          <div className="w-[140px]">
+            <Select
+              options={TIMEFRAME_OPTIONS}
+              value={timeframe}
+              onChange={setTimeframe}
+            />
+          </div>
+          <div className="w-[1px] h-6 bg-gray-200 hidden sm:block mx-1"></div>
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Course filter:</span>
           <select
             value={courseFilter}
             onChange={(e) => setCourseFilter(e.target.value)}

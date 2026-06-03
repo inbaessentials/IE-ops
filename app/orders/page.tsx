@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
 import { usePlatform } from "@/lib/PlatformContext";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
 import { CourseSalesView } from "./CourseSalesView";
 
 const STATUS_COLORS: Record<string, { bg: string, text: string, border: string, dot: string }> = {
@@ -263,6 +264,7 @@ export default function SalesPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [timeframe, setTimeframe] = useState("This Month");
   const [viewingCustomerName, setViewingCustomerName] = useState<string | null>(null);
   
   // States for Courier & Tracking Info
@@ -737,12 +739,16 @@ export default function SalesPage() {
     }));
 
     let matchesDate = true;
-    const orderDateStr = order.created_at ? order.created_at.split('T')[0] : "";
-    if (startDate && orderDateStr && orderDateStr < startDate) {
-      matchesDate = false;
-    }
-    if (endDate && orderDateStr && orderDateStr > endDate) {
-      matchesDate = false;
+    if (timeframe === "Custom Date Range") {
+      const orderDateStr = order.created_at ? order.created_at.split('T')[0] : "";
+      if (startDate && orderDateStr && orderDateStr < startDate) {
+        matchesDate = false;
+      }
+      if (endDate && orderDateStr && orderDateStr > endDate) {
+        matchesDate = false;
+      }
+    } else {
+      matchesDate = isDateInTimeframe(order.date || order.created_at, timeframe);
     }
 
     return matchesSearch && matchesStatus && matchesCategory && matchesDate;
@@ -852,8 +858,7 @@ export default function SalesPage() {
               setSearchTerm("");
               setStatusFilter("All");
               setCategoryFilter("All");
-              setStartDate("");
-              setEndDate("");
+              setTimeframe("All Time");
             }}
           />
           <KpiCard 
@@ -867,8 +872,7 @@ export default function SalesPage() {
               setSearchTerm("");
               setStatusFilter("New");
               setCategoryFilter("All");
-              setStartDate("");
-              setEndDate("");
+              setTimeframe("All Time");
             }}
           />
           <KpiCard 
@@ -882,8 +886,7 @@ export default function SalesPage() {
               setSearchTerm("");
               setStatusFilter("Shipped");
               setCategoryFilter("All");
-              setStartDate("");
-              setEndDate("");
+              setTimeframe("All Time");
             }}
           />
           <KpiCard 
@@ -933,22 +936,33 @@ export default function SalesPage() {
               </div>
 
               {/* Date Range Inputs */}
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">From</span>
-                <input 
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
-                />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">To</span>
-                <input 
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
+              <div className="w-[145px] shrink-0">
+                <Select 
+                  options={[...TIMEFRAME_OPTIONS, "Custom Date Range"]}
+                  value={timeframe}
+                  onChange={setTimeframe}
+                  placeholder="Select timeframe"
                 />
               </div>
+
+              {timeframe === "Custom Date Range" && (
+                <div className="flex items-center gap-2 shrink-0 animate-in slide-in-from-left-3 duration-150">
+                  <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">From</span>
+                  <input 
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
+                  />
+                  <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">To</span>
+                  <input 
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-gray-900 cursor-pointer w-[120px]"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Clear & Export Buttons */}

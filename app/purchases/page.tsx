@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Select } from "@/components/ui/Select";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
 import { 
   Plus, 
   Search, 
@@ -124,6 +125,7 @@ export default function PurchasesPage() {
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [timeframe, setTimeframe] = useState("This Month");
 
   // Tab State for Purchases
   const [purchasesTab, setPurchasesTab] = useState<"orders" | "suppliers">("orders");
@@ -510,8 +512,9 @@ export default function PurchasesPage() {
       o.notes.toLowerCase().includes(searchTerm.toLowerCase());
       
     const matchesStatus = statusFilter === "All" || o.status === statusFilter;
+    const matchesDate = isDateInTimeframe(o.date || (o as any).created_at, timeframe);
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   return (
@@ -830,6 +833,16 @@ export default function PurchasesPage() {
                 />
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Timeframe:</span>
+                <div className="w-[150px]">
+                  <Select
+                    options={TIMEFRAME_OPTIONS}
+                    value={timeframe}
+                    onChange={setTimeframe}
+                    placeholder="Select timeframe"
+                  />
+                </div>
+                <div className="w-[1px] h-6 bg-gray-200 hidden sm:block mx-1"></div>
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status:</span>
                 <div className="w-[150px]">
                   <Select
@@ -1144,7 +1157,7 @@ export default function PurchasesPage() {
           <div className="space-y-6 mb-6">
             
             {supplierAnalytics.map((supplier) => {
-              const supplierPOs = purchaseOrders.filter(po => po.supplier === supplier.name);
+              const supplierPOs = purchaseOrders.filter(po => po.supplier === supplier.name && isDateInTimeframe(po.date || (po as any).created_at, timeframe));
               return (
                 <Card key={supplier.id} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
                   <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">

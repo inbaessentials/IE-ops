@@ -10,6 +10,8 @@ import {
 import ReportCharts from "@/components/ReportCharts";
 import { supabase } from "@/lib/supabase";
 import { usePlatform } from "@/lib/PlatformContext";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
+import { Select } from "@/components/ui/Select";
 
 export default function ReportsPage() {
   const { config } = usePlatform();
@@ -18,7 +20,7 @@ export default function ReportsPage() {
   };
 
 
-  const [timeframe, setTimeframe] = useState("Last 30 Days");
+  const [timeframe, setTimeframe] = useState("This Month");
   const [stats, setStats] = useState({
     totalRevenue: 0,
     netProfit: 0,
@@ -40,29 +42,35 @@ export default function ReportsPage() {
       const { data: orders } = await supabase.from("orders").select("*");
 
       // 2. Fetch Order Items
-      const { data: orderItems } = await supabase.from("order_items").select("name, qty, price");
+      const { data: orderItems } = await supabase.from("order_items").select("name, qty, price, order_id");
 
       // 3. Fetch Products (for purchase prices and categories)
       const { data: products } = await supabase.from("products").select("name, purchase_price, price, category");
 
       // 4. Fetch Expenses
-      const { data: expenses } = await supabase.from("expenses").select("amount, category");
+      const { data: expenses } = await supabase.from("expenses").select("amount, category, date, created_at");
+
+      const filteredOrders = orders?.filter(o => isDateInTimeframe(o.date || o.created_at, timeframe)) || [];
+      const filteredExpenses = expenses?.filter(e => isDateInTimeframe(e.date || e.created_at, timeframe)) || [];
+      
+      const filteredOrderIds = new Set(filteredOrders.map(o => o.id));
+      const filteredOrderItems = orderItems?.filter(item => filteredOrderIds.has(item.order_id)) || [];
 
       // Calculations
       let totalRevenueSum = 0;
-      orders?.forEach(o => {
+      filteredOrders.forEach(o => {
         const val = parseFloat((o.amount || "").replace(/[^0-9.]/g, ""));
         if (!isNaN(val)) totalRevenueSum += val;
       });
 
       let totalExpensesSum = 0;
-      expenses?.forEach(e => {
+      filteredExpenses.forEach(e => {
         totalExpensesSum += Number(e.amount || 0);
       });
 
       // Calculate actual shipping costs from orders
       let totalShippingCost = 0;
-      orders?.forEach(o => {
+      filteredOrders.forEach(o => {
         if (o.address) {
           const parts = o.address.split("\n\n--- SHIPPING & NOTES ---\n");
           if (parts[1]) {
@@ -89,7 +97,7 @@ export default function ReportsPage() {
 
       // Calculate Gross Profit from Sales
       let grossProfitSum = 0;
-      orderItems?.forEach(item => {
+      filteredOrderItems.forEach(item => {
         const prodName = (item.name || "").trim().toLowerCase();
         const matched = productCostMap[prodName];
         const purchasePrice = matched ? matched.purchasePrice : 0;
@@ -101,13 +109,13 @@ export default function ReportsPage() {
         grossProfitSum += itemProfit;
       });
 
-      const totalOrdersCount = orders?.length || 0;
+      const totalOrdersCount = filteredOrders.length;
       const netProfitSum = Math.max(0, grossProfitSum - totalExpensesSum);
       const avgAOV = totalOrdersCount > 0 ? (totalRevenueSum / totalOrdersCount) : 0;
 
       // Group Top Performing Products
       const productMap: Record<string, { name: string; units: number; revenue: number }> = {};
-      orderItems?.forEach(item => {
+      filteredOrderItems.forEach(item => {
         const name = item.name || "Unknown Product";
         const qty = item.qty || 0;
         const priceVal = parseFloat((item.price || "").replace(/[^0-9.]/g, ""));
@@ -135,7 +143,7 @@ export default function ReportsPage() {
 
       // Group Operating Cost Split
       const expenseMap: Record<string, number> = {};
-      expenses?.forEach(exp => {
+      filteredExpenses.forEach(exp => {
         const cat = exp.category || "Other";
         const amt = Number(exp.amount || 0);
         expenseMap[cat] = (expenseMap[cat] || 0) + amt;
@@ -157,7 +165,7 @@ export default function ReportsPage() {
 
       // Calculate Category-wise detailed performance
       const categoryPerfMap: Record<string, { name: string; units: number; revenue: number; cost: number; profit: number }> = {};
-      orderItems?.forEach(item => {
+      filteredOrderItems.forEach(item => {
         const prodName = (item.name || "").trim().toLowerCase();
         const matched = productCostMap[prodName];
         const cat = matched ? matched.category : "Uncategorized";
@@ -209,7 +217,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchReportData();
-  }, []);
+  }, [timeframe]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -277,21 +285,18 @@ export default function ReportsPage() {
           <p className="text-sm text-gray-500 mt-1">Real-time performance metrics, sales breakdowns, and cost details.</p>
         </div>
         
-        {/* Timeframe Filter Pills */}
-        <div className="flex items-center gap-3 self-start md:self-auto bg-gray-50 p-1.5 rounded-xl border border-gray-200/50">
-          {["Today", "Last 7 Days", "Last 30 Days", "Year to Date"].map((opt) => (
-            <button
-              key={opt}
-              onClick={() => setTimeframe(opt)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                timeframe === opt
-                  ? "bg-white text-gray-900 shadow-sm border border-gray-100"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+        {/* Timeframe Filter Dropdown */}
+        <div className="flex items-center gap-1.5 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-200">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider select-none">Timeframe:</span>
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value)}
+            className="bg-transparent border-none text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer p-0 pr-6"
+          >
+            {TIMEFRAME_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
         </div>
       </div>
 

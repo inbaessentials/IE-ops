@@ -12,6 +12,7 @@ import { Drawer } from "@/components/ui/Drawer";
 import { DropdownMenu } from "@/components/ui/Dropdown";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
 
 interface OrderItem {
   name: string;
@@ -62,6 +63,7 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [timeframe, setTimeframe] = useState("This Month");
   
   // Db tables states
   const [dbOrders, setDbOrders] = useState<any[]>([]);
@@ -256,6 +258,9 @@ export default function CustomersPage() {
     if (cityFilter !== "All") {
       result = result.filter(c => c.city === cityFilter);
     }
+
+    // Timeframe Filter
+    result = result.filter(c => isDateInTimeframe(c.joinedDate, timeframe) || isDateInTimeframe(c.lastPurchaseDate, timeframe));
 
     // Sorting
     result.sort((a, b) => {
@@ -543,6 +548,20 @@ export default function CustomersPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* Timeframe Filter */}
+          <div className="flex items-center gap-1.5 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-200">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider select-none">Timeframe:</span>
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+              className="bg-transparent border-none text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer p-0 pr-6"
+            >
+              {TIMEFRAME_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
           {/* City Filter */}
           <div className="flex items-center gap-1.5 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-200">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider select-none">City:</span>

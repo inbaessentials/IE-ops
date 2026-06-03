@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { usePlatform } from "@/lib/PlatformContext";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
+import { Select } from "@/components/ui/Select";
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   BarChart, Bar, PieChart, Pie, Cell
@@ -19,7 +21,7 @@ export default function AttendancePage() {
   const { platform } = usePlatform();
   const [attendance, setAttendance] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
-  const [activeView, setActiveView] = useState<"today" | "weekly" | "monthly">("today");
+  const [timeframe, setTimeframe] = useState("Today");
   const [searchQuery, setSearchQuery] = useState("");
   
   // Scanner states
@@ -311,19 +313,10 @@ export default function AttendancePage() {
         a.memberId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         a.trainer.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const todayStr = new Date().toISOString().split("T")[0];
-      const diff = Date.now() - new Date(a.date).getTime();
-      const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
-
-      if (activeView === "today") {
-        return matchesSearch && a.date === todayStr;
-      } else if (activeView === "weekly") {
-        return matchesSearch && diffDays <= 7;
-      } else {
-        return matchesSearch && diffDays <= 30;
-      }
+      const matchesDate = isDateInTimeframe(a.date, timeframe);
+      return matchesSearch && matchesDate;
     });
-  }, [attendance, activeView, searchQuery]);
+  }, [attendance, timeframe, searchQuery]);
 
   // Attendance metrics
   const stats = useMemo(() => {
@@ -592,31 +585,17 @@ export default function AttendancePage() {
             />
           </div>
 
-          <div className="bg-gray-100 p-0.5 rounded-lg flex items-center shrink-0 border border-gray-200/50">
-            <button 
-              onClick={() => setActiveView("today")}
-              className={`px-3 py-1 rounded-md text-[10px] font-medium transition-all ${
-                activeView === "today" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-              }`}
+          <div className="flex items-center gap-1.5 bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-200 shrink-0">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider select-none">Timeframe:</span>
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+              className="bg-transparent border-none text-xs font-semibold text-gray-700 focus:outline-none cursor-pointer p-0 pr-6"
             >
-              Today
-            </button>
-            <button 
-              onClick={() => setActiveView("weekly")}
-              className={`px-3 py-1 rounded-md text-[10px] font-medium transition-all ${
-                activeView === "weekly" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              Weekly (7d)
-            </button>
-            <button 
-              onClick={() => setActiveView("monthly")}
-              className={`px-3 py-1 rounded-md text-[10px] font-medium transition-all ${
-                activeView === "monthly" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              Monthly (30d)
-            </button>
+              {TIMEFRAME_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
           </div>
         </div>
 

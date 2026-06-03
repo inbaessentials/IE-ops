@@ -11,6 +11,7 @@ import { DropdownMenu } from "@/components/ui/Dropdown";
 import { Select } from "@/components/ui/Select";
 import { supabase } from "@/lib/supabase";
 import { usePlatform } from "@/lib/PlatformContext";
+import { TIMEFRAME_OPTIONS, isDateInTimeframe } from "@/lib/dateUtils";
 
 // Helper to get relative time
 const getRelativeTime = (dateStr: string) => {
@@ -69,7 +70,7 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
-  const [selectedMonth, setSelectedMonth] = useState("All Time");
+  const [timeframe, setTimeframe] = useState("This Month");
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("Courier");
   
@@ -226,12 +227,8 @@ export default function ExpensesPage() {
 
   // Logic for filtering by both Selected Month and Search Query
   const filteredExpenses = expenses.filter(exp => {
-    // 1. Month filter
-    if (selectedMonth !== "All Time") {
-      const expDate = new Date(exp.date);
-      const monthName = expDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-      if (monthName !== selectedMonth) return false;
-    }
+    // 1. Timeframe filter
+    if (!isDateInTimeframe(exp.date || exp.created_at, timeframe)) return false;
 
     // 2. Search query filter
     if (searchQuery.trim() !== "") {
@@ -302,12 +299,7 @@ export default function ExpensesPage() {
     ...expenses.map(e => e.category).filter(Boolean)
   ]));
 
-  // Generate dynamic month options based on current date
-  const monthOptions = ["All Time", 
-    currentMonthYear,
-    new Date(now.setMonth(now.getMonth() - 1)).toLocaleString('default', { month: 'long', year: 'numeric' }),
-    new Date(now.setMonth(now.getMonth() - 1)).toLocaleString('default', { month: 'long', year: 'numeric' })
-  ];
+
 
   const expensesTitle = getModuleProp('Expenses', 'displayName') || 'Expenses';
   const expenseSingular = getModuleProp('Expenses', 'singularDisplayName') || 'Expense';
@@ -460,9 +452,9 @@ export default function ExpensesPage() {
           </div>
           <div className="w-48">
             <Select 
-              options={monthOptions}
-              value={selectedMonth}
-              onChange={setSelectedMonth}
+              options={TIMEFRAME_OPTIONS}
+              value={timeframe}
+              onChange={setTimeframe}
             />
           </div>
         </div>
