@@ -83,12 +83,19 @@ export default function InventoryPage() {
   const [bulkEditCategory, setBulkEditCategory] = useState("All");
   const [bulkEditLoading, setBulkEditLoading] = useState(false);
 
+  const [allOrderItems, setAllOrderItems] = useState<any[]>([]);
+
   const fetchProducts = async () => {
     const { data, error } = await supabase.from('products').select('*').order('display_id', { ascending: true });
     if (data && data.length > 0) {
       setProducts(data);
     } else {
       setProducts([]);
+    }
+
+    const { data: orderItems } = await supabase.from('order_items').select('*');
+    if (orderItems) {
+      setAllOrderItems(orderItems);
     }
   };
 
@@ -834,6 +841,31 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      <div className="flex border-b border-gray-200 gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setInventoryTab("all")}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+            inventoryTab === "all"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <span className="flex items-center gap-2"><Package className="w-4 h-4" /> All Items</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setInventoryTab("categories")}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+            inventoryTab === "categories"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <span className="flex items-center gap-2"><Tag className="w-4 h-4" /> Category Insights</span>
+        </button>
+      </div>
+
       {/* Dynamic Inventory Metrics Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm">
@@ -883,31 +915,6 @@ export default function InventoryPage() {
         </Card>
       </div>
 
-      <div className="flex border-b border-gray-200 gap-6">
-        <button
-          type="button"
-          onClick={() => setInventoryTab("all")}
-          className={`pb-3 px-1 font-bold text-sm border-b-2 transition-all ${
-            inventoryTab === "all"
-              ? "border-[#2E8C13] text-[#2E8C13]"
-              : "border-transparent text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          All Items
-        </button>
-        <button
-          type="button"
-          onClick={() => setInventoryTab("categories")}
-          className={`pb-3 px-1 font-bold text-sm border-b-2 transition-all ${
-            inventoryTab === "categories"
-              ? "border-[#2E8C13] text-[#2E8C13]"
-              : "border-transparent text-gray-500 hover:text-gray-900"
-          }`}
-        >
-          Category
-        </button>
-      </div>
-
       {inventoryTab === "categories" ? (
         <div className="space-y-6">
           {/* Add Category Section */}
@@ -941,6 +948,16 @@ export default function InventoryPage() {
           {/* List of Category Groups */}
           {categories.map((cat) => {
             const catProducts = groupedProducts[cat] || [];
+            
+            // Calculate Financials for this category
+            const totalBought = catProducts.reduce((sum, p) => sum + (p.purchase_price || 0) * (p.stock || 0), 0);
+            
+            const catProductNames = catProducts.map(p => p.name);
+            const catOrderItems = allOrderItems.filter(item => catProductNames.includes(item.product_name));
+            const totalSold = catOrderItems.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+            
+            const margin = totalBought > 0 ? ((totalSold - totalBought) / totalBought) * 100 : 0;
+
             return (
               <Card key={cat} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
                 <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex items-center justify-between">
@@ -953,12 +970,32 @@ export default function InventoryPage() {
                       <p className="text-xs text-gray-500 font-semibold">{catProducts.length} items</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* Financial Metrics */}
+                  <div className="hidden md:flex items-center gap-8 mr-6 ml-auto">
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Value</p>
+                        <p className="font-bold text-sm text-gray-800">₹{totalBought.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Sold</p>
+                        <p className="font-bold text-sm text-gray-800">₹{totalSold.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Margin</p>
+                        <p className={`font-bold text-sm flex items-center justify-end gap-1 ${margin >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                          {margin >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                          {margin.toFixed(1)}%
+                        </p>
+                      </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenAdd(cat)}
-                      className="gap-1.5 text-xs font-bold border-gray-200"
+                      className="gap-1.5 text-xs font-bold border-gray-200 hover:bg-gray-50"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add Product

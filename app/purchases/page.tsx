@@ -21,6 +21,7 @@ import {
   AlertCircle,
   ChevronDown,
   Check,
+  MoreHorizontal,
   TrendingUp,
   Package,
   Activity,
@@ -113,6 +114,12 @@ export default function PurchasesPage() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+  
+  // Add Supplier states
+  const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState("");
+  const [newSupplierContact, setNewSupplierContact] = useState("");
+  const [newSupplierGST, setNewSupplierGST] = useState("");
   
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState("");
@@ -534,6 +541,11 @@ export default function PurchasesPage() {
           }}>
             <Plus className="w-4 h-4" />
             Create Coupon Code
+          </Button>
+        ) : purchasesTab === "suppliers" ? (
+          <Button className="gap-2 shrink-0 font-semibold bg-[#2E8C13] hover:bg-[#257310]" onClick={() => setIsAddSupplierOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Add Supplier
           </Button>
         ) : (
           <Button className="gap-2 shrink-0 font-semibold" onClick={() => {
@@ -1129,61 +1141,151 @@ export default function PurchasesPage() {
       ) : (
         <>
           {/* Suppliers Insights Tab */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            {supplierAnalytics.map((supplier) => (
-              <div key={supplier.id} className="bg-white border border-gray-100 shadow-sm rounded-xl p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900">{supplier.name}</h3>
-                  <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                    <Package className="w-5 h-5" />
-                  </div>
-                </div>
+          <div className="space-y-6 mb-6">
+            
+            {supplierAnalytics.map((supplier) => {
+              const supplierPOs = purchaseOrders.filter(po => po.supplier === supplier.name);
+              return (
+                <Card key={supplier.id} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
+                  <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center border border-purple-100">
+                        <Activity className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">{supplier.name}</h3>
+                        <p className="text-xs text-gray-500 font-semibold">{supplierPOs.length} orders</p>
+                      </div>
+                    </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Items Supplied</p>
-                    <div className="flex flex-wrap gap-1">
-                      {supplier.thingsBought.map((item: string, idx: number) => (
-                        <span key={idx} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">
-                          {item}
-                        </span>
-                      ))}
+                    {/* Financial Metrics */}
+                    <div className="hidden md:flex items-center gap-8 mr-6 ml-auto">
+                        <div className="text-right">
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Bought</p>
+                          <p className="font-bold text-sm text-gray-800">₹{supplier.amountBought.toLocaleString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Sold</p>
+                          <p className="font-bold text-sm text-gray-800">₹{supplier.amountGained.toLocaleString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Margin</p>
+                          <p className={`font-bold text-sm flex items-center justify-end gap-1 ${supplier.percentageGained >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                            {supplier.percentageGained >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                            {supplier.percentageGained.toFixed(1)}%
+                          </p>
+                        </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
-                    <div>
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Total Bought</p>
-                      <p className="text-sm font-bold text-gray-800 mt-0.5">₹{supplier.amountBought.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Quantity Sold</p>
-                      <p className="text-sm font-bold text-gray-800 mt-0.5">{supplier.qtySold} units</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Amount Gained</p>
-                      <p className="text-sm font-bold text-emerald-600 mt-0.5">₹{supplier.amountGained.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Return (ROI)</p>
-                      <p className={`text-sm font-bold mt-0.5 flex items-center gap-1 ${supplier.percentageGained >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {supplier.percentageGained >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                        {supplier.percentageGained.toFixed(1)}%
-                      </p>
-                    </div>
+                  <div className="overflow-x-auto">
+                    {supplierPOs.length > 0 ? (
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-white border-b border-gray-100">
+                            <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">PO ID & Date</th>
+                            <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Items Description</th>
+                            <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {supplierPOs.map(po => (
+                            <tr key={po.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                              <td className="p-4 pl-6">
+                                <p className="text-[13px] font-bold text-[#2E8C13]">{po.po_number}</p>
+                                <span className="text-xs font-medium text-gray-500">{new Date(po.date).toLocaleDateString()}</span>
+                              </td>
+                              <td className="p-4 text-sm font-medium text-gray-600 max-w-[200px] truncate" title={po.notes}>{po.notes}</td>
+                              <td className="p-4 text-sm font-bold text-gray-800">₹{po.amount.toLocaleString()}</td>
+                              <td className="p-4">
+                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${STATUS_COLORS[po.status].bg} ${STATUS_COLORS[po.status].text} ${STATUS_COLORS[po.status].border}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${STATUS_COLORS[po.status].dot}`}></span>
+                                  {po.status}
+                                </div>
+                              </td>
+                              <td className="p-4 text-right pr-6">
+                                <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors" title="Actions">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div className="p-8 text-center text-gray-400 flex flex-col items-center justify-center bg-gray-50/30">
+                        <Activity className="w-6 h-6 text-gray-300 mb-2" />
+                        <p className="text-sm font-medium">No purchase orders found for this supplier.</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            ))}
+                </Card>
+              );
+            })}
             
             {supplierAnalytics.length === 0 && (
-              <div className="col-span-full py-12 text-center flex flex-col items-center">
+              <div className="py-12 text-center flex flex-col items-center bg-white border border-gray-100 rounded-xl shadow-sm">
                 <Activity className="w-10 h-10 text-gray-300 mb-3" />
                 <h3 className="text-base font-semibold text-gray-700">No Supplier Insights Yet</h3>
                 <p className="text-sm text-gray-500">Create purchase orders and log inventory to see supplier performance.</p>
               </div>
             )}
           </div>
+
+          {/* Add Supplier Drawer */}
+          <Drawer isOpen={isAddSupplierOpen} onClose={() => setIsAddSupplierOpen(false)} title="Add New Supplier">
+            <form className="space-y-4" onSubmit={(e) => {
+              e.preventDefault();
+              const newSupplier = {
+                id: Date.now(),
+                name: newSupplierName,
+                contact: newSupplierContact,
+                gst: newSupplierGST
+              };
+              const updatedSuppliers = [...suppliers, newSupplier];
+              localStorage.setItem("inba_suppliers", JSON.stringify(updatedSuppliers));
+              setSuppliers(updatedSuppliers);
+              toast("Supplier Added Successfully!", "success");
+              setIsAddSupplierOpen(false);
+              setNewSupplierName("");
+              setNewSupplierContact("");
+              setNewSupplierGST("");
+              if ((platform as string) !== "online-course") fetchSupplierAnalytics();
+            }}>
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Supplier Name</label>
+                  <input 
+                    required type="text" placeholder="e.g. Inba Organic Farms"
+                    value={newSupplierName} onChange={(e) => setNewSupplierName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Contact Details / Mobile</label>
+                  <input 
+                    type="text" placeholder="e.g. +91 9876543210"
+                    value={newSupplierContact} onChange={(e) => setNewSupplierContact(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">GST Number (Optional)</label>
+                  <input 
+                    type="text" placeholder="e.g. 29ABCDE1234F1Z5"
+                    value={newSupplierGST} onChange={(e) => setNewSupplierGST(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium text-gray-800"
+                  />
+                </div>
+              </div>
+              <div className="pt-4 flex justify-end gap-3 mt-6">
+                <Button type="button" variant="ghost" onClick={() => setIsAddSupplierOpen(false)}>Cancel</Button>
+                <Button type="submit" variant="primary">Save Supplier</Button>
+              </div>
+            </form>
+          </Drawer>
         </>
       )}
     </div>

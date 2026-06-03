@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Plus, Search, Filter, Calendar, Coins, TrendingUp, Award, Trophy, Wallet } from "lucide-react";
+import { Plus, Search, Filter, Calendar, Coins, Award, Trophy, Wallet, List, Tag, TrendingUp, TrendingDown, Receipt } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { useToast } from "@/components/ui/Toast";
 import { DropdownMenu } from "@/components/ui/Dropdown";
@@ -73,6 +73,14 @@ export default function ExpensesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("Courier");
   
+  // Tab states
+  const [expensesTab, setExpensesTab] = useState<"list" | "categories">("list");
+  
+  // Category states
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  
   const toast = useToast();
 
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
@@ -99,7 +107,23 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     fetchExpenses();
+    const savedCats = localStorage.getItem("inba_expense_categories");
+    if (savedCats) {
+      try {
+        setCustomCategories(JSON.parse(savedCats));
+      } catch(e) {}
+    }
   }, [platform]);
+
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) return;
+    const updated = [...customCategories, newCategoryName.trim()];
+    setCustomCategories(updated);
+    localStorage.setItem("inba_expense_categories", JSON.stringify(updated));
+    setNewCategoryName("");
+    setIsAddCategoryOpen(false);
+    toast("Category Added", "success");
+  };
 
   const handleOpenAdd = () => {
     setEditingExpense(null);
@@ -274,6 +298,7 @@ export default function ExpensesPage() {
 
   const dynamicCategories = Array.from(new Set([
     ...defaultCategories,
+    ...customCategories,
     ...expenses.map(e => e.category).filter(Boolean)
   ]));
 
@@ -294,13 +319,47 @@ export default function ExpensesPage() {
           <h1 className="text-xl font-semibold text-gray-900">{expensesTitle}</h1>
           <p className="text-sm text-gray-500 mt-1">{getModuleProp('Expenses', 'description') || 'Track operational costs like courier, packaging, and ads.'}</p>
         </div>
-        <Button className="gap-2" onClick={handleOpenAdd}>
-          <Plus className="w-4 h-4" />
-          Add {expenseSingular}
-        </Button>
+        {expensesTab === "list" ? (
+          <Button className="gap-2 shrink-0 font-semibold" onClick={handleOpenAdd}>
+            <Plus className="w-4 h-4" />
+            Add {expenseSingular}
+          </Button>
+        ) : (
+          <Button className="gap-2 shrink-0 font-semibold bg-[#2E8C13] hover:bg-[#257310]" onClick={() => setIsAddCategoryOpen(true)}>
+            <Plus className="w-4 h-4" />
+            Add Category
+          </Button>
+        )}
       </div>
 
-      {/* Meaningful, Harmonious Widgets Grid */}
+      <div className="flex border-b border-gray-200 gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setExpensesTab("list")}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+            expensesTab === "list"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <span className="flex items-center gap-2"><List className="w-4 h-4" /> {expensesTitle}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setExpensesTab("categories")}
+          className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+            expensesTab === "categories"
+              ? "border-[#2E8C13] text-[#2E8C13]"
+              : "border-transparent text-gray-500 hover:text-gray-900"
+          }`}
+        >
+          <span className="flex items-center gap-2"><Tag className="w-4 h-4" /> Category Insights</span>
+        </button>
+      </div>
+
+      {expensesTab === "list" ? (
+        <>
+          {/* Meaningful, Harmonious Widgets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {/* Total Expenses Card */}
         <Card className="p-4 flex items-center justify-between border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -476,6 +535,99 @@ export default function ExpensesPage() {
         )}
       </Card>
 
+        </>
+      ) : (
+        <div className="space-y-6 mb-6">
+          {dynamicCategories.map((cat) => {
+            const catExpenses = expenses.filter(e => e.category === cat);
+            const totalSpent = catExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+            
+            // Grand total to calculate percentage
+            const grandTotal = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+            const percentOfTotal = grandTotal > 0 ? (totalSpent / grandTotal) * 100 : 0;
+            
+            return (
+              <Card key={cat} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
+                <div className="p-4 bg-gray-50/70 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center border border-amber-100">
+                      <Tag className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900">{cat}</h3>
+                      <p className="text-xs text-gray-500 font-semibold">{catExpenses.length} records</p>
+                    </div>
+                  </div>
+
+                  {/* Financial Metrics */}
+                  <div className="hidden md:flex items-center gap-8 mr-6 ml-auto">
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Spent</p>
+                        <p className="font-bold text-sm text-gray-800">₹{totalSpent.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">% of Total</p>
+                        <p className="font-bold text-sm text-gray-800">{percentOfTotal.toFixed(1)}%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Status</p>
+                        <p className={`font-bold text-sm flex items-center justify-end gap-1 ${percentOfTotal > 30 ? "text-rose-600" : "text-emerald-600"}`}>
+                          {percentOfTotal > 30 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                          {percentOfTotal > 30 ? "High Spend" : "Normal"}
+                        </p>
+                      </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 ml-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingExpense(null);
+                        setCategory(cat);
+                        setIsDrawerOpen(true);
+                      }}
+                      className="gap-1.5 text-xs font-bold border-gray-200 hover:bg-gray-50"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Expense
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  {catExpenses.length > 0 ? (
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-white border-b border-gray-100">
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider pl-6">Date</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Description / Notes</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right pr-6">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {catExpenses.map(expense => (
+                          <tr key={expense.id} className="hover:bg-gray-50/40 transition-colors group relative">
+                            <td className="p-4 pl-6 text-sm font-semibold text-gray-600">{new Date(expense.date || expense.created_at).toLocaleDateString()}</td>
+                            <td className="p-4 text-sm font-medium text-gray-800">{expense.notes || "No notes provided"}</td>
+                            <td className="p-4 text-right pr-6 text-sm font-bold text-rose-600">₹{(expense.amount || 0).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="p-8 text-center text-gray-400 flex flex-col items-center justify-center bg-gray-50/30">
+                      <Receipt className="w-6 h-6 text-gray-300 mb-2" />
+                      <p className="text-sm font-medium">No expenses recorded in this category.</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
       <Drawer 
         isOpen={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
@@ -511,6 +663,30 @@ export default function ExpensesPage() {
             <Button type="submit" variant="primary">{editingExpense ? `Update ${expenseSingular}` : `Save ${expenseSingular}`}</Button>
           </div>
         </form>
+      </Drawer>
+      <Drawer 
+        isOpen={isAddCategoryOpen} 
+        onClose={() => setIsAddCategoryOpen(false)} 
+        title="Add Expense Category"
+      >
+        <div className="space-y-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+              <input 
+                type="text" 
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="e.g. Server Costs"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-medium text-gray-800" 
+              />
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button variant="ghost" onClick={() => setIsAddCategoryOpen(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleAddCategory}>Save Category</Button>
+          </div>
+        </div>
       </Drawer>
     </div>
   );
