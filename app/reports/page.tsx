@@ -342,7 +342,7 @@ export default function ReportsPage() {
 
           {/* Category Performance Analysis Table */}
           <Card className="overflow-hidden border border-gray-100 shadow-sm">
-            <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+            <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Category-Wise Performance Analysis</h3>
                 <p className="text-xs text-gray-500 mt-1">In-depth calculation of {salesTitle.toLowerCase()}, quantities, exact profits, and margins by category.</p>
@@ -414,7 +414,7 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left: Top Performing Products */}
             <Card className="lg:col-span-2 overflow-hidden border border-gray-100 shadow-sm">
-              <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+              <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base font-bold text-gray-900">Top Performing {inventoryTitle}</h3>
                   <p className="text-xs text-gray-500 mt-1">{inventoryTitle} driving the highest sales volume and gross revenue</p>
@@ -500,7 +500,7 @@ export default function ReportsPage() {
                   </div>
                 )}
               </div>
-              <div className="p-6 border-t border-gray-50 bg-gray-50/30 flex gap-4">
+              <div className="p-6 border-t border-gray-50 bg-gray-50/30 flex flex-col sm:flex-row gap-4">
                 <Button variant="outline" className="flex-1 text-xs gap-1.5" onClick={() => exportReport(`${salesTitle} Ledger`)}>
                   <Download className="w-3.5 h-3.5" /> {salesTitle} CSV
                 </Button>

@@ -909,13 +909,13 @@ export default function GoalsPage() {
             {getModuleProp('Goals', 'description') || 'Focus on monthly growth outcomes in a stress-free environment.'}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           {activeGoal && (
-            <Button variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={handleClearGoal}>
+            <Button variant="outline" className="flex-1 sm:flex-none text-rose-600 border-rose-200 hover:bg-rose-50" onClick={handleClearGoal}>
               End Active {goalSingular}
             </Button>
           )}
-          <Button className="gap-2" onClick={handleOpenAdd}>
+          <Button className="flex-1 sm:flex-none gap-2" onClick={handleOpenAdd}>
             <Plus className="w-4 h-4" /> Setup {goalSingular}
           </Button>
         </div>
@@ -945,7 +945,7 @@ export default function GoalsPage() {
             </select>
           </div>
           {focusGoal && (
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-1.5">
                 <span className="text-gray-400 font-semibold">Period:</span>
                 <span className="text-gray-700 font-bold">
@@ -1259,7 +1259,7 @@ export default function GoalsPage() {
         </div>
 
         {/* Ledger Filters Bar */}
-        <div className="p-4 border-b border-gray-100 bg-white/50 flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div className="p-4 border-b border-gray-100 bg-white/50 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <div className="w-full md:w-72">
             <input
               type="text"
@@ -1492,7 +1492,7 @@ export default function GoalsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">Start Date</label>
                 <input 
@@ -1515,7 +1515,7 @@ export default function GoalsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-1.5">Pacing Period</label>
                 <select 

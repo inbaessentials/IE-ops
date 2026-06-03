@@ -447,12 +447,12 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 tracking-tight">Customers</h1>
           <p className="text-sm text-gray-500 mt-1">Manage customers, purchase history, order activity, and communication records.</p>
         </div>
-        <div className="flex gap-2.5">
+        <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
           <Button variant="outline" className="gap-2 border-gray-200 text-xs font-semibold" onClick={() => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customers, null, 2));
             const dlAnchorElem = document.createElement('a');
@@ -464,7 +464,7 @@ export default function CustomersPage() {
             <Download className="w-4 h-4 text-gray-405" />
             Export
           </Button>
-          <Button className="gap-2 text-xs font-semibold bg-[#2E8C13] hover:bg-[#257310] text-white" onClick={() => setIsAddDrawerOpen(true)}>
+          <Button className="flex-1 sm:flex-none gap-2 text-xs font-semibold bg-[#2E8C13] hover:bg-[#257310] text-white" onClick={() => setIsAddDrawerOpen(true)}>
             <Plus className="w-4 h-4" />
             Add Customer
           </Button>
@@ -535,8 +535,8 @@ export default function CustomersPage() {
       </div>
 
       {/* Filter and Search */}
-      <Card className="p-4 border-gray-100 shadow-xs flex flex-wrap gap-4 items-center justify-between">
-        <div className="relative flex-1 w-full max-w-md min-w-[260px]">
+      <Card className="p-4 border-gray-100 shadow-xs flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="relative w-full md:flex-1 md:max-w-md md:min-w-[260px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text" 
@@ -671,7 +671,7 @@ export default function CustomersPage() {
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Name *</label>
               <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="e.g. Rahul Sen" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Mobile Number *</label>
                 <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" placeholder="+91 98765 00000" />
@@ -705,7 +705,7 @@ export default function CustomersPage() {
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Full Name *</label>
               <input required type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Mobile Number *</label>
                 <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-xs font-semibold text-gray-800" />
@@ -743,8 +743,8 @@ export default function CustomersPage() {
             
             {/* 1. Profile Details Card (Fully Reorganized) */}
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-xs space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-semibold text-lg uppercase shrink-0 mt-0.5">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+                <div className="w-16 h-16 sm:w-12 sm:h-12 rounded-full bg-[#2E8C13]/10 text-[#2E8C13] flex items-center justify-center font-semibold text-2xl sm:text-lg uppercase shrink-0 sm:mt-0.5">
                   {viewingCustomer.name.charAt(0)}
                 </div>
                 <div className="space-y-2 flex-1">
@@ -776,13 +776,13 @@ export default function CustomersPage() {
               </div>
 
               {/* Action Buttons Below Info Card */}
-              <div className="flex items-center gap-3 pt-3 border-t border-gray-150/40">
-                <Button size="sm" variant="primary" className="bg-[#2E8C13] text-white font-medium text-xs px-4 py-2 flex items-center gap-1.5" onClick={() => {
+              <div className="flex flex-col sm:flex-row items-center gap-3 pt-3 border-t border-gray-150/40">
+                <Button size="sm" variant="primary" className="w-full sm:w-auto bg-[#2E8C13] text-white font-medium text-xs px-4 py-2 flex items-center justify-center gap-1.5" onClick={() => {
                   window.location.href = `/orders?newOrder=true&customer=${encodeURIComponent(viewingCustomer.name)}`;
                 }}>
                   <PlusCircle className="w-3.5 h-3.5" /> Create Order
                 </Button>
-                <Button size="sm" variant="outline" className="border-gray-200 text-xs font-medium px-4 py-2 flex items-center gap-1.5" onClick={() => {
+                <Button size="sm" variant="outline" className="w-full sm:w-auto border-gray-200 text-xs font-medium px-4 py-2 flex items-center justify-center gap-1.5" onClick={() => {
                   const target = viewingCustomer;
                   setViewingCustomer(null);
                   handleOpenEditDrawer(target);
