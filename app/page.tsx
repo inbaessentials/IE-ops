@@ -58,6 +58,7 @@ export default function Dashboard() {
   const [rawOrderItems, setRawOrderItems] = useState<any[]>([]);
   const [rawProducts, setRawProducts] = useState<any[]>([]);
   const [rawExpenses, setRawExpenses] = useState<any[]>([]);
+  const [rawPurchaseOrders, setRawPurchaseOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardStats = async () => {
@@ -85,6 +86,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardStats();
+    
+    // Load purchase orders from local storage
+    const savedPOs = localStorage.getItem("inba_purchases");
+    if (savedPOs) {
+      setRawPurchaseOrders(JSON.parse(savedPOs));
+    }
   }, []);
 
 
@@ -94,6 +101,7 @@ export default function Dashboard() {
   // Filter Orders and Expenses by selected Date Range!
   let filteredOrders = rawOrders;
   let filteredExpenses = rawExpenses;
+  let filteredPurchaseOrders = rawPurchaseOrders;
 
   if (dateRange === "Custom Date Range") {
     if (startDate && endDate) {
@@ -107,10 +115,15 @@ export default function Dashboard() {
         const d = new Date(exp.date || exp.created_at).getTime();
         return d >= s && d <= e;
       });
+      filteredPurchaseOrders = rawPurchaseOrders.filter(po => {
+        const d = new Date(po.date).getTime();
+        return d >= s && d <= e;
+      });
     }
   } else {
     filteredOrders = rawOrders.filter(o => isDateInTimeframe(o.date || o.created_at, dateRange));
     filteredExpenses = rawExpenses.filter(exp => isDateInTimeframe(exp.date || exp.created_at, dateRange));
+    filteredPurchaseOrders = rawPurchaseOrders.filter(po => isDateInTimeframe(po.date, dateRange));
   }
 
   // Generate categories from rawProducts dynamically
@@ -195,23 +208,11 @@ export default function Dashboard() {
   
   const pendingPackingSum = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
   
-  // Calculate overall Total Purchase Value (base investment)
+  // Calculate overall Total Purchase Value based on actual Purchase Orders
   let totalPurchaseValueSum = 0;
-  rawProducts.forEach(p => {
-    if (categoryFilter !== "All" && p.category !== categoryFilter) return;
-    
-    const pName = (p.name || "").trim().toLowerCase();
-    const purchasePrice = Number(p.purchase_price) || 0;
-    const stock = Number(p.stock) || 0;
-    
-    let totalQtySold = 0;
-    rawOrderItems.forEach(item => {
-      if ((item.name || "").trim().toLowerCase() === pName) {
-        totalQtySold += (Number(item.qty) || 1);
-      }
-    });
-
-    totalPurchaseValueSum += purchasePrice * (stock + totalQtySold);
+  filteredPurchaseOrders.forEach(po => {
+    if (categoryFilter !== "All" && po.category !== categoryFilter) return;
+    totalPurchaseValueSum += Number(po.amount) || 0;
   });
   const returnsSum = 0;
 
