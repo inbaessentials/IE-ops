@@ -180,7 +180,23 @@ export default function Dashboard() {
   const aovValue = filteredOrders.length > 0 ? totalSalesSum / filteredOrders.length : 0;
   
   const pendingPackingSum = filteredOrders.filter(o => o.status === "New" || o.status === "Packed").length;
-  const lowStockSum = rawProducts.filter(p => (p.stock || 0) <= 10).length;
+  
+  // Calculate overall Total Purchase Value (base investment)
+  let totalPurchaseValueSum = 0;
+  rawProducts.forEach(p => {
+    const pName = (p.name || "").trim().toLowerCase();
+    const purchasePrice = Number(p.purchase_price) || 0;
+    const stock = Number(p.stock) || 0;
+    
+    let totalQtySold = 0;
+    rawOrderItems.forEach(item => {
+      if ((item.name || "").trim().toLowerCase() === pName) {
+        totalQtySold += (Number(item.qty) || 1);
+      }
+    });
+
+    totalPurchaseValueSum += purchasePrice * (stock + totalQtySold);
+  });
   const returnsSum = 0;
 
   // Top products calculations
@@ -238,7 +254,7 @@ export default function Dashboard() {
     { title: getCardTitle("Margin (% Gained)"), value: `${marginPct.toFixed(1)}%`, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
     { title: getCardTitle("Avg Order Value (AOV)"), value: formatCurrency(aovValue), icon: IndianRupee, trend: aovValue > 0 ? "Healthy" : "0%", color: "text-indigo-600", bg: "bg-indigo-100", href: "/orders" },
     { title: getCardTitle("Pending Packing"), value: pendingPackingSum.toString(), icon: Truck, trend: pendingPackingSum > 0 ? "-2.4%" : "0%", color: "text-orange-600", bg: "bg-orange-100", href: "/orders" },
-    { title: getCardTitle("Low Stock Items"), value: lowStockSum.toString(), icon: AlertTriangle, trend: lowStockSum > 0 ? "+2" : "0%", color: "text-red-600", bg: "bg-red-100", href: "/inventory" },
+    { title: getCardTitle("Total Purchase Value"), value: formatCurrency(totalPurchaseValueSum), icon: ShoppingBag, trend: "Overall", color: "text-teal-600", bg: "bg-teal-100", href: "/inventory" },
     { title: getCardTitle("Total Expenses"), value: formatCurrency(totalExpensesSum), icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
   ];
 
