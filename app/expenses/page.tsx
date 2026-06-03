@@ -138,7 +138,7 @@ export default function ExpensesPage() {
         category: category,
         amount: parseFloat(formData.get("amount") as string),
         notes: formData.get("notes") as string,
-        date: new Date().toISOString()
+        date: formData.get("date") ? new Date(formData.get("date") as string).toISOString() : new Date().toISOString()
     };
 
     if (platform === "gym-services") {
@@ -492,6 +492,10 @@ export default function ExpensesPage() {
                 allowCustom={true}
                 placeholder="Select or type to create..."
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <input name="date" required type="date" defaultValue={editingExpense?.date ? new Date(new Date(editingExpense.date).getTime() - new Date(editingExpense.date).getTimezoneOffset() * 60000).toISOString().split('T')[0] : new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-medium text-gray-800" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
