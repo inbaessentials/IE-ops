@@ -950,13 +950,24 @@ export default function InventoryPage() {
             const catProducts = groupedProducts[cat] || [];
             
             // Calculate Financials for this category
-            const totalBought = catProducts.reduce((sum, p) => sum + (p.purchase_price || 0) * (p.stock || 0), 0);
+            let catTotalBought = 0;
+            let catCurrentValue = 0;
+            let catTotalSold = 0;
+            let catCogs = 0;
+
+            catProducts.forEach(p => {
+              const pOrderItems = allOrderItems.filter(item => item.product_name === p.name);
+              const pQtySold = pOrderItems.reduce((s, item) => s + (item.quantity || 1), 0);
+              const pRevenue = pOrderItems.reduce((s, item) => s + ((item.price || 0) * (item.quantity || 1)), 0);
+              
+              catCurrentValue += (p.purchase_price || 0) * (p.stock || 0);
+              catTotalBought += (p.purchase_price || 0) * ((p.stock || 0) + pQtySold);
+              catTotalSold += pRevenue;
+              catCogs += (p.purchase_price || 0) * pQtySold;
+            });
             
-            const catProductNames = catProducts.map(p => p.name);
-            const catOrderItems = allOrderItems.filter(item => catProductNames.includes(item.product_name));
-            const totalSold = catOrderItems.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
-            
-            const margin = totalBought > 0 ? ((totalSold - totalBought) / totalBought) * 100 : 0;
+            const catProfit = catTotalSold - catCogs;
+            const margin = catCogs > 0 ? (catProfit / catCogs) * 100 : (catTotalSold > 0 ? 100 : 0);
 
             return (
               <Card key={cat} className="overflow-hidden border border-gray-150 shadow-sm bg-white">
@@ -972,14 +983,18 @@ export default function InventoryPage() {
                   </div>
                   
                   {/* Financial Metrics */}
-                  <div className="hidden md:flex items-center gap-8 mr-6 ml-auto">
+                  <div className="hidden md:flex items-center gap-6 mr-6 ml-auto">
                       <div className="text-right">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Value</p>
-                        <p className="font-bold text-sm text-gray-800">₹{totalBought.toLocaleString()}</p>
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Bought</p>
+                        <p className="font-bold text-sm text-gray-800">₹{catTotalBought.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Current Value</p>
+                        <p className="font-bold text-sm text-gray-800">₹{catCurrentValue.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Total Sold</p>
-                        <p className="font-bold text-sm text-gray-800">₹{totalSold.toLocaleString()}</p>
+                        <p className="font-bold text-sm text-gray-800">₹{catTotalSold.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Margin</p>
@@ -1011,74 +1026,80 @@ export default function InventoryPage() {
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Product Info</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Sold Out</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {catProducts.map((product) => (
-                          <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group">
-                            <td className="p-4 whitespace-nowrap">
-                              <div className="flex items-center gap-3">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEdit(product)}
-                                  className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0"
-                                >
-                                  {product.image_url ? (
-                                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <span className="text-gray-400 text-xs">Img</span>
-                                  )}
-                                </button>
-                                <div className="text-left">
+                        {catProducts.map((product) => {
+                          const pOrderItems = allOrderItems.filter(item => item.product_name === product.name);
+                          const pQtySold = pOrderItems.reduce((s, item) => s + (item.quantity || 1), 0);
+                          const pRevenue = pOrderItems.reduce((s, item) => s + ((item.price || 0) * (item.quantity || 1)), 0);
+                          const pCogs = (product.purchase_price || 0) * pQtySold;
+                          const pProfit = pRevenue - pCogs;
+
+                          return (
+                            <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group">
+                              <td className="p-4 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
                                   <button
                                     type="button"
                                     onClick={() => handleOpenEdit(product)}
-                                    className="text-sm font-bold text-primary hover:text-[#257310] hover:underline text-left block"
+                                    className="w-10 h-10 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shrink-0"
                                   >
-                                    {product.name}
+                                    {product.image_url ? (
+                                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <span className="text-gray-400 text-xs">Img</span>
+                                    )}
                                   </button>
-                                  <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                                  <div className="text-left">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenEdit(product)}
+                                      className="text-sm font-bold text-primary hover:text-[#257310] hover:underline text-left block"
+                                    >
+                                      {product.name}
+                                    </button>
+                                    <p className="text-xs text-gray-500 mt-0.5 font-semibold">SKU: {product.sku}</p>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                              ₹{product.price}
-                            </td>
-                            <td className="p-4 whitespace-nowrap text-sm">
-                              <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                                {product.stock} units
-                              </span>
-                            </td>
-                            <td className="p-4 whitespace-nowrap">
-                              <Badge
-                                variant={
-                                  product.status === 'Active' ? 'success' :
-                                  product.status === 'Low Stock' ? 'warning' :
-                                  product.status === 'Inactive' ? 'default' : 'error'
-                                }
-                              >
-                                {product.status}
-                              </Badge>
-                            </td>
-                            <td className="p-4 whitespace-nowrap text-right">
-                              <div className="flex justify-end gap-2 items-center">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-xs font-bold text-[#2E8C13] hover:bg-green-50 px-2 py-1"
-                                  onClick={() => {
-                                    window.location.href = `/orders?newOrder=true&product=${encodeURIComponent(product.name)}`;
-                                  }}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                                ₹{product.price}
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-sm">
+                                <span className={`font-medium ${product.stock <= 15 && product.stock > 0 ? 'text-orange-600' : product.stock === 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                                  {product.stock} units
+                                </span>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {pQtySold} units
+                              </td>
+                              <td className={`p-4 whitespace-nowrap text-sm font-bold ${pProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {pProfit >= 0 ? '+' : '-'}₹{Math.abs(pProfit).toLocaleString()}
+                              </td>
+                              <td className="p-4 whitespace-nowrap">
+                                <Badge
+                                  variant={
+                                    product.status === 'Active' ? 'success' :
+                                    product.status === 'Low Stock' ? 'warning' :
+                                    product.status === 'Inactive' ? 'default' : 'error'
+                                  }
                                 >
-                                  Create Order
-                                </Button>
-                                <DropdownMenu items={getDropdownItems(product)} />
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                  {product.status}
+                                </Badge>
+                              </td>
+                              <td className="p-4 whitespace-nowrap text-right">
+                                <div className="flex justify-end gap-2 items-center">
+                                  <DropdownMenu items={getDropdownItems(product)} />
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   ) : (
