@@ -575,6 +575,32 @@ export default function PurchasesPage() {
         </div>
       )}
 
+      {/* Tab Switcher for non online-course platforms */}
+      {platform !== "online-course" && (
+        <div className="flex border-b border-gray-200 gap-2 mb-4">
+          <button
+            onClick={() => setPurchasesTab("orders")}
+            className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+              purchasesTab === "orders"
+                ? "border-[#2E8C13] text-[#2E8C13]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <span className="flex items-center gap-2"><Truck className="w-4 h-4" /> {getModuleProp('Purchases', 'displayName')}</span>
+          </button>
+          <button
+            onClick={() => setPurchasesTab("suppliers")}
+            className={`pb-3 px-4 text-sm font-semibold border-b-2 transition-all outline-none ${
+              purchasesTab === "suppliers"
+                ? "border-[#2E8C13] text-[#2E8C13]"
+                : "border-transparent text-gray-500 hover:text-gray-900"
+            }`}
+          >
+            <span className="flex items-center gap-2"><Activity className="w-4 h-4" /> Suppliers Insights</span>
+          </button>
+        </div>
+      )}
+
       {platform === "online-course" && activeSubTab === "coupons" ? (
         <>
           {/* Coupon metrics cards */}
@@ -723,7 +749,7 @@ export default function PurchasesPage() {
             </form>
           </Drawer>
         </>
-      ) : (
+      ) : (platform === "online-course" || purchasesTab === "orders") ? (
         <>
           {/* Dynamic Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -1099,6 +1125,65 @@ export default function PurchasesPage() {
               </div>
             </form>
           </Drawer>
+        </>
+      ) : (
+        <>
+          {/* Suppliers Insights Tab */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {supplierAnalytics.map((supplier) => (
+              <div key={supplier.id} className="bg-white border border-gray-100 shadow-sm rounded-xl p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">{supplier.name}</h3>
+                  <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                    <Package className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Items Supplied</p>
+                    <div className="flex flex-wrap gap-1">
+                      {supplier.thingsBought.map((item: string, idx: number) => (
+                        <span key={idx} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Total Bought</p>
+                      <p className="text-sm font-bold text-gray-800 mt-0.5">₹{supplier.amountBought.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Quantity Sold</p>
+                      <p className="text-sm font-bold text-gray-800 mt-0.5">{supplier.qtySold} units</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Amount Gained</p>
+                      <p className="text-sm font-bold text-emerald-600 mt-0.5">₹{supplier.amountGained.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase">Return (ROI)</p>
+                      <p className={`text-sm font-bold mt-0.5 flex items-center gap-1 ${supplier.percentageGained >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {supplier.percentageGained >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                        {supplier.percentageGained.toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {supplierAnalytics.length === 0 && (
+              <div className="col-span-full py-12 text-center flex flex-col items-center">
+                <Activity className="w-10 h-10 text-gray-300 mb-3" />
+                <h3 className="text-base font-semibold text-gray-700">No Supplier Insights Yet</h3>
+                <p className="text-sm text-gray-500">Create purchase orders and log inventory to see supplier performance.</p>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
