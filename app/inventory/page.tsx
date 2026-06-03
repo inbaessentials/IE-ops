@@ -1091,7 +1091,8 @@ export default function InventoryPage() {
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Product Info</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Price</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Stock / Ordered</th>
-                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue / Profit</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                          <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Profit</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
                           <th className="p-4 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
@@ -1146,13 +1147,11 @@ export default function InventoryPage() {
                                   {(product.stock + pQtySold).toString().padStart(2, '0')}
                                 </span>
                               </td>
-                              <td className="p-4 whitespace-nowrap text-sm">
-                                <div className="flex flex-col">
-                                  <span className="font-bold text-gray-800">₹{pRevenue.toLocaleString()}</span>
-                                  <span className={`text-[11px] font-bold mt-0.5 ${pProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                    {pProfit >= 0 ? '+' : '-'}₹{Math.abs(pProfit).toLocaleString()}
-                                  </span>
-                                </div>
+                              <td className="p-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                                ₹{pRevenue.toLocaleString()}
+                              </td>
+                              <td className={`p-4 whitespace-nowrap text-sm font-bold ${pProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {pProfit >= 0 ? '+' : '-'}₹{Math.abs(pProfit).toLocaleString()}
                               </td>
                               <td className="p-4 whitespace-nowrap">
                                 <Badge
