@@ -956,14 +956,17 @@ export default function InventoryPage() {
             let catCogs = 0;
 
             catProducts.forEach(p => {
-              const pOrderItems = allOrderItems.filter(item => item.product_name === p.name);
-              const pQtySold = pOrderItems.reduce((s, item) => s + (item.quantity || 1), 0);
-              const pRevenue = pOrderItems.reduce((s, item) => s + ((item.price || 0) * (item.quantity || 1)), 0);
+              const pOrderItems = allOrderItems.filter(item => item.name === p.name);
+              const pQtySold = pOrderItems.reduce((s, item) => s + (Number(item.qty) || 1), 0);
+              const pRevenue = pOrderItems.reduce((s, item) => {
+                const priceVal = parseFloat(String(item.price || "0").replace(/[^0-9.-]+/g, "")) || 0;
+                return s + (priceVal * (Number(item.qty) || 1));
+              }, 0);
               
-              catCurrentValue += (p.purchase_price || 0) * (p.stock || 0);
-              catTotalBought += (p.purchase_price || 0) * ((p.stock || 0) + pQtySold);
+              catCurrentValue += (Number(p.purchase_price) || 0) * (Number(p.stock) || 0);
+              catTotalBought += (Number(p.purchase_price) || 0) * ((Number(p.stock) || 0) + pQtySold);
               catTotalSold += pRevenue;
-              catCogs += (p.purchase_price || 0) * pQtySold;
+              catCogs += (Number(p.purchase_price) || 0) * pQtySold;
             });
             
             const catProfit = catTotalSold - catCogs;
@@ -1034,10 +1037,13 @@ export default function InventoryPage() {
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {catProducts.map((product) => {
-                          const pOrderItems = allOrderItems.filter(item => item.product_name === product.name);
-                          const pQtySold = pOrderItems.reduce((s, item) => s + (item.quantity || 1), 0);
-                          const pRevenue = pOrderItems.reduce((s, item) => s + ((item.price || 0) * (item.quantity || 1)), 0);
-                          const pCogs = (product.purchase_price || 0) * pQtySold;
+                          const pOrderItems = allOrderItems.filter(item => item.name === product.name);
+                          const pQtySold = pOrderItems.reduce((s, item) => s + (Number(item.qty) || 1), 0);
+                          const pRevenue = pOrderItems.reduce((s, item) => {
+                            const priceVal = parseFloat(String(item.price || "0").replace(/[^0-9.-]+/g, "")) || 0;
+                            return s + (priceVal * (Number(item.qty) || 1));
+                          }, 0);
+                          const pCogs = (Number(product.purchase_price) || 0) * pQtySold;
                           const pProfit = pRevenue - pCogs;
 
                           return (
