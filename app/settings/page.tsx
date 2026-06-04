@@ -19,8 +19,12 @@ import {
   Search,
   ThumbsUp,
   ThumbsDown,
-  Phone
+  Phone,
+  ChevronDown,
+  ChevronRight,
+  HelpCircle
 } from "lucide-react";
+import { Drawer } from "@/components/ui/Drawer";
 import { 
   fetchOrganizationSettings, 
   updateOrganizationSettings, 
@@ -143,11 +147,33 @@ const UsersTab = ({ users }: { users: any[] }) => {
   const toast = useToast();
   const loading = false;
   
+  const [activeRoleTab, setActiveRoleTab] = useState("Admin");
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteName, setInviteName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteStatus, setInviteStatus] = useState("Invited");
+
   const roles = [
     { name: "Admin", perms: ["View", "Edit", "Add", "Delete", "Export", "Settings"] },
     { name: "Manager", perms: ["View", "Edit", "Add", "Export"] },
     { name: "Staff", perms: ["View", "Add"] }
   ];
+  
+  const modules = ["Dashboard", "Inventory", "Sales", "Purchases", "Expenses", "Customers", "Reports", "Settings"];
+  const actionItems = ["View", "Edit", "Add", "Delete", "Export", "Settings"];
+
+  const handleInviteUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteName || !inviteEmail) {
+      toast("Please provide name and email", "error");
+      return;
+    }
+    toast(`User ${inviteEmail} invited successfully as ${inviteStatus}`, "success");
+    setIsInviteOpen(false);
+    setInviteName("");
+    setInviteEmail("");
+    setInviteStatus("Invited");
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -157,28 +183,57 @@ const UsersTab = ({ users }: { users: any[] }) => {
             <h2 className="text-lg font-bold text-gray-900">Users & Roles</h2>
             <p className="text-sm text-gray-500 mt-1">Manage team access and permissions.</p>
           </div>
-          <Button className="font-semibold bg-[#2E8C13] hover:bg-[#257310]" onClick={() => toast("Add user modal coming soon", "info")}>+ Invite User</Button>
+          <Button className="font-semibold bg-[#2E8C13] hover:bg-[#257310]" onClick={() => setIsInviteOpen(true)}>+ Invite User</Button>
         </div>
 
         <div className="mb-8">
           <span className="text-sm font-semibold text-gray-800 block mb-3">Predefined Roles & Permissions:</span>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <div className="flex border-b border-gray-200 gap-4 mb-4">
             {roles.map(r => (
-              <div key={r.name} className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-colors">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="font-bold text-gray-900">{r.name}</span>
-                  <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => toast("Edit role permissions coming soon", "info")}>Edit</Button>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {["View", "Edit", "Add", "Delete", "Export", "Settings"].map(p => (
-                    <label key={p} className="flex items-center gap-1.5 bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-gray-600">
-                      <input type="checkbox" checked={r.perms.includes(p)} readOnly className="rounded-sm text-[#2E8C13] focus:ring-[#2E8C13] w-2.5 h-2.5" />
-                      {p}
-                    </label>
-                  ))}
-                </div>
-              </div>
+              <button
+                key={r.name}
+                onClick={() => setActiveRoleTab(r.name)}
+                className={`pb-2 px-2 text-sm font-bold border-b-2 transition-colors ${activeRoleTab === r.name ? "border-[#2E8C13] text-[#2E8C13]" : "border-transparent text-gray-500 hover:text-gray-900"}`}
+              >
+                {r.name}
+              </button>
             ))}
+          </div>
+
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                    <th className="p-4 pl-6">Module</th>
+                    {actionItems.map(action => (
+                      <th key={action} className="p-4 text-center">{action}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {modules.map(mod => {
+                    const activeRoleObj = roles.find(r => r.name === activeRoleTab);
+                    return (
+                      <tr key={mod} className="hover:bg-gray-50/50">
+                        <td className="p-4 pl-6 text-sm font-semibold text-gray-800">{mod}</td>
+                        {actionItems.map(action => (
+                          <td key={action} className="p-4 text-center">
+                            <input 
+                              type="checkbox" 
+                              checked={activeRoleObj?.perms.includes(action) || false} 
+                              readOnly 
+                              className="rounded text-[#2E8C13] focus:ring-[#2E8C13] w-4 h-4 cursor-not-allowed opacity-80" 
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -226,6 +281,33 @@ const UsersTab = ({ users }: { users: any[] }) => {
           </table>
         )}
       </Card>
+      
+      <Drawer isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} title="Invite User">
+        <form className="space-y-6" onSubmit={handleInviteUser}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input required type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
+              <input required type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select value={inviteStatus} onChange={e => setInviteStatus(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20">
+                <option value="Invited">Invited</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsInviteOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary">Invite User</Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 };
@@ -338,8 +420,29 @@ const AlertsTab = ({ data, onChange }: { data: any, onChange: (d: any) => void }
 };
 
 const BillingTab = ({ subscription, stats }: { subscription: any, stats: any }) => {
+  const activeSinceDate = subscription?.active_since ? new Date(subscription.active_since) : new Date();
+  const trialDays = 7;
+  const daysPassed = Math.floor((Date.now() - activeSinceDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.max(0, trialDays - daysPassed);
+  const isFreePlan = (subscription?.plan_name || "Free") === "Free";
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {isFreePlan && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h4 className="font-bold text-amber-900 text-sm flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              7-Day Free Trial
+            </h4>
+            <p className="text-sm text-amber-700 mt-1 font-medium">In the free plan, you can create up to 10 products as a sample. Your account will expire after the trial ends.</p>
+          </div>
+          <div className="bg-white px-4 py-2 rounded-lg border border-amber-200 shadow-sm text-center min-w-[120px]">
+            <div className="text-xl font-black text-amber-600">{daysLeft}</div>
+            <div className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Days Left</div>
+          </div>
+        </div>
+      )}
       <Card className="p-6 border border-gray-200 shadow-lg rounded-2xl bg-white text-gray-900">
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -395,6 +498,16 @@ const KnowledgeBaseTab = () => {
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  const predefinedQA = [
+    { q: "How do I add a new inventory item?", a: "Go to the Inventory module and click on the 'Add Product' button. Fill in details like Name, SKU, Category, and Stock." },
+    { q: "How can I track my expenses?", a: "Navigate to the Expenses module where you can log new expenses, categorize them, and view your spending trends over time." },
+    { q: "What happens when a product goes out of stock?", a: "If you have Alerts enabled in Settings, you will receive a notification. Low stock items also appear in the Action Center on the Dashboard." },
+    { q: "Can I assign different roles to my team members?", a: "Yes, in the Settings > Users & Roles section, you can invite users and assign them Admin, Manager, or Staff roles." },
+    { q: "How do I generate a sales report?", a: "Go to the Reports module, select your desired date range and category, and click the 'Export' button to download your sales data." },
+    { q: "How do I handle customer returns?", a: "In the Sales module, you can mark specific orders as 'Returned' which will automatically update your inventory." }
+  ];
 
   const handleAsk = async (q: string) => {
     if (!q.trim()) return;
@@ -467,16 +580,32 @@ const KnowledgeBaseTab = () => {
             </div>
           </div>
         )}
-      </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a href="https://wa.me/919566201501?text=Hello%20Inba%20Essentials%20Support%20Team%2C%0AI%20need%20assistance%20with%20my%20account." target="_blank" rel="noopener noreferrer" className="p-6 bg-green-50 rounded-xl border border-green-100 flex flex-col items-center text-center cursor-pointer hover:bg-green-100 transition-colors">
-          <MessageSquare className="w-8 h-8 text-green-600 mb-3" />
-          <h3 className="font-bold text-green-900">WhatsApp Support</h3>
-          <p className="text-sm text-green-700 mt-1 mb-4">Get instant help from our team.</p>
-          <span className="text-sm font-semibold text-green-800">Chat on WhatsApp</span>
-        </a>
+        <div className="mt-8 border-t border-gray-100 pt-6">
+          <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <HelpCircle className="w-4 h-4 text-primary" />
+            Frequently Asked Questions
+          </h3>
+          <div className="space-y-3">
+            {predefinedQA.map((faq, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl overflow-hidden bg-gray-50/50 transition-all">
+                <button 
+                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-4 text-left font-semibold text-sm text-gray-800 hover:text-primary transition-colors focus:outline-none"
+                >
+                  {faq.q}
+                  {expandedFaq === i ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                </button>
+                {expandedFaq === i && (
+                  <div className="p-4 pt-0 text-sm text-gray-600 bg-white border-t border-gray-50">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+      </Card>
     </div>
   );
 };
