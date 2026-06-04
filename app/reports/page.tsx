@@ -356,7 +356,7 @@ export default function ReportsPage() {
               )}
             </div>
             <div className="overflow-x-auto">
-              {categoryPerformance.length > 0 ? (
+              {(loading || categoryPerformance.length > 0) ? (
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50/50 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
                     <tr>
@@ -434,7 +434,7 @@ export default function ReportsPage() {
                 )}
               </div>
               <div className="overflow-x-auto">
-                {topProducts.length > 0 ? (
+                {(loading || topProducts.length > 0) ? (
                   <table className="w-full text-left text-sm">
                     <thead className="bg-gray-50/50 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-100">
                       <tr>
@@ -496,7 +496,7 @@ export default function ReportsPage() {
                 <p className="text-xs text-gray-500 mt-1">Breakdown of outbound cost distributions this month</p>
               </div>
               <div className="p-6 space-y-5 flex-1">
-                {expensesBreakdown.length > 0 ? (
+                {(loading || expensesBreakdown.length > 0) ? (
                   expensesBreakdown.map((exp, idx) => (
                     <div key={idx} className="space-y-2">
                       <div className="flex justify-between text-xs font-medium">

@@ -1097,7 +1097,7 @@ export default function InventoryPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  {catProducts.length > 0 ? (
+                  {(loading || catProducts.length > 0) ? (
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-white border-b border-gray-100">
@@ -1280,7 +1280,7 @@ export default function InventoryPage() {
           {(platform as string) === "online-course" && viewMode === "cards" ? (
             /* Course Summary Cards Grid View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gray-50/30">
-              {filteredProducts.length > 0 ? (
+              {(loading || filteredProducts.length > 0) ? (
                 filteredProducts.map((product) => (
                   <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-150 flex flex-col justify-between bg-white">
                     <div className="p-5 space-y-6">
@@ -1601,7 +1601,7 @@ export default function InventoryPage() {
             {/* Vertical Timeline */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
               <h4 className="text-sm font-medium text-gray-800 mb-4">Stock Ledger Timeline</h4>
-              {timelineEvents.length > 0 ? (
+              {(loading || timelineEvents.length > 0) ? (
                 <div className="relative border-l border-gray-200 pl-4 ml-2 space-y-6 py-2">
                   {timelineEvents.map((evt, idx) => (
                     <div key={idx} className="relative">
@@ -1754,7 +1754,7 @@ export default function InventoryPage() {
 
             {/* Content Body */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
-              {bulkQueue.length === 0 ? (
+              {(!loading && bulkQueue.length === 0) ? (
                 /* Drag & Drop Area */
                 <div className="h-96 border-2 border-dashed border-gray-200 hover:border-[#2E8C13]/50 rounded-2xl flex flex-col items-center justify-center bg-white transition-all p-8 text-center group relative cursor-pointer">
                   <input 
@@ -2077,7 +2077,7 @@ export default function InventoryPage() {
 
             {/* Content Table Body */}
             <div className="flex-1 overflow-hidden p-6 bg-gray-50/30 flex flex-col justify-start">
-              {bulkEditProducts.length === 0 ? (
+              {(!loading && bulkEditProducts.length === 0) ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-100 p-8 shadow-sm">
                   <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <h3 className="text-sm font-medium text-gray-800">No Products Available</h3>
@@ -2545,7 +2545,7 @@ function GymMembershipsView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredPlans.length > 0 ? (
+              {(loading || filteredPlans.length > 0) ? (
                 filteredPlans.map((plan: any) => (
                   <tr key={plan.id} className="hover:bg-gray-50/40 transition-colors group">
                     <td className="p-3 pl-6 font-mono text-xs font-semibold text-gray-400">{plan.id}</td>
@@ -3317,7 +3317,7 @@ function CourseManagementView() {
           {/* Main Course Table */}
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              {filteredCourses.length > 0 ? (
+              {(loading || filteredCourses.length > 0) ? (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
@@ -3503,7 +3503,7 @@ function CourseManagementView() {
                       </div>
                     )}
                   </div>
-                  {catCourses.length > 0 ? (
+                  {(loading || catCourses.length > 0) ? (
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-gray-100 bg-gray-50/30">
@@ -4422,7 +4422,7 @@ function ClinicInventoryView() {
 
       <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          {filteredInventory.length > 0 ? (
+          {(loading || filteredInventory.length > 0) ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">

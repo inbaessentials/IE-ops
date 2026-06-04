@@ -437,7 +437,7 @@ export default function FollowupsPage() {
           {/* Tasklist Table */}
           <Card className="overflow-hidden">
             <div className="overflow-x-auto min-h-[250px]">
-              {filteredFollowups.length > 0 ? (
+              {(loading || filteredFollowups.length > 0) ? (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">
@@ -544,7 +544,7 @@ export default function FollowupsPage() {
 
           <Card className="overflow-hidden">
             <div className="overflow-x-auto min-h-[200px]">
-              {automations.length > 0 ? (
+              {(loading || automations.length > 0) ? (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100">

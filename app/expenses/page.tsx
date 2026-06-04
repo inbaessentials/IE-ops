@@ -464,7 +464,7 @@ export default function ExpensesPage() {
           </div>
         </div>
         
-        {filteredExpenses.length === 0 ? (
+        {(!loading && filteredExpenses.length === 0) ? (
           <div className="p-12 text-center flex flex-col items-center justify-center">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
               <Search className="w-8 h-8 text-gray-300" />
@@ -599,7 +599,7 @@ export default function ExpensesPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  {catExpenses.length > 0 ? (
+                  {(loading || catExpenses.length > 0) ? (
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-white border-b border-gray-100">

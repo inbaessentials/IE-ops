@@ -896,7 +896,7 @@ export default function PurchasesPage() {
           </div>
 
           <div className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-visible">
-            {filteredOrders.length > 0 ? (
+            {(loading || filteredOrders.length > 0) ? (
               <div className="overflow-x-auto min-h-[300px]">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -1069,7 +1069,7 @@ export default function PurchasesPage() {
               <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-1">Supplier</label>
-                  {suppliers.length > 0 ? (
+                  {(loading || suppliers.length > 0) ? (
                     <select 
                       value={selectedSupplier}
                       onChange={(e) => setSelectedSupplier(e.target.value)}
@@ -1270,7 +1270,7 @@ export default function PurchasesPage() {
                   </div>
 
                   <div className="overflow-x-auto">
-                    {supplierPOs.length > 0 ? (
+                    {(loading || supplierPOs.length > 0) ? (
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-white border-b border-gray-100">

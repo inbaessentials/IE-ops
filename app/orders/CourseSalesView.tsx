@@ -458,7 +458,7 @@ export function CourseSalesView() {
 
       <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
         <div className="overflow-x-auto min-h-[300px]">
-          {filteredEnrollments.length > 0 ? (
+          {(loading || filteredEnrollments.length > 0) ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
@@ -1362,7 +1362,7 @@ function ClinicBillingView() {
       {activeTab === "invoices" && (
         <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden">
           <div className="overflow-x-auto min-h-[300px]">
-            {invoices.length > 0 ? (
+            {(loading || invoices.length > 0) ? (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">
@@ -1416,7 +1416,7 @@ function ClinicBillingView() {
           </div>
           <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden">
             <div className="overflow-x-auto min-h-[300px]">
-              {expenses.length > 0 ? (
+              {(loading || expenses.length > 0) ? (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-medium text-gray-600 uppercase tracking-wider">

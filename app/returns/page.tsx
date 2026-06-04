@@ -359,7 +359,7 @@ export default function ReturnsPage() {
 
       <Card className="border border-gray-100 shadow-sm rounded-xl overflow-visible">
         <div className="overflow-x-auto min-h-[300px]">
-          {filteredRefunds.length > 0 ? (
+          {(loading || filteredRefunds.length > 0) ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">

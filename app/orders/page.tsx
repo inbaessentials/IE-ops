@@ -1297,7 +1297,7 @@ export default function SalesPage() {
                   </div>
 
                   <div className="space-y-1 max-h-[380px] overflow-y-auto pr-1">
-                    {newOrderItems.length > 0 ? (
+                    {(loading || newOrderItems.length > 0) ? (
                       newOrderItems.map((item, idx) => (
                         <div key={idx} className="relative py-4 border-b border-slate-100 flex flex-col gap-3 animate-in slide-in-from-top-1 min-w-0 w-full last:border-b-0 last:pb-0">
                           {/* Header Info Row */}
@@ -1638,7 +1638,7 @@ export default function SalesPage() {
                   </div>
 
                   <div className="space-y-1 max-h-[380px] overflow-y-auto pr-1">
-                    {newOrderItems.length > 0 ? (
+                    {(loading || newOrderItems.length > 0) ? (
                       newOrderItems.map((item, idx) => (
                         <div key={idx} className="relative py-4 border-b border-slate-100 flex flex-col gap-3 animate-in slide-in-from-top-1 min-w-0 w-full last:border-b-0 last:pb-0">
                           {/* Header Info Row */}

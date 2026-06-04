@@ -209,7 +209,7 @@ export default function AppointmentsPage() {
       {/* Primary View */}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          {filteredApps.length > 0 ? (
+          {(loading || filteredApps.length > 0) ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">

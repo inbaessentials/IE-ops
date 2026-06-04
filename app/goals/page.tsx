@@ -1158,7 +1158,7 @@ export default function GoalsPage() {
                 <p className="text-[11px] text-gray-500 mt-0.5">Products driving the highest sales progress</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
-                {topContributors.length > 0 ? (
+                {(loading || topContributors.length > 0) ? (
                   topContributors.map((c, i) => (
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
@@ -1183,7 +1183,7 @@ export default function GoalsPage() {
                 <p className="text-[11px] text-gray-500 mt-0.5">{platform === "gym-services" ? "Trainer revenue shares and coaching margins" : platform === "online-course" ? "Slow courses with significant production cost" : "Slow products with high cash locked up"}</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
-                {cashBlocks.length > 0 ? (
+                {(loading || cashBlocks.length > 0) ? (
                   cashBlocks.map((c, i) => (
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
@@ -1208,7 +1208,7 @@ export default function GoalsPage() {
                 <p className="text-[11px] text-gray-500 mt-0.5">{platform === "gym-services" ? "High velocity gym supplements nearing depletion" : platform === "online-course" ? "High velocity courses needing instructor attention" : "High velocity products nearing depletion"}</p>
               </CardHeader>
               <CardContent className="p-4 flex-1 divide-y divide-gray-100">
-                {stockoutWarnings.length > 0 ? (
+                {(loading || stockoutWarnings.length > 0) ? (
                   stockoutWarnings.map((c, i) => (
                     <div key={i} className="py-2.5 flex justify-between items-center text-xs first:pt-0 last:pb-0">
                       <div className="min-w-0 pr-2">
@@ -1331,7 +1331,7 @@ export default function GoalsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredGoals.length > 0 ? (
+              {(loading || filteredGoals.length > 0) ? (
                 filteredGoals.map((g, idx) => {
                   const histStart = new Date(g.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
                   const histEnd = new Date(g.end_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });

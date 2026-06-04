@@ -397,7 +397,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="p-0 relative z-10">
-            {topProducts.length > 0 ? (
+            {(loading || topProducts.length > 0) ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -488,7 +488,7 @@ export default function Dashboard() {
             <p className="text-sm text-gray-500 mt-1.5 font-medium">Critical low stock requiring attention</p>
           </CardHeader>
           <CardContent className="p-5">
-            {lowStockItems.length > 0 ? (
+            {(loading || lowStockItems.length > 0) ? (
               <div className="space-y-4">
                 {lowStockItems.map((prod, i) => {
                   const stockCount = prod.stock || 0;

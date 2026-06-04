@@ -609,7 +609,7 @@ export default function CustomersPage() {
       {/* Primary Customer Table */}
       <Card className="border-gray-100 shadow-xs rounded-2xl overflow-visible">
         <div className="overflow-x-auto min-h-[300px]">
-          {filteredCustomers.length > 0 ? (
+          {(loading || filteredCustomers.length > 0) ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100">
@@ -870,7 +870,7 @@ export default function CustomersPage() {
               <div className="p-5 min-h-[220px]">
                 {profileTab === "orders" && (
                   <div className="space-y-3">
-                    {viewingCustomer.orders.length > 0 ? (
+                    {(loading || viewingCustomer.orders.length > 0) ? (
                       viewingCustomer.orders.map((ord, idx) => (
                         <div key={idx} className="p-3 bg-gray-50/60 border border-gray-100 rounded-xl text-xs space-y-1.5 transition-colors">
                           <div className="flex items-center justify-between font-semibold">
@@ -899,7 +899,7 @@ export default function CustomersPage() {
 
                 {profileTab === "categories" && (
                   <div className="space-y-4">
-                    {viewingCustomer.favoriteCategories.length > 0 ? (
+                    {(loading || viewingCustomer.favoriteCategories.length > 0) ? (
                       viewingCustomer.favoriteCategories.map((fc, i) => (
                         <div key={i} className="space-y-1">
                           <div className="flex justify-between text-[11px] font-semibold text-gray-650">
@@ -938,7 +938,7 @@ export default function CustomersPage() {
 
                     {/* Timeline feed */}
                     <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
-                      {viewingCustomer.customerNotes.length > 0 ? (
+                      {(loading || viewingCustomer.customerNotes.length > 0) ? (
                         viewingCustomer.customerNotes.map((note) => (
                           <div key={note.id} className="p-3 bg-gray-50/60 border border-gray-100 rounded-xl text-[11px] space-y-1">
                             <div className="flex items-center justify-between font-semibold text-[9px] text-gray-450 uppercase tracking-wider">

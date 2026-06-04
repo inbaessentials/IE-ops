@@ -124,7 +124,7 @@ const UsersTab = ({ users }: { users: any[] }) => {
           ))}
         </div>
 
-        {users.length === 0 ? (
+        {(!loading && users.length === 0) ? (
           <p className="text-sm text-gray-500">No users found.</p>
         ) : (
           <table className="w-full text-left">
