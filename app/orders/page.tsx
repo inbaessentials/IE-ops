@@ -245,7 +245,6 @@ const serializeAddressField = (cleanAddress: string, shippingType: "free" | "pai
 
 export default function SalesPage() {
   const [loading, setLoading] = useState(true);
-  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
 
   const { platform, config } = usePlatform();
   const toast = useToast();
@@ -299,6 +298,7 @@ export default function SalesPage() {
   const [orderNotes, setOrderNotes] = useState<string>("");
 
   const fetchOrders = async () => {
+    setLoading(true);
     const { data: ordersData, error: ordersError } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
     if (ordersError) {
       console.error(ordersError);
@@ -345,6 +345,7 @@ export default function SalesPage() {
     }
 
     setDbCustomers(customerList);
+    setLoading(false);
   };
 
   useEffect(() => {

@@ -32,7 +32,6 @@ import {
 
 export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
-  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
 
   const { platform, config } = usePlatform();
   const [products, setProducts] = useState<any[]>([]);
@@ -130,6 +129,7 @@ export default function InventoryPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
 
   const fetchProducts = async () => {
+    setLoading(true);
     const { data, error } = await supabase.from('products').select('*').order('display_id', { ascending: true });
     if (data && data.length > 0) {
       setProducts(data);
@@ -141,6 +141,7 @@ export default function InventoryPage() {
     if (orderItems) {
       setAllOrderItems(orderItems);
     }
+    setLoading(false);
   };
 
   useEffect(() => {

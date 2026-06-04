@@ -69,7 +69,6 @@ const generateNextDisplayId = (existingExpenses: any[]) => {
 
 export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
-  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
 
   const { platform, config } = usePlatform();
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -94,6 +93,7 @@ export default function ExpensesPage() {
   };
 
   const fetchExpenses = async () => {
+    setLoading(true);
     if (platform === "gym-services") {
       if (typeof window !== "undefined") {
         const saved = localStorage.getItem("inba_gym_expenses");
@@ -109,6 +109,7 @@ export default function ExpensesPage() {
     if (!error && data) {
       setExpenses(data);
     }
+    setLoading(false);
   };
 
   useEffect(() => {

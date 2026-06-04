@@ -63,7 +63,6 @@ interface Customer {
 
 export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
-  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
@@ -102,6 +101,7 @@ export default function CustomersPage() {
   const defaultCustomers: Customer[] = [];
 
   const loadData = async () => {
+    setLoading(true);
     try {
       // 1. Fetch from Supabase
       const { data: orders } = await supabase.from("orders").select("*");
@@ -223,6 +223,7 @@ export default function CustomersPage() {
         } catch (_) {}
       }
     }
+    setLoading(false);
   };
 
   useEffect(() => {
