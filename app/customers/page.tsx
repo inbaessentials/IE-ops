@@ -116,14 +116,21 @@ export default function CustomersPage() {
       setDbOrderItems(orderItemsData);
       setDbProducts(productsData);
 
-      // 2. Fetch local storage customers
+      const { data: dbCustomers } = await supabase.from("customers").select("*");
+      const customersData = dbCustomers || [];
+
+      // 2. Fetch local storage customers for notes (since they aren't in the DB schema yet)
       const saved = localStorage.getItem("inba_customers_module");
-      let parsed: any[] = [];
+      let localNotes: Record<string, CustomerNote[]> = {};
       if (saved) {
-        parsed = JSON.parse(saved);
-        // Automatically purge old mock customers
-        const mockIds = ["CUST-001", "CUST-002", "CUST-003", "CUST-004", "CUST-005", "CUST-006"];
-        parsed = parsed.filter((c: any) => !mockIds.includes(c.id));
+        try {
+          const parsed = JSON.parse(saved);
+          parsed.forEach((c: any) => {
+            if (c.customerNotes && c.customerNotes.length > 0) {
+              localNotes[c.id] = c.customerNotes;
+            }
+          });
+        } catch (_) {}
       }
 
       // Map product names to categories
@@ -133,9 +140,9 @@ export default function CustomersPage() {
       });
 
       // 3. Map orders & calculate metrics dynamically for each customer
-      const mapped = parsed.map((cust: any, index: number) => {
-        // Clean sequential ID: CUST-0001, CUST-0002
-        const formattedId = `CUST-${String(index + 1).padStart(4, "0")}`;
+      const mapped = customersData.map((cust: any) => {
+        // Clean sequential ID or use DB ID
+        const formattedId = cust.id;
 
         // Find orders matching this customer by phone or by name
         const matchedOrders = ordersData.filter((o: any) => {
@@ -205,7 +212,8 @@ export default function CustomersPage() {
           favoriteCategory,
           favoriteCategories,
           orders: mappedOrders,
-          shippingAddress: cust.shippingAddress || cust.notes || "No address provided."
+          shippingAddress: cust.shipping_address || cust.city || "No address provided.",
+          customerNotes: localNotes[formattedId] || []
         };
       });
 
@@ -213,15 +221,6 @@ export default function CustomersPage() {
       setFilteredCustomers(mapped);
     } catch (err) {
       console.error("Error loading data from Supabase:", err);
-      // Fallback local storage
-      const saved = localStorage.getItem("inba_customers_module");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setCustomers(parsed);
-          setFilteredCustomers(parsed);
-        } catch (_) {}
-      }
     }
     setLoading(false);
   };
@@ -300,18 +299,20 @@ export default function CustomersPage() {
 
   const saveCustomersList = (updated: Customer[]) => {
     setCustomers(updated);
+    // Keep a local copy just for notes
     localStorage.setItem("inba_customers_module", JSON.stringify(updated));
   };
 
-  const handleSaveCustomer = (e: React.FormEvent) => {
+  const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !phone.trim()) {
       toast("Please enter all required fields", "error");
       return;
     }
 
+    const newId = `CUST-${Date.now()}`;
     const newCust: Customer = {
-      id: `CUST-${Date.now()}`,
+      id: newId,
       name: fullName.trim(),
       phone: phone.trim(),
       email: email.trim() || "N/A",
@@ -328,6 +329,22 @@ export default function CustomersPage() {
       favoriteCategories: [],
       customerNotes: shippingAddress.trim() ? [{ id: `N-${Date.now()}`, date: new Date().toISOString().split("T")[0], text: `Customer registered with address: ${shippingAddress.trim()}`, author: "Admin User" }] : []
     };
+
+    const { error } = await supabase.from('customers').insert({
+      id: newId,
+      name: newCust.name,
+      phone: newCust.phone,
+      email: newCust.email,
+      city: newCust.city,
+      shipping_address: newCust.shippingAddress,
+      joined_date: new Date().toISOString()
+    });
+
+    if (error) {
+      toast("Error saving customer to database", "error");
+      console.error(error);
+      return;
+    }
 
     const updated = [newCust, ...customers];
     saveCustomersList(updated);
@@ -348,9 +365,23 @@ export default function CustomersPage() {
     setIsEditDrawerOpen(true);
   };
 
-  const handleUpdateCustomer = (e: React.FormEvent) => {
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCustomer) return;
+
+    const { error } = await supabase.from('customers').update({
+      name: fullName.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+      city: city.trim(),
+      shipping_address: shippingAddress.trim()
+    }).eq('id', editingCustomer.id);
+
+    if (error) {
+      toast("Error updating customer", "error");
+      console.error(error);
+      return;
+    }
 
     const updated = customers.map(c => {
       if (c.id === editingCustomer.id) {
@@ -373,8 +404,13 @@ export default function CustomersPage() {
     toast("Customer details successfully updated!", "success");
   };
 
-  const handleDeleteCustomer = (customerId: string) => {
+  const handleDeleteCustomer = async (customerId: string) => {
     if (confirm("Are you sure you want to permanently delete this customer record?")) {
+      const { error } = await supabase.from('customers').delete().eq('id', customerId);
+      if (error) {
+        toast("Error deleting customer", "error");
+        return;
+      }
       const updated = customers.filter(c => c.id !== customerId);
       saveCustomersList(updated);
       toast("Customer record deleted.", "success");
