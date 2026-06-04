@@ -1665,35 +1665,38 @@ export default function InventoryPage() {
         </div>
       </Modal>
 
-      <Modal isOpen={!!selectExistingProductForCat} onClose={() => setSelectExistingProductForCat(null)} title={`Map Product to ${selectExistingProductForCat}`}>
-        <div className="p-5 space-y-4">
+      <Modal isOpen={!!selectExistingProductForCat} onClose={() => setSelectExistingProductForCat(null)} title={`Map Product to ${selectExistingProductForCat}`} maxWidth="max-w-xl" contentClassName="p-4">
+        <div className="space-y-4">
           <p className="text-xs text-gray-500 mb-2">Select a product to move it to the <strong className="text-gray-700">{selectExistingProductForCat}</strong> category.</p>
-          <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-            {products.map(p => (
-              <div key={p.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:border-[#2E8C13]/30 hover:bg-green-50/30 transition-colors">
-                <div>
-                  <div className="font-semibold text-sm text-gray-900">{p.name}</div>
-                  <div className="text-[10px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
-                    <Tag className="w-3 h-3" /> Currently: {p.category || "Uncategorized"}
+          <div className="max-h-[500px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            {products.map(p => {
+              const isMapped = p.category === selectExistingProductForCat;
+              return (
+                <div key={p.id} className={`flex items-center justify-between p-3 border rounded-xl transition-colors ${isMapped ? "border-green-200 bg-green-50/20" : "border-gray-100 hover:border-[#2E8C13]/30 hover:bg-green-50/30"}`}>
+                  <div>
+                    <div className="font-semibold text-sm text-gray-900">{p.name}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5 font-medium flex items-center gap-1">
+                      <Tag className="w-3 h-3" /> Currently: {p.category || "Uncategorized"}
+                    </div>
                   </div>
+                  <Button 
+                    size="sm" 
+                    variant={isMapped ? "outline" : "primary"}
+                    onClick={async () => {
+                      const newCat = isMapped ? null : selectExistingProductForCat;
+                      const { error } = await supabase.from('products').update({ category: newCat }).eq('id', p.id);
+                      if (!error) {
+                        toast(isMapped ? `Unmapped ${p.name} from ${selectExistingProductForCat}` : `Mapped ${p.name} to ${selectExistingProductForCat}`, "success");
+                        fetchProducts();
+                      }
+                    }}
+                    className={isMapped ? "border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700" : ""}
+                  >
+                    {isMapped ? "Unmap" : "Select"}
+                  </Button>
                 </div>
-                <Button 
-                  size="sm" 
-                  variant={p.category === selectExistingProductForCat ? "outline" : "primary"}
-                  disabled={p.category === selectExistingProductForCat}
-                  onClick={async () => {
-                    const { error } = await supabase.from('products').update({ category: selectExistingProductForCat }).eq('id', p.id);
-                    if (!error) {
-                      toast(`Mapped ${p.name} to ${selectExistingProductForCat}`, "success");
-                      fetchProducts();
-                    }
-                  }}
-                  className={p.category === selectExistingProductForCat ? "opacity-50" : ""}
-                >
-                  {p.category === selectExistingProductForCat ? "Mapped" : "Select"}
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </Modal>

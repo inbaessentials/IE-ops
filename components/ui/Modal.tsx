@@ -8,11 +8,13 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  maxWidth?: string;
+  contentClassName?: string;
 }
 
 import { AnimatePresence, motion } from "framer-motion";
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg", contentClassName = "p-6" }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -38,7 +40,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="bg-white rounded-xl shadow-lg w-full max-w-lg overflow-hidden"
+            className={`bg-white rounded-xl shadow-lg w-full ${maxWidth} overflow-hidden`}
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
@@ -49,7 +51,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
+            <div className={`${contentClassName} overflow-y-auto max-h-[70vh]`}>
               {children}
             </div>
           </motion.div>
