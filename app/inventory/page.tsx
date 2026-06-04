@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 // trigger vercel redeploy
 
 import { useState, useEffect, useMemo } from "react";
@@ -1106,7 +1108,12 @@ export default function InventoryPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {catProducts.map((product) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : catProducts?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  catProducts.map((product) => {
                           const pOrderItems = allOrderItems.filter(item => item.name === product.name);
                           const pQtySold = pOrderItems.reduce((s, item) => s + (Number(item.qty) || 1), 0);
                           const pRevenue = pOrderItems.reduce((s, item) => {
@@ -1179,8 +1186,9 @@ export default function InventoryPage() {
                               </td>
                             </tr>
                           );
-                        })}
-                      </tbody>
+                        })
+                )}
+              </tbody>
                     </table>
                   ) : (
                     <div className="py-8 text-center text-gray-400 text-xs font-medium">
@@ -1364,7 +1372,12 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredProducts.map((product) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredProducts?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50/40 transition-colors group relative">
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
@@ -1422,8 +1435,9 @@ export default function InventoryPage() {
                         <DropdownMenu items={getDropdownItems(product)} />
                       </td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           )}
@@ -1721,6 +1735,11 @@ export default function InventoryPage() {
               </div>
               <button 
                 onClick={() => {
+                  if (bulkQueue.length > 0) {
+                    if (!window.confirm("Are you sure you want to close? Your unsaved products will be lost.")) {
+                      return;
+                    }
+                  }
                   setIsBulkUploadOpen(false);
                   setBulkQueue([]);
                 }}
@@ -1951,6 +1970,11 @@ export default function InventoryPage() {
                   type="button" 
                   variant="ghost" 
                   onClick={() => {
+                    if (bulkQueue.length > 0) {
+                      if (!window.confirm("Are you sure you want to close? Your unsaved products will be lost.")) {
+                        return;
+                      }
+                    }
                     setIsBulkUploadOpen(false);
                     setBulkQueue([]);
                   }}
@@ -3300,7 +3324,12 @@ function CourseManagementView() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredCourses.map(course => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredCourses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredCourses.map(course => {
                       const convPct = course.leads > 0 ? ((course.students / course.leads) * 100).toFixed(0) : "0";
                       const grossRev = course.price * course.students;
                       return (
@@ -3374,8 +3403,9 @@ function CourseManagementView() {
                           </td>
                         </tr>
                       );
-                    })}
-                  </tbody>
+                    })
+                )}
+              </tbody>
                 </table>
               ) : (
                 <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center">
@@ -3476,7 +3506,12 @@ function CourseManagementView() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
-                        {catCourses.map(course => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : catCourses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  catCourses.map(course => (
                           <tr key={course.id} className="hover:bg-gray-50/40 transition-colors">
                             <td className="px-5 py-4">
                               <p className="text-[15px] font-semibold text-primary hover:text-primary/80 transition-colors">{course.name}</p>
@@ -3500,8 +3535,9 @@ function CourseManagementView() {
                               </button>
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
+                        ))
+                )}
+              </tbody>
                     </table>
                   ) : (
                     <div className="px-5 py-6 text-sm text-gray-400 text-center">No courses in this category yet.</div>
@@ -3662,7 +3698,12 @@ function CourseManagementView() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
-                      {enrollments.map((en, i) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : enrollments?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  enrollments.map((en, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
                           <td className="p-4 pl-6 font-semibold text-gray-900">{en.student}</td>
                           <td className="p-4 text-gray-500">{en.date}</td>
@@ -3675,8 +3716,9 @@ function CourseManagementView() {
                             </span>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
+                      ))
+                )}
+              </tbody>
                   </table>
                 </div>
               </div>
@@ -3697,7 +3739,12 @@ function CourseManagementView() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
-                      {leadsList.map((le, i) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : leadsList?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  leadsList.map((le, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
                           <td className="p-4 pl-6 font-semibold text-gray-900">{le.name}</td>
                           <td className="p-4 text-gray-500">{le.source}</td>
@@ -3708,8 +3755,9 @@ function CourseManagementView() {
                           </td>
                           <td className="p-4 text-right pr-6 text-gray-500">{le.contact}</td>
                         </tr>
-                      ))}
-                    </tbody>
+                      ))
+                )}
+              </tbody>
                   </table>
                 </div>
               </div>
@@ -3730,7 +3778,12 @@ function CourseManagementView() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-sm font-normal text-gray-700">
-                      {payments.map((pa, i) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : payments?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  payments.map((pa, i) => (
                         <tr key={i} className="hover:bg-gray-50/50">
                           <td className="p-4 pl-6 font-mono text-gray-900">{pa.invoice}</td>
                           <td className="p-4 text-gray-900">₹{pa.amount.toLocaleString()}</td>
@@ -3741,8 +3794,9 @@ function CourseManagementView() {
                             </span>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
+                      ))
+                )}
+              </tbody>
                   </table>
                 </div>
               </div>
@@ -4368,7 +4422,12 @@ function ClinicInventoryView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white text-sm font-medium">
-                {filteredInventory.map((item, idx) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredInventory?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredInventory.map((item, idx) => (
                   <tr key={idx} className="hover:bg-gray-50/40 transition-colors group">
                     <td className="p-4 pl-6 whitespace-nowrap">
                       <span className="font-semibold text-gray-900">{item.name}</span>
@@ -4387,7 +4446,8 @@ function ClinicInventoryView() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           ) : (
