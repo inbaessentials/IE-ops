@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
@@ -23,6 +25,9 @@ import {
 } from "lucide-react";
 
 export default function AppointmentsPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform } = usePlatform();
   const toast = useToast();
 
@@ -219,7 +224,12 @@ export default function AppointmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredApps.map(app => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredApps?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredApps.map(app => (
                   <tr key={app.id} className="hover:bg-gray-50/40 transition-colors">
                     <td className="p-4 pl-6 text-sm font-bold text-gray-900">{app.time}</td>
                     <td className="p-4">
@@ -273,7 +283,8 @@ export default function AppointmentsPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           ) : (

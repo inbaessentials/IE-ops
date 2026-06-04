@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
@@ -367,7 +369,12 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {categoryPerformance.map((cat, index) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : categoryPerformance?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  categoryPerformance.map((cat, index) => {
                       const salesPlural = getModuleProp('Sales', 'displayName') || 'Units';
                       return (
                         <tr key={index} className="hover:bg-gray-50/30 transition-colors">
@@ -399,8 +406,9 @@ export default function ReportsPage() {
                         </td>
                       </tr>
                       );
-                    })}
-                  </tbody>
+                    })
+                )}
+              </tbody>
                 </table>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[200px] text-sm text-gray-400 font-medium">
@@ -439,7 +447,12 @@ export default function ReportsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {topProducts.map((prod) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : topProducts?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  topProducts.map((prod) => {
                         const salesPlural = getModuleProp('Sales', 'displayName') || 'Units';
                         return (
                           <tr key={prod.rank} className="hover:bg-gray-50/30 transition-colors">
@@ -464,8 +477,9 @@ export default function ReportsPage() {
                           </td>
                         </tr>
                         );
-                      })}
-                    </tbody>
+                      })
+                )}
+              </tbody>
                   </table>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-[200px] text-sm text-gray-400 font-medium">

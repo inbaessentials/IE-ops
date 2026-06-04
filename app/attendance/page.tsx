@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -18,6 +20,9 @@ import {
 } from "recharts";
 
 export default function AttendancePage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform } = usePlatform();
   const [attendance, setAttendance] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -612,7 +617,12 @@ export default function AttendancePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredAttendanceList.map((log: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredAttendanceList?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredAttendanceList.map((log: any) => (
                 <tr key={log.id} className="hover:bg-gray-50/40 transition-colors">
                   <td className="p-3 pl-6 flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-xs shrink-0">
@@ -652,8 +662,9 @@ export default function AttendancePage() {
                     {log.branch.split(" ")[0]}
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              ))
+                )}
+              </tbody>
           </table>
         </div>
       </Card>

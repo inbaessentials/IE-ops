@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/Card";
@@ -60,6 +62,9 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -625,7 +630,12 @@ export default function CustomersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredCustomers.map((cust) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredCustomers?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredCustomers.map((cust) => (
                   <tr key={cust.id} className="hover:bg-gray-50/20 transition-colors group">
                     <td className="p-4 pl-6 whitespace-nowrap">
                       <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setProfileTab("orders"); setViewingCustomer(cust); }}>
@@ -651,7 +661,8 @@ export default function CustomersPage() {
                       <DropdownMenu items={getDropdownItems(cust)} />
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           ) : (

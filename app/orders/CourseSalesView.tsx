@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -235,6 +237,9 @@ const serializeAddressField = (cleanAddress: string, shippingType: "free" | "pai
 };
 
 export function CourseSalesView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform } = usePlatform();
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [filteredEnrollments, setFilteredEnrollments] = useState<any[]>([]);
@@ -469,7 +474,12 @@ export function CourseSalesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm font-medium text-gray-800">
-                {filteredEnrollments.map((enr) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredEnrollments?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredEnrollments.map((enr) => (
                   <tr key={enr.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     <td className="p-4 pl-6 whitespace-nowrap">
                       <div className="flex flex-col cursor-pointer" onClick={() => setViewingEnrollment(enr)}>
@@ -500,7 +510,8 @@ export function CourseSalesView() {
                       <DropdownMenu items={getDropdownItems(enr)} />
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           ) : (
@@ -644,6 +655,9 @@ export function CourseSalesView() {
 
 
 function GymRevenueView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const [activeTab, setActiveTab] = useState<"membership" | "pt" | "products" | "expenses">("membership");
   
   // Local Database States
@@ -1035,7 +1049,12 @@ function GymRevenueView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {products.map((prod: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : products?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  products.map((prod: any) => (
                     <tr key={prod.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 text-sm font-medium text-gray-800">{prod.name}</td>
                       <td className="p-3 text-xs font-mono text-gray-500">{prod.sku}</td>
@@ -1053,8 +1072,9 @@ function GymRevenueView() {
                       <td className="p-3 text-sm font-medium text-gray-800 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right pr-6 font-bold text-emerald-600 text-sm">₹{prod.revenue.toLocaleString("en-IN")}</td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </Card>
@@ -1103,7 +1123,12 @@ function GymRevenueView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {expenses.map((exp: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : expenses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  expenses.map((exp: any) => (
                     <tr key={exp.display_id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{exp.display_id}</td>
                       <td className="p-3 text-xs">
@@ -1119,8 +1144,9 @@ function GymRevenueView() {
                       <td className="p-3 text-xs text-gray-500">{exp.date}</td>
                       <td className="p-3 text-right pr-6 font-bold text-red-600 text-sm">₹{exp.amount.toLocaleString("en-IN")}</td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </Card>
@@ -1183,6 +1209,9 @@ function GymRevenueView() {
 }
 
 function ClinicBillingView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const [activeTab, setActiveTab] = useState<"invoices" | "expenses">("invoices");
   
   // Local Database States
@@ -1346,7 +1375,12 @@ function ClinicBillingView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {invoices.map((inv: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : invoices?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  invoices.map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-4 pl-6 font-medium text-xs text-gray-900 font-mono">{inv.id}</td>
                       <td className="p-4">
@@ -1360,8 +1394,9 @@ function ClinicBillingView() {
                       <td className="p-4 text-gray-500">{inv.payment}</td>
                       <td className="p-4 text-gray-600">{inv.date}</td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             ) : (
               <div className="flex flex-col items-center justify-center h-[300px] text-sm text-gray-400 font-medium">
@@ -1393,7 +1428,12 @@ function ClinicBillingView() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 bg-white">
-                    {expenses.map((exp: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : expenses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  expenses.map((exp: any) => (
                       <tr key={exp.display_id} className="hover:bg-gray-50/40 transition-colors">
                         <td className="p-4 pl-6 font-medium text-xs text-gray-400 font-mono">{exp.display_id}</td>
                         <td className="p-4 text-xs font-semibold text-gray-700">{exp.category}</td>
@@ -1401,8 +1441,9 @@ function ClinicBillingView() {
                         <td className="p-4 text-xs text-gray-500">{exp.date}</td>
                         <td className="p-4 text-right pr-6 font-bold text-red-600">₹{exp.amount.toLocaleString("en-IN")}</td>
                       </tr>
-                    ))}
-                  </tbody>
+                    ))
+                )}
+              </tbody>
                 </table>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[300px] text-sm text-gray-400 font-medium">

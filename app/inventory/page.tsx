@@ -31,6 +31,9 @@ import {
 
 
 export default function InventoryPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform, config } = usePlatform();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>(["Herbal", "Cosmetic", "Grocery", "Wellness"]);
@@ -2348,6 +2351,9 @@ export default function InventoryPage() {
 }
 
 function GymMembershipsView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const [plans, setPlans] = useState<any[]>([]);
   
   // Drawer visibility states
@@ -2777,6 +2783,9 @@ const seedCourses = (): Course[] => [
 ];
 
 function CourseManagementView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const toast = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -4298,6 +4307,9 @@ function CourseManagementView() {
 }
 
 function ClinicInventoryView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const [inventory, setInventory] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);

@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/Card";
@@ -108,6 +110,9 @@ interface PurchaseOrder {
 }
 
 export default function PurchasesPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform, config } = usePlatform();
   const toast = useToast();
   
@@ -267,7 +272,7 @@ export default function PurchasesPage() {
     try {
       // 1. Fetch products and order items
       const { data: productsData } = await supabase.from("products").select("name, category, price, purchase_price");
-      const { data: orderItemsData } = await supabase.from("order_items").select("product_name, quantity, price");
+      const { data: orderItemsData } = await supabase.from("order_items").select("name, qty, price");
       
       const prods = productsData || [];
       const items = orderItemsData || [];
@@ -290,29 +295,42 @@ export default function PurchasesPage() {
         const supplierPOs = currentPOs.filter(po => po.supplier === supplier.name);
         const amountBought = supplierPOs.reduce((sum, po) => sum + po.amount, 0);
         
+        // Aggregate things bought from PO notes or categories
+        const thingsBought = Array.from(new Set(supplierPOs.map(po => po.notes).filter(Boolean)));
+        
         // Map categories to suppliers (heuristic for demo insights)
         let mappedCategories: string[] = [];
-        if (supplier.name.includes("Organic") || supplier.name.includes("Vedic")) {
+        if (supplier.name.toLowerCase().includes("organic") || supplier.name.toLowerCase().includes("vedic")) {
           mappedCategories = ["Herbal", "Wellness", "Organic"];
-        } else if (supplier.name.includes("Textiles")) {
-          mappedCategories = ["Clothing", "Textiles", "Accessories"];
+        } else if (supplier.name.toLowerCase().match(/textile|tex|fabric|trader/)) {
+          mappedCategories = ["Clothing", "Textiles", "Accessories", "Fashion"];
         } else {
           mappedCategories = ["General", "Cosmetic", "Grocery"];
         }
         
-        // Find products matching these categories
-        const supplierProducts = prods.filter(p => mappedCategories.some(c => p.category?.includes(c) || p.name?.includes(c)));
+        // Find products matching these categories OR things bought
+        const supplierProducts = prods.filter(p => {
+          const matchCat = mappedCategories.some(c => p.category?.toLowerCase().includes(c.toLowerCase()) || p.name?.toLowerCase().includes(c.toLowerCase()));
+          const matchNotes = thingsBought.some(note => 
+            p.name?.toLowerCase().includes(note.toLowerCase()) || 
+            note.toLowerCase().includes(p.name?.toLowerCase()) ||
+            p.category?.toLowerCase().includes(note.toLowerCase())
+          );
+          return matchCat || matchNotes;
+        });
         const productNames = supplierProducts.map(p => p.name);
         
         // Calculate sales for these products
-        const supplierSales = items.filter(item => productNames.includes(item.product_name));
-        const qtySold = supplierSales.reduce((sum, item) => sum + item.quantity, 0);
-        const amountGained = supplierSales.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        const supplierSales = items.filter(item => productNames.includes(item.name));
+        const qtySold = supplierSales.reduce((sum, item) => sum + (item.qty || 0), 0);
+        
+        // Parse price correctly if it's a string like "₹299"
+        const amountGained = supplierSales.reduce((sum, item) => {
+          const priceStr = item.price ? String(item.price).replace(/[^\d.]/g, '') : "0";
+          return sum + ((item.qty || 0) * (parseFloat(priceStr) || 0));
+        }, 0);
         
         const percentageGained = amountBought > 0 ? ((amountGained - amountBought) / amountBought) * 100 : 0;
-        
-        // Aggregate things bought from PO notes or categories
-        const thingsBought = Array.from(new Set(supplierPOs.map(po => po.notes).filter(Boolean)));
         
         return {
           ...supplier,
@@ -688,7 +706,12 @@ export default function PurchasesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {coupons.map(c => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : coupons?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  coupons.map(c => (
                     <tr key={c.id} className="hover:bg-gray-50/40 transition-colors group relative">
                       <td className="p-4 pl-6 font-mono font-bold text-gray-900 tracking-wide text-sm">{c.code}</td>
                       <td className="p-4 text-sm font-semibold text-gray-500">
@@ -715,8 +738,9 @@ export default function PurchasesPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </Card>
@@ -900,7 +924,12 @@ export default function PurchasesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredOrders.map((po) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredOrders?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredOrders.map((po) => {
                       const cleanAmount = Number(po.amount || 0);
                       // Dynamic cost per lead logic
                       const costFactor = 85 + (cleanAmount % 45); 
@@ -995,8 +1024,9 @@ export default function PurchasesPage() {
                           </td>
                         </tr>
                       );
-                    })}
-                  </tbody>
+                    })
+                )}
+              </tbody>
                 </table>
               </div>
             ) : (
@@ -1252,7 +1282,12 @@ export default function PurchasesPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {supplierPOs.map(po => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : supplierPOs?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  supplierPOs.map(po => (
                             <tr key={po.id} className="hover:bg-gray-50/40 transition-colors group relative">
                               <td className="p-4 pl-6">
                                 <p className="text-[13px] font-bold text-[#2E8C13]">{po.po_number}</p>
@@ -1272,8 +1307,9 @@ export default function PurchasesPage() {
                                 </button>
                               </td>
                             </tr>
-                          ))}
-                        </tbody>
+                          ))
+                )}
+              </tbody>
                       </table>
                     ) : (
                       <div className="p-8 text-center text-gray-400 flex flex-col items-center justify-center bg-gray-50/30">

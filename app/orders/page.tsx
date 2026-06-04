@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -242,6 +244,9 @@ const serializeAddressField = (cleanAddress: string, shippingType: "free" | "pai
 };
 
 export default function SalesPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform, config } = usePlatform();
   const toast = useToast();
   const [orders, setOrders] = useState<any[]>([]);
@@ -1027,7 +1032,12 @@ export default function SalesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map((order) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredOrders?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredOrders.map((order) => {
                   // Determine dynamic course payment status & method
                   let coursePaymentStatus = "Paid";
                   if (order.status === "Pending" || order.status === "New" || order.payment === "Unpaid") coursePaymentStatus = "Pending";
@@ -1164,7 +1174,8 @@ export default function SalesPage() {
                       </td>
                     </tr>
                   );
-                })}
+                })
+                )}
               </tbody>
             </table>
           </div>
@@ -2308,7 +2319,12 @@ export default function SalesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {printingOrder.items.map((item: any, idx: number) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : printingOrder.items?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  printingOrder.items.map((item: any, idx: number) => {
                         const matchedProd = dbProducts.find(
                           p => p.name.trim().toLowerCase() === item.name.trim().toLowerCase()
                         );
@@ -2333,8 +2349,9 @@ export default function SalesPage() {
                             <td className="p-[14px_16px] border-b border-[#eee] text-[16px] align-middle text-center font-black text-[#1a1a1a]">{item.qty}</td>
                           </tr>
                         );
-                      })}
-                    </tbody>
+                      })
+                )}
+              </tbody>
                     <tfoot>
                       <tr>
                         <td colSpan={3} className="bg-[#f7f7f7] p-[14px_16px] text-[11px] font-bold border-t-[2px] border-[#1a1a1a] text-right text-[#1a1a1a] uppercase tracking-[1.2px]">Total Items</td>
@@ -2373,6 +2390,9 @@ export default function SalesPage() {
 // GYM SERVICES REVENUE COMPONENT (PRD 1.0)
 // ==========================================
 function GymRevenueView() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const [activeTab, setActiveTab] = useState<"membership" | "pt" | "products" | "expenses">("membership");
   
   // Local Database States
@@ -2764,7 +2784,12 @@ function GymRevenueView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {products.map((prod: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : products?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  products.map((prod: any) => (
                     <tr key={prod.id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 text-sm font-medium text-gray-800">{prod.name}</td>
                       <td className="p-3 text-xs font-mono text-gray-500">{prod.sku}</td>
@@ -2782,8 +2807,9 @@ function GymRevenueView() {
                       <td className="p-3 text-sm font-medium text-gray-800 text-right">₹{prod.price.toLocaleString("en-IN")}</td>
                       <td className="p-3 text-right pr-6 font-bold text-emerald-600 text-sm">₹{prod.revenue.toLocaleString("en-IN")}</td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </Card>
@@ -2832,7 +2858,12 @@ function GymRevenueView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {expenses.map((exp: any) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : expenses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  expenses.map((exp: any) => (
                     <tr key={exp.display_id} className="hover:bg-gray-50/40 transition-colors">
                       <td className="p-3 pl-6 font-medium text-xs text-gray-400 font-mono">{exp.display_id}</td>
                       <td className="p-3 text-xs">
@@ -2848,8 +2879,9 @@ function GymRevenueView() {
                       <td className="p-3 text-xs text-gray-500">{exp.date}</td>
                       <td className="p-3 text-right pr-6 font-bold text-red-600 text-sm">₹{exp.amount.toLocaleString("en-IN")}</td>
                     </tr>
-                  ))}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
             </div>
           </Card>

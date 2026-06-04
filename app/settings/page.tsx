@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/Toast";
@@ -103,6 +105,7 @@ const OrganizationTab = ({ data, onChange }: { data: any, onChange: (d: any) => 
 
 const UsersTab = ({ users }: { users: any[] }) => {
   const toast = useToast();
+  const loading = false;
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl">
@@ -135,7 +138,12 @@ const UsersTab = ({ users }: { users: any[] }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm font-medium">
-              {users.map(u => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : users?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  users.map(u => (
                 <tr key={u.id}>
                   <td className="p-4 pl-6 text-gray-900">
                     <div>{u.name}</div>
@@ -152,8 +160,9 @@ const UsersTab = ({ users }: { users: any[] }) => {
                     <Button variant="ghost" size="sm" onClick={() => toast("Edit user coming soon", "info")}>Edit</Button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              ))
+                )}
+              </tbody>
           </table>
         )}
       </Card>

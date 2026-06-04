@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
@@ -24,6 +26,9 @@ interface RefundRequest {
 }
 
 export default function ReturnsPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform, config } = usePlatform();
   const toast = useToast();
   
@@ -375,7 +380,12 @@ export default function ReturnsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredRefunds.map((ref) => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredRefunds?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredRefunds.map((ref) => (
                   <tr key={ref.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     <td className="p-4 pl-6 whitespace-nowrap text-sm font-semibold text-primary font-mono">{ref.refund_id}</td>
                     <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-medium">
@@ -406,7 +416,8 @@ export default function ReturnsPage() {
                       <DropdownMenu items={getDropdownItems(ref)} />
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           ) : (

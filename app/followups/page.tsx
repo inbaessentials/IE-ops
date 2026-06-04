@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
@@ -136,6 +138,9 @@ const PRIORITY_COLORS = {
 };
 
 export default function FollowupsPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform } = usePlatform();
   const toast = useToast();
 
@@ -446,7 +451,12 @@ export default function FollowupsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredFollowups.map(f => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredFollowups?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredFollowups.map(f => {
                       return (
                         <tr key={f.id} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="p-4 pl-6 font-bold text-gray-900">{f.leadName}</td>
@@ -493,8 +503,9 @@ export default function FollowupsPage() {
                           </td>
                         </tr>
                       );
-                    })}
-                  </tbody>
+                    })
+                )}
+              </tbody>
                 </table>
               ) : (
                 <div className="flex flex-col items-center justify-center p-12 text-center text-gray-400 min-h-[220px]">
@@ -547,7 +558,12 @@ export default function FollowupsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-xs font-semibold text-gray-900">
-                    {automations.map(log => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : automations?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  automations.map(log => (
                       <tr key={log.id} className="hover:bg-gray-50/40 transition-colors group relative">
                         <td className="p-4 pl-6 text-gray-400">{log.id.toUpperCase()}</td>
                         <td className="p-4 text-gray-900 font-bold">{log.lead}</td>
@@ -570,8 +586,9 @@ export default function FollowupsPage() {
                           </span>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
+                    ))
+                )}
+              </tbody>
                 </table>
               ) : (
                 <div className="flex flex-col items-center justify-center p-12 text-center text-gray-400">

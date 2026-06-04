@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
@@ -66,6 +68,9 @@ const generateNextDisplayId = (existingExpenses: any[]) => {
 };
 
 export default function ExpensesPage() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform, config } = usePlatform();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -486,7 +491,12 @@ export default function ExpensesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredExpenses.map((exp) => {
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredExpenses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredExpenses.map((exp) => {
                   const d = new Date(exp.date);
                   return (
                     <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
@@ -520,7 +530,8 @@ export default function ExpensesPage() {
                       </td>
                     </tr>
                   )
-                })}
+                })
+                )}
               </tbody>
             </table>
           </div>
@@ -598,14 +609,20 @@ export default function ExpensesPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {catExpenses.map(expense => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : catExpenses?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  catExpenses.map(expense => (
                           <tr key={expense.id} className="hover:bg-gray-50/40 transition-colors group relative">
                             <td className="p-4 pl-6 text-sm font-semibold text-gray-600">{new Date(expense.date || expense.created_at).toLocaleDateString()}</td>
                             <td className="p-4 text-sm font-medium text-gray-800">{expense.notes || "No notes provided"}</td>
                             <td className="p-4 text-right pr-6 text-sm font-bold text-rose-600">₹{(expense.amount || 0).toLocaleString()}</td>
                           </tr>
-                        ))}
-                      </tbody>
+                        ))
+                )}
+              </tbody>
                     </table>
                   ) : (
                     <div className="p-8 text-center text-gray-400 flex flex-col items-center justify-center bg-gray-50/30">

@@ -1,4 +1,6 @@
 "use client";
+import { TableSkeleton, TableEmptyState } from "@/components/ui/TableStates";
+
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
@@ -145,6 +147,9 @@ const STAGE_COLORS: Record<Lead["stage"], string> = {
 };
 
 export default function LeadCRM() {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { setTimeout(() => setLoading(false), 800); }, []);
+
   const { platform } = usePlatform();
   const toast = useToast();
   
@@ -522,7 +527,12 @@ export default function LeadCRM() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredLeads.map(lead => (
+                {loading ? (
+                  <TableSkeleton columns={7} />
+                ) : filteredLeads?.length === 0 ? (
+                  <TableEmptyState columns={7} />
+                ) : (
+                  filteredLeads.map(lead => (
                   <tr key={lead.id} className="hover:bg-gray-50/40 transition-colors group relative">
                     <td className="p-4 pl-6">
                       <button 
@@ -583,7 +593,8 @@ export default function LeadCRM() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
