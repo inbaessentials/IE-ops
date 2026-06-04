@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import CountUp from 'react-countup';
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -264,15 +265,17 @@ export default function Dashboard() {
   };
 
 
+// ... 
+
   const kpis = [
-    { title: getCardTitle("Total Sales"), value: formatCurrency(totalSalesSum), icon: IndianRupee, trend: totalSalesSum > 0 ? "+4.8%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/orders" },
-    { title: getCardTitle("Total Items Sold"), value: totalItemsSoldSum.toString(), icon: PackageCheck, trend: totalItemsSoldSum > 0 ? "+5.2%" : "0%", color: "text-blue-600", bg: "bg-blue-100", href: "/orders" },
-    { title: getCardTitle("Net Profit"), value: formatCurrency(netProfitSum), icon: TrendingUp, trend: netProfitSum > 0 ? "+8.4%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/orders" },
-    { title: getCardTitle("Margin (% Gained)"), value: `${marginPct.toFixed(1)}%`, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
-    { title: getCardTitle("Avg Order Value (AOV)"), value: formatCurrency(aovValue), icon: IndianRupee, trend: aovValue > 0 ? "Healthy" : "0%", color: "text-indigo-600", bg: "bg-indigo-100", href: "/orders" },
-    { title: getCardTitle("Pending Packing"), value: pendingPackingSum.toString(), icon: Truck, trend: pendingPackingSum > 0 ? "-2.4%" : "0%", color: "text-orange-600", bg: "bg-orange-100", href: "/orders" },
-    { title: getCardTitle("Total Purchase Value"), value: formatCurrency(totalPurchaseValueSum), icon: ShoppingBag, trend: "Overall", color: "text-teal-600", bg: "bg-teal-100", href: "/inventory" },
-    { title: getCardTitle("Total Expenses"), value: formatCurrency(totalExpensesSum), icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
+    { title: getCardTitle("Total Sales"), rawValue: totalSalesSum, isCurrency: true, icon: IndianRupee, trend: totalSalesSum > 0 ? "+4.8%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/orders" },
+    { title: getCardTitle("Total Items Sold"), rawValue: totalItemsSoldSum, icon: PackageCheck, trend: totalItemsSoldSum > 0 ? "+5.2%" : "0%", color: "text-blue-600", bg: "bg-blue-100", href: "/orders" },
+    { title: getCardTitle("Net Profit"), rawValue: netProfitSum, isCurrency: true, icon: TrendingUp, trend: netProfitSum > 0 ? "+8.4%" : "0%", color: "text-[#2E8C13]", bg: "bg-[#2E8C13]/10", href: "/orders" },
+    { title: getCardTitle("Margin (% Gained)"), rawValue: marginPct, isPercent: true, icon: Percent, trend: marginPct > 0 ? "+2.1%" : "0%", color: "text-purple-600", bg: "bg-purple-100", href: "/reports" },
+    { title: getCardTitle("Avg Order Value (AOV)"), rawValue: aovValue, isCurrency: true, icon: IndianRupee, trend: aovValue > 0 ? "Healthy" : "0%", color: "text-indigo-600", bg: "bg-indigo-100", href: "/orders" },
+    { title: getCardTitle("Pending Packing"), rawValue: pendingPackingSum, icon: Truck, trend: pendingPackingSum > 0 ? "-2.4%" : "0%", color: "text-orange-600", bg: "bg-orange-100", href: "/orders" },
+    { title: getCardTitle("Total Purchase Value"), rawValue: totalPurchaseValueSum, isCurrency: true, icon: ShoppingBag, trend: "Overall", color: "text-teal-600", bg: "bg-teal-100", href: "/inventory" },
+    { title: getCardTitle("Total Expenses"), rawValue: totalExpensesSum, isCurrency: true, icon: Wallet, trend: totalExpensesSum > 0 ? "+1.2%" : "0%", color: "text-gray-600", bg: "bg-gray-100", href: "/expenses" },
   ];
 
   const dashboardTitle = 'Operations Overview';
@@ -345,7 +348,16 @@ export default function Dashboard() {
                   <div>
                     <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{getCardTitle(kpi.title)}</p>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <h3 className="text-xl font-semibold tracking-tight text-gray-900">{kpi.value}</h3>
+                      <h3 className="text-xl font-semibold tracking-tight text-gray-900">
+                        <CountUp 
+                          end={kpi.rawValue} 
+                          decimals={kpi.isPercent ? 1 : 0} 
+                          prefix={kpi.isCurrency ? "₹" : ""} 
+                          suffix={kpi.isPercent ? "%" : ""} 
+                          duration={2.5} 
+                          separator="," 
+                        />
+                      </h3>
                       {totalSalesSum > 0 && (
                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                           kpi.trend.startsWith('+') ? 'bg-green-50 text-green-700' : 
