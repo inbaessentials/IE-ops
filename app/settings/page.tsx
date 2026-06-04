@@ -30,10 +30,28 @@ import {
   fetchSubscription,
   askKnowledgeBase
 } from "./api";
+import { supabase } from "@/lib/supabase";
 
 // --- Tab Components ---
 
 const OrganizationTab = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
+  useEffect(() => {
+    if (data.pincode && data.pincode.length === 6) {
+      fetch(`https://api.postalpincode.in/pincode/${data.pincode}`)
+        .then(res => res.json())
+        .then(json => {
+          if (json && json[0] && json[0].Status === "Success") {
+            const postOffice = json[0].PostOffice[0];
+            // Only update if they differ to avoid infinite loops
+            if (data.city !== postOffice.District || data.state !== postOffice.State) {
+              onChange({ ...data, city: postOffice.District, state: postOffice.State });
+            }
+          }
+        })
+        .catch(err => console.error("Error fetching pincode data:", err));
+    }
+  }, [data.pincode, data.city, data.state, onChange]);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl">
@@ -106,6 +124,13 @@ const OrganizationTab = ({ data, onChange }: { data: any, onChange: (d: any) => 
 const UsersTab = ({ users }: { users: any[] }) => {
   const toast = useToast();
   const loading = false;
+  
+  const roles = [
+    { name: "Admin", perms: ["View", "Edit", "Add", "Delete", "Export", "Settings"] },
+    { name: "Manager", perms: ["View", "Edit", "Add", "Export"] },
+    { name: "Staff", perms: ["View", "Add"] }
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl">
@@ -114,15 +139,32 @@ const UsersTab = ({ users }: { users: any[] }) => {
             <h2 className="text-lg font-bold text-gray-900">Users & Roles</h2>
             <p className="text-sm text-gray-500 mt-1">Manage team access and permissions.</p>
           </div>
-          <Button variant="outline" onClick={() => toast("Add user modal coming soon", "info")}>+ Add User</Button>
+          <Button className="font-semibold bg-[#2E8C13] hover:bg-[#257310]" onClick={() => toast("Add user modal coming soon", "info")}>+ Invite User</Button>
         </div>
 
-        <div className="mb-6 flex gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-gray-500 flex items-center mr-2">Available Roles:</span>
-          {["Admin", "Manager", "Staff"].map(role => (
-            <Badge key={role} variant="default" className="bg-gray-100 text-gray-600 border-gray-200">{role}</Badge>
-          ))}
+        <div className="mb-8">
+          <span className="text-sm font-semibold text-gray-800 block mb-3">Predefined Roles & Permissions:</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {roles.map(r => (
+              <div key={r.name} className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 hover:bg-gray-50 transition-colors">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-bold text-gray-900">{r.name}</span>
+                  <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => toast("Edit role permissions coming soon", "info")}>Edit</Button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {["View", "Edit", "Add", "Delete", "Export", "Settings"].map(p => (
+                    <label key={p} className="flex items-center gap-1.5 bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-gray-600">
+                      <input type="checkbox" checked={r.perms.includes(p)} readOnly className="rounded-sm text-[#2E8C13] focus:ring-[#2E8C13] w-2.5 h-2.5" />
+                      {p}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">Team Members</h3>
 
         {(!loading && users.length === 0) ? (
           <p className="text-sm text-gray-500">No users found.</p>
@@ -277,7 +319,7 @@ const AlertsTab = ({ data, onChange }: { data: any, onChange: (d: any) => void }
   );
 };
 
-const BillingTab = ({ subscription }: { subscription: any }) => {
+const BillingTab = ({ subscription, stats }: { subscription: any, stats: any }) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Card className="p-6 border border-gray-200 shadow-lg rounded-2xl bg-white text-gray-900">
@@ -295,19 +337,19 @@ const BillingTab = ({ subscription }: { subscription: any }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 mb-1">Users</p>
-            <p className="font-bold text-gray-900">4 / {subscription?.users_allowed || 10}</p>
+            <p className="font-bold text-gray-900">{stats.usersCount} / {subscription?.users_allowed || 10}</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 mb-1">Products</p>
-            <p className="font-bold text-gray-900">127 / {subscription?.products_allowed || 1000}</p>
+            <p className="font-bold text-gray-900">{stats.productsCount} / {subscription?.products_allowed || 1000}</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 mb-1">Orders This Month</p>
-            <p className="font-bold text-gray-900">345 / Unlimited</p>
+            <p className="font-bold text-gray-900">{stats.ordersMonthCount} / Unlimited</p>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 mb-1">Storage</p>
-            <p className="font-bold text-gray-900">450 MB / {subscription?.storage_limit_mb ? (subscription.storage_limit_mb / 1024).toFixed(1) : 5} GB</p>
+            <p className="font-bold text-gray-900">{stats.storageUsedMB} MB / {subscription?.storage_limit_mb ? (subscription.storage_limit_mb / 1024).toFixed(1) : 5} GB</p>
           </div>
         </div>
 
@@ -416,18 +458,35 @@ const KnowledgeBaseTab = () => {
           <p className="text-sm text-green-700 mt-1 mb-4">Get instant help from our team.</p>
           <span className="text-sm font-semibold text-green-800">Chat on WhatsApp</span>
         </a>
-        
-        <a href="tel:+919566201501" className="p-6 bg-blue-50 rounded-xl border border-blue-100 flex flex-col items-center text-center cursor-pointer hover:bg-blue-100 transition-colors">
-          <Phone className="w-8 h-8 text-blue-600 mb-3" />
-          <h3 className="font-bold text-blue-900">Call Support</h3>
-          <p className="text-sm text-blue-700 mt-1 mb-4">+91 95662 01501</p>
-          <span className="text-sm font-semibold text-blue-800">Call Now</span>
-        </a>
-      </div>
+        </div>
     </div>
   );
 };
 
+const SupportTab = () => {
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl">
+        <h2 className="text-lg font-bold text-gray-900 mb-6">Help & Support</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a href="mailto:support@inbaessentials.com" className="p-6 bg-orange-50 rounded-xl border border-orange-100 flex flex-col items-center text-center cursor-pointer hover:bg-orange-100 transition-colors">
+            <Mail className="w-8 h-8 text-orange-600 mb-3" />
+            <h3 className="font-bold text-orange-900">Email Support</h3>
+            <p className="text-sm text-orange-700 mt-1 mb-4">Response within 24 hours.</p>
+            <span className="text-sm font-semibold text-orange-800">Send Email</span>
+          </a>
+          
+          <a href="https://wa.me/919566201501" target="_blank" rel="noopener noreferrer" className="p-6 bg-green-50 rounded-xl border border-green-100 flex flex-col items-center text-center cursor-pointer hover:bg-green-100 transition-colors">
+            <MessageSquare className="w-8 h-8 text-green-600 mb-3" />
+            <h3 className="font-bold text-green-900">WhatsApp Chat</h3>
+            <p className="text-sm text-green-700 mt-1 mb-4">Get instant help from our team.</p>
+            <span className="text-sm font-semibold text-green-800">Chat on WhatsApp</span>
+          </a>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 // --- Main Page Component ---
 
@@ -445,6 +504,7 @@ export default function SettingsPage() {
   
   const [users, setUsers] = useState<any[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
+  const [billingStats, setBillingStats] = useState({ usersCount: 4, productsCount: 127, ordersMonthCount: 345, storageUsedMB: "450.0" });
 
   useEffect(() => {
     async function loadData() {
@@ -456,6 +516,23 @@ export default function SettingsPage() {
           fetchAlertSettings(),
           fetchSubscription()
         ]);
+        
+        // Fetch dynamic billing stats
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0,0,0,0);
+        
+        const [ {count: prodCount}, {count: ordCount} ] = await Promise.all([
+          supabase.from("products").select("*", { count: 'exact', head: true }),
+          supabase.from("orders").select("*", { count: 'exact', head: true }).gte('created_at', startOfMonth.toISOString())
+        ]);
+        
+        setBillingStats({
+          usersCount: usersRes ? usersRes.length : 1,
+          productsCount: prodCount || 0,
+          ordersMonthCount: ordCount || 0,
+          storageUsedMB: ((prodCount || 0) * 0.15).toFixed(1) // 150KB per product est
+        });
         
         if (orgRes) {
           setOrigOrgData(orgRes);
@@ -567,17 +644,14 @@ export default function SettingsPage() {
           {activeTab === "organization" && (
             <OrganizationTab data={orgData} onChange={setOrgData} />
           )}
-          {activeTab === "users" && (
-            <UsersTab users={users} />
-          )}
-          {activeTab === "alerts" && (
-            <AlertsTab data={alertData} onChange={setAlertData} />
-          )}
-          {activeTab === "billing" && (
-            <BillingTab subscription={subscription} />
-          )}
+          {activeTab === "users" && <UsersTab users={users} />}
+          {activeTab === "alerts" && <AlertsTab data={alertData} onChange={setAlertData} />}
+          {activeTab === "billing" && <BillingTab subscription={subscription} stats={billingStats} />}
           {activeTab === "support" && (
-            <KnowledgeBaseTab />
+            <div className="space-y-6">
+              <KnowledgeBaseTab />
+              <SupportTab />
+            </div>
           )}
         </div>
       </div>

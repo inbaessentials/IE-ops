@@ -106,16 +106,50 @@ export async function askKnowledgeBase(question: string) {
 
   const lowerQ = question.toLowerCase();
 
-  // Mock answers based on the prompt's examples
-  if (lowerQ.includes("add inventory")) {
-    return "1. Go to **Inventory** in the left menu.\n2. Click the **+ Add Product** button in the top right.\n3. Fill in the product details like name, SKU, price, and initial stock.\n4. Click **Save Product**.\n\n*Tip: Make sure to set a Low Stock Threshold to get alerted when supplies run low.*";
-  }
-  if (lowerQ.includes("purchase order")) {
-    return "1. Navigate to **Purchases**.\n2. Click **Create Purchase**.\n3. Select your Supplier from the dropdown (or add a new one).\n4. Add the items you are purchasing and their quantities.\n5. Click **Save Purchase Order**.";
-  }
-  if (lowerQ.includes("low stock")) {
-    return "1. Open **Inventory**.\n2. Use the **Filter** option and select **Low Stock**.\n3. You can also view this on the **Dashboard** under the Low Stock summary card.";
+  const qaDatabase = [
+    {
+      keywords: ["add inventory", "new product", "create product"],
+      answer: "1. Go to **Inventory** in the left menu.\n2. Click the **+ Add Product** button in the top right.\n3. Fill in the product details like name, SKU, price, and initial stock.\n4. Click **Save Product**.\n\n*Tip: Make sure to set a Low Stock Threshold to get alerted when supplies run low.*"
+    },
+    {
+      keywords: ["purchase order", "buy stock", "supplier"],
+      answer: "1. Navigate to **Purchases**.\n2. Click **Create Purchase**.\n3. Select your Supplier from the dropdown (or add a new one).\n4. Add the items you are purchasing and their quantities.\n5. Click **Save Purchase Order**."
+    },
+    {
+      keywords: ["low stock", "out of stock"],
+      answer: "1. Open **Inventory**.\n2. Use the **Filter** option and select **Low Stock**.\n3. You can also view this on the **Dashboard** under the Action Center card."
+    },
+    {
+      keywords: ["track expenses", "add expense", "record cost", "spending"],
+      answer: "1. Go to **Expenses** from the sidebar.\n2. Click **+ Add Expense**.\n3. Enter the amount, category, date, and description.\n4. Save it to immediately see it reflected in your Profit & Loss reports."
+    },
+    {
+      keywords: ["sales report", "revenue report", "profit", "reports", "export data"],
+      answer: "1. Go to **Reports**.\n2. View the **Revenue Trends** or **Profit & Loss** charts.\n3. You can filter the time period using the dropdown in the top right corner."
+    },
+    {
+      keywords: ["add customer", "new customer", "client"],
+      answer: "1. Navigate to **Customers**.\n2. Click the **+ Add Customer** button.\n3. Enter their Name, Phone, and shipping details.\n4. Click **Save** to start tracking their order history."
+    },
+    {
+      keywords: ["set goal", "sales target", "objective", "goals"],
+      answer: "1. Open the **Goals** module.\n2. Click **+ New Goal**.\n3. Choose between Sales Target, Order Volume, or Customer Acquisition.\n4. Set your timeframe and target value."
+    },
+    {
+      keywords: ["add user", "invite staff", "permissions", "roles"],
+      answer: "1. Go to **Settings** > **Users & Roles**.\n2. Click **+ Invite User**.\n3. Assign them a role (Admin, Manager, Staff) to control their permissions across modules."
+    },
+    {
+      keywords: ["create order", "new order", "record sale", "checkout"],
+      answer: "1. Go to **Orders**.\n2. Click **+ New Order**.\n3. Search for the customer or create a new one.\n4. Add products to their cart.\n5. Select the payment status and save to deduct inventory automatically."
+    }
+  ];
+
+  for (const entry of qaDatabase) {
+    if (entry.keywords.some(kw => lowerQ.includes(kw))) {
+      return entry.answer;
+    }
   }
 
-  return "I'm still learning! While I don't have a specific answer for that yet, you can try checking the relevant module from the left menu or contact our support team.";
+  return "I'm still learning! While I don't have a specific answer for that yet, you can try checking the relevant module from the left menu or contact our support team at support@inbaessentials.com.";
 }

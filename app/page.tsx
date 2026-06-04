@@ -524,7 +524,7 @@ export default function Dashboard() {
                         </div>
                         
                         <Link href="/inventory" className="shrink-0">
-                          <Button size="sm" className="bg-white text-gray-900 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-[11px] px-4 py-1.5 h-auto rounded-lg font-bold shadow-sm flex items-center gap-1.5 transition-all">
+                          <Button variant="outline" size="sm" className="text-[11px] px-4 py-1.5 h-auto rounded-lg font-bold shadow-sm flex items-center gap-1.5 transition-all hover:bg-gray-50">
                             <Plus className="w-3 h-3" /> Restock
                           </Button>
                         </Link>

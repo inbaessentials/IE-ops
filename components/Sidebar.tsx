@@ -26,6 +26,7 @@ const navItems = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Goals", href: "/goals", icon: Target },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -64,21 +65,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      
-      <div className="border-t border-gray-200 p-3 space-y-1">
-        <Link
-          href="/settings"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-            pathname.startsWith("/settings") 
-              ? "bg-[#2E8C13]/10 text-[#2E8C13]" 
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-          }`}
-        >
-          <Settings className={`w-5 h-5 ${pathname.startsWith("/settings") ? "text-[#2E8C13]" : "text-gray-400"}`} />
-          Settings
-        </Link>
-      </div>
-
     </aside>
   );
 }

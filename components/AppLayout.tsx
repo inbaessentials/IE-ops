@@ -27,7 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div 
           className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 bg-white border-r border-gray-200 w-64 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:relative md:flex shrink-0 print:hidden`}
+          } md:sticky md:top-0 md:h-screen md:flex shrink-0 print:hidden`}
         >
           {/* Close button for mobile inside sidebar */}
           <button 
