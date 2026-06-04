@@ -116,15 +116,51 @@ export default function CustomersPage() {
       setDbOrderItems(orderItemsData);
       setDbProducts(productsData);
 
-      const { data: dbCustomers } = await supabase.from("customers").select("*");
-      const customersData = dbCustomers || [];
+      let { data: dbCustomers } = await supabase.from("customers").select("*");
+      let customersData = dbCustomers || [];
 
-      // 2. Fetch local storage customers for notes (since they aren't in the DB schema yet)
+      // 2. Fetch local storage customers for auto-migration and notes
       const saved = localStorage.getItem("inba_customers_module");
       let localNotes: Record<string, CustomerNote[]> = {};
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
+
+          // Auto-migrate if Supabase is empty and local storage has customers
+          if (customersData.length === 0 && parsed.length > 0) {
+            const mockIds = ["CUST-001", "CUST-002", "CUST-003", "CUST-004", "CUST-005", "CUST-006"];
+            const validLocalCustomers = parsed.filter((c: any) => !mockIds.includes(c.id));
+            
+            if (validLocalCustomers.length > 0) {
+              const toInsert = validLocalCustomers.map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                phone: c.phone || "N/A",
+                email: c.email && c.email !== "N/A" ? c.email : null,
+                city: c.city && c.city !== "N/A" ? c.city : null,
+                shipping_address: c.shippingAddress && c.shippingAddress !== "No shipping address provided." ? c.shippingAddress : null,
+                joined_date: c.joinedDate ? new Date(c.joinedDate).toISOString() : new Date().toISOString()
+              }));
+              
+              const { error } = await supabase.from('customers').insert(toInsert);
+              if (!error) {
+                customersData = toInsert;
+              } else {
+                console.error("Migration error:", error);
+                // Fallback to displaying local data if insert failed
+                customersData = validLocalCustomers.map((c: any) => ({
+                  id: c.id,
+                  name: c.name,
+                  phone: c.phone,
+                  email: c.email,
+                  city: c.city,
+                  shipping_address: c.shippingAddress,
+                  joined_date: c.joinedDate
+                }));
+              }
+            }
+          }
+
           parsed.forEach((c: any) => {
             if (c.customerNotes && c.customerNotes.length > 0) {
               localNotes[c.id] = c.customerNotes;
