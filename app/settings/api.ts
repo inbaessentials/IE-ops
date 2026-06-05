@@ -86,20 +86,19 @@ export async function updateRole(id: string, payload: any) {
 }
 
 export async function inviteUser(payload: { name: string; email: string; role: string; status: string }) {
-  const { data, error } = await supabase
-    .from("users")
-    .insert([{
-      name: payload.name,
-      email: payload.email,
-      role: payload.role,
-      status: payload.status,
-      created_at: new Date().toISOString()
-    }])
-    .select()
-    .single();
+  const response = await fetch("/api/invite", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-  if (error) throw error;
-  return data;
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error || "Failed to invite user");
+  }
+
+  return result.data;
 }
 
 export async function fetchAlertSettings() {
