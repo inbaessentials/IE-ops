@@ -252,6 +252,7 @@ export default function SalesPage() {
   const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
   const [viewingOrder, setViewingOrder] = useState<any>(null);
   const [printingOrder, setPrintingOrder] = useState<any>(null);
+  const [orgSettings, setOrgSettings] = useState<any>(null);
 
   const getModuleProp = (moduleKey: string, prop: 'displayName' | 'singularDisplayName' | 'description' | 'emptyStateText') => {
     return config.modules.find(m => m.key === moduleKey)?.[prop] || '';
@@ -345,6 +346,13 @@ export default function SalesPage() {
     }
 
     setDbCustomers(customerList);
+
+    // Fetch org settings for print slips
+    const { data: orgData } = await supabase.from('settings_organization').select('*').limit(1).single();
+    if (orgData) {
+      setOrgSettings(orgData);
+    }
+
     setLoading(false);
   };
 
@@ -2258,9 +2266,16 @@ export default function SalesPage() {
                             </div>
                           </td>
                           <td className="align-middle pl-5 border-l border-gray-100">
-                            <h1 className="m-0 mb-1 text-[22px] font-bold tracking-[-0.4px] leading-[1.2] text-[#1a1a1a]">Inba Essentials</h1>
-                            <p className="m-0 text-[11px] text-[#666] font-normal leading-[1.35]">Opp. to Annamar Petrol Bunk, Housing Unit,<br/>Moolapalayam, Erode, Tamil Nadu 638002</p>
-                            <p className="mt-1 mb-0 text-[11px] text-[#666] font-medium">inbaessentials@gmail.com</p>
+                            <h1 className="m-0 mb-1 text-[22px] font-bold tracking-[-0.4px] leading-[1.2] text-[#1a1a1a]">{orgSettings?.business_name || "Inba Essentials"}</h1>
+                            <p className="m-0 text-[11px] text-[#666] font-normal leading-[1.35] whitespace-pre-line">{orgSettings?.business_address || "Opp. to Annamar Petrol Bunk, Housing Unit,\nMoolapalayam, Erode, Tamil Nadu 638002"}</p>
+                            {(orgSettings?.city || orgSettings?.state || orgSettings?.pincode) && (
+                              <p className="m-0 text-[11px] text-[#666] font-normal leading-[1.35] mt-1">
+                                {[orgSettings.city, orgSettings.state, orgSettings.pincode].filter(Boolean).join(", ")}
+                              </p>
+                            )}
+                            <p className="mt-1 mb-0 text-[11px] text-[#666] font-medium">{orgSettings?.email_address || "inbaessentials@gmail.com"}</p>
+                            {orgSettings?.mobile_number && <p className="m-0 text-[11px] text-[#666] font-medium">Ph: {orgSettings.mobile_number}</p>}
+                            {orgSettings?.gst_number && <p className="m-0 text-[11px] text-[#666] font-medium uppercase mt-1">GSTIN: {orgSettings.gst_number}</p>}
                           </td>
                         </tr>
                       </tbody>

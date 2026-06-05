@@ -48,6 +48,59 @@ export async function fetchUsers() {
   return data;
 }
 
+export async function fetchRoles() {
+  const { data, error } = await supabase
+    .from("roles")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching roles:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function createRole(payload: any) {
+  const { data, error } = await supabase
+    .from("roles")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateRole(id: string, payload: any) {
+  const { data, error } = await supabase
+    .from("roles")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function inviteUser(payload: { name: string; email: string; role: string; status: string }) {
+  const { data, error } = await supabase
+    .from("users")
+    .insert([{
+      name: payload.name,
+      email: payload.email,
+      role: payload.role,
+      status: payload.status,
+      created_at: new Date().toISOString()
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchAlertSettings() {
   const { data, error } = await supabase
     .from("settings_alerts")

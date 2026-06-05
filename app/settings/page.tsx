@@ -32,7 +32,11 @@ import {
   fetchAlertSettings, 
   updateAlertSettings, 
   fetchSubscription,
-  askKnowledgeBase
+  askKnowledgeBase,
+  fetchRoles,
+  createRole,
+  updateRole,
+  inviteUser
 } from "./api";
 import { supabase } from "@/lib/supabase";
 
@@ -143,41 +147,119 @@ const OrganizationTab = ({ data, onChange }: { data: any, onChange: (d: any) => 
   );
 };
 
-const UsersTab = ({ users }: { users: any[] }) => {
+const CustomCheckbox = ({ checked, onChange, disabled }: { checked: boolean; onChange?: () => void; disabled?: boolean }) => (
+  <div 
+    onClick={disabled ? undefined : onChange}
+    className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${checked ? 'bg-[#2E8C13] border-[#2E8C13]' : 'bg-white border-gray-300'}`}
+  >
+    {checked && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+  </div>
+);
+
+const UsersTab = () => {
   const toast = useToast();
-  const loading = false;
-  
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
   const [activeRoleTab, setActiveRoleTab] = useState("Admin");
+
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("Staff");
   const [inviteStatus, setInviteStatus] = useState("Invited");
 
-  const roles = [
-    { name: "Admin", perms: ["View", "Edit", "Add", "Delete", "Export", "Settings"] },
-    { name: "Manager", perms: ["View", "Edit", "Add", "Export"] },
-    { name: "Staff", perms: ["View", "Add"] }
-  ];
-  
-  const modules = ["Dashboard", "Inventory", "Sales", "Purchases", "Expenses", "Customers", "Reports", "Settings"];
+  const [isCustomRoleOpen, setIsCustomRoleOpen] = useState(false);
+  const [customRoleName, setCustomRoleName] = useState("");
+  const [customPermissions, setCustomPermissions] = useState<any>({});
+
+  const modulesList = ["Dashboard", "Inventory", "Sales", "Purchases", "Expenses", "Customers", "Reports", "Settings"];
   const actionItems = ["View", "Edit", "Add", "Delete", "Export", "Settings"];
 
-  const handleInviteUser = (e: React.FormEvent) => {
+  const loadData = async () => {
+    setLoading(true);
+    const fetchedUsers = await fetchUsers();
+    const fetchedRoles = await fetchRoles();
+    setUsers(fetchedUsers || []);
+    
+    if (fetchedRoles && fetchedRoles.length > 0) {
+      setRoles(fetchedRoles);
+      if (!fetchedRoles.find((r: any) => r.name === activeRoleTab)) {
+        setActiveRoleTab(fetchedRoles[0].name);
+      }
+    } else {
+      // Fallback
+      const defaultRoles = [
+        { name: "Admin", is_custom: false, permissions: { Dashboard: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Inventory: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Sales: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Purchases: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Expenses: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Customers: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Reports: ["View", "Edit", "Add", "Delete", "Export", "Settings"], Settings: ["View", "Edit", "Add", "Delete", "Export", "Settings"] } },
+        { name: "Manager", is_custom: false, permissions: { Dashboard: ["View", "Edit", "Export"], Inventory: ["View", "Edit", "Add", "Export"], Sales: ["View", "Edit", "Add", "Export"], Purchases: ["View", "Edit", "Add", "Export"], Expenses: ["View", "Edit", "Add", "Export"], Customers: ["View", "Edit", "Add", "Export"], Reports: ["View", "Edit", "Export"], Settings: ["View"] } },
+        { name: "Staff", is_custom: false, permissions: { Dashboard: ["View"], Inventory: ["View"], Sales: ["View", "Add"], Purchases: ["View"], Expenses: ["View", "Add"], Customers: ["View", "Add"], Reports: ["View"], Settings: ["View"] } }
+      ];
+      setRoles(defaultRoles);
+      setActiveRoleTab("Admin");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteName || !inviteEmail) {
       toast("Please provide name and email", "error");
       return;
     }
-    toast(`User ${inviteEmail} invited successfully as ${inviteStatus}`, "success");
-    setIsInviteOpen(false);
-    setInviteName("");
-    setInviteEmail("");
-    setInviteStatus("Invited");
+    try {
+      await inviteUser({ name: inviteName, email: inviteEmail, role: inviteRole, status: inviteStatus });
+      toast(`User ${inviteEmail} invited successfully`, "success");
+      setIsInviteOpen(false);
+      setInviteName("");
+      setInviteEmail("");
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast("Failed to invite user", "error");
+    }
   };
+
+  const handleCreateCustomRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customRoleName.trim()) {
+      toast("Please provide a role name", "error");
+      return;
+    }
+    try {
+      await createRole({ name: customRoleName, is_custom: true, permissions: customPermissions });
+      toast(`Role ${customRoleName} created`, "success");
+      setIsCustomRoleOpen(false);
+      setCustomRoleName("");
+      setCustomPermissions({});
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast("Failed to create role", "error");
+    }
+  };
+
+  const togglePermission = (mod: string, action: string) => {
+    setCustomPermissions((prev: any) => {
+      const newPerms = { ...prev };
+      if (!newPerms[mod]) newPerms[mod] = [];
+      if (newPerms[mod].includes(action)) {
+        newPerms[mod] = newPerms[mod].filter((a: string) => a !== action);
+      } else {
+        newPerms[mod].push(action);
+      }
+      return newPerms;
+    });
+  };
+
+  const activeRoleObj = roles.find(r => r.name === activeRoleTab);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl">
+      <Card className="p-6 border border-gray-100 shadow-sm rounded-2xl bg-white">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Users & Roles</h2>
@@ -187,16 +269,21 @@ const UsersTab = ({ users }: { users: any[] }) => {
         </div>
 
         <div className="mb-8">
-          <span className="text-sm font-semibold text-gray-800 block mb-3">Predefined Roles & Permissions:</span>
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-sm font-semibold text-gray-800">Predefined & Custom Roles:</span>
+            <Button variant="outline" size="sm" onClick={() => setIsCustomRoleOpen(true)} className="text-xs h-8">
+              + Add Custom Role
+            </Button>
+          </div>
           
-          <div className="flex border-b border-gray-200 gap-4 mb-4">
+          <div className="flex border-b border-gray-200 gap-4 mb-4 overflow-x-auto pb-1 scrollbar-hide">
             {roles.map(r => (
               <button
                 key={r.name}
                 onClick={() => setActiveRoleTab(r.name)}
-                className={`pb-2 px-2 text-sm font-bold border-b-2 transition-colors ${activeRoleTab === r.name ? "border-[#2E8C13] text-[#2E8C13]" : "border-transparent text-gray-500 hover:text-gray-900"}`}
+                className={`pb-2 px-2 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeRoleTab === r.name ? "border-[#2E8C13] text-[#2E8C13]" : "border-transparent text-gray-500 hover:text-gray-900"}`}
               >
-                {r.name}
+                {r.name} {r.is_custom && <span className="ml-1 text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full">Custom</span>}
               </button>
             ))}
           </div>
@@ -213,19 +300,18 @@ const UsersTab = ({ users }: { users: any[] }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {modules.map(mod => {
-                    const activeRoleObj = roles.find(r => r.name === activeRoleTab);
+                  {modulesList.map(mod => {
+                    const rolePermsForMod = activeRoleObj?.permissions?.[mod] || [];
+                    // Fallback for old roles structure
+                    const legacyPerms = activeRoleObj?.perms || [];
+                    const hasPerm = (action: string) => rolePermsForMod.includes(action) || legacyPerms.includes(action);
+
                     return (
                       <tr key={mod} className="hover:bg-gray-50/50">
                         <td className="p-4 pl-6 text-sm font-semibold text-gray-800">{mod}</td>
                         {actionItems.map(action => (
-                          <td key={action} className="p-4 text-center">
-                            <input 
-                              type="checkbox" 
-                              checked={activeRoleObj?.perms.includes(action) || false} 
-                              readOnly 
-                              className="rounded text-[#2E8C13] focus:ring-[#2E8C13] w-4 h-4 cursor-not-allowed opacity-80" 
-                            />
+                          <td key={action} className="p-4 flex justify-center">
+                            <CustomCheckbox checked={hasPerm(action)} disabled={true} />
                           </td>
                         ))}
                       </tr>
@@ -240,71 +326,132 @@ const UsersTab = ({ users }: { users: any[] }) => {
         <h3 className="text-sm font-semibold text-gray-800 mb-3">Team Members</h3>
 
         {(!loading && users.length === 0) ? (
-          <p className="text-sm text-gray-500">No users found.</p>
+          <p className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg text-center border border-dashed border-gray-200">No users found. Invite your team to get started.</p>
         ) : (
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider border-y border-gray-100">
-                <th className="p-4 pl-6">Name</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Last Login</th>
-                <th className="p-4 text-right pr-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 text-sm font-medium">
-                {loading ? (
-                  <TableSkeleton columns={7} />
-                ) : users?.length === 0 ? (
-                  <TableEmptyState columns={7} />
-                ) : (
-                  users.map(u => (
-                <tr key={u.id}>
-                  <td className="p-4 pl-6 text-gray-900">
-                    <div>{u.name}</div>
-                    <div className="text-xs text-gray-500 font-normal mt-0.5">{u.email}</div>
-                  </td>
-                  <td className="p-4 text-gray-600">{u.role}</td>
-                  <td className="p-4">
-                    <Badge variant="default" className={u.status === 'Active' ? "bg-emerald-50 text-emerald-700" : "bg-gray-50 text-gray-700"}>
-                      {u.status}
-                    </Badge>
-                  </td>
-                  <td className="p-4 text-gray-500">{u.last_login ? new Date(u.last_login).toLocaleDateString() : "Never"}</td>
-                  <td className="p-4 text-right pr-6">
-                    <Button variant="ghost" size="sm" onClick={() => toast("Edit user coming soon", "info")}>Edit</Button>
-                  </td>
+          <div className="overflow-hidden rounded-xl border border-gray-200">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                  <th className="p-4 pl-6">Name</th>
+                  <th className="p-4">Role</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4">Last Login</th>
+                  <th className="p-4 text-right pr-6">Actions</th>
                 </tr>
-              ))
-                )}
-              </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm font-medium bg-white">
+                  {loading ? (
+                    <TableSkeleton columns={5} />
+                  ) : users?.length === 0 ? (
+                    <TableEmptyState columns={5} />
+                  ) : (
+                    users.map(u => (
+                  <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4 pl-6 text-gray-900">
+                      <div className="font-bold">{u.name}</div>
+                      <div className="text-xs text-gray-500 font-normal mt-0.5">{u.email}</div>
+                    </td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-700">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <Badge variant="default" className={u.status === 'Active' ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"}>
+                        {u.status}
+                      </Badge>
+                    </td>
+                    <td className="p-4 text-gray-500 text-xs">{u.last_login ? new Date(u.last_login).toLocaleDateString() : "Never Logged In"}</td>
+                    <td className="p-4 text-right pr-6">
+                      <Button variant="ghost" size="sm" onClick={() => toast("Edit user coming soon", "info")}>Edit</Button>
+                    </td>
+                  </tr>
+                ))
+                  )}
+                </tbody>
+            </table>
+          </div>
         )}
       </Card>
       
+      {/* Invite User Drawer */}
       <Drawer isOpen={isInviteOpen} onClose={() => setIsInviteOpen(false)} title="Invite User">
-        <form className="space-y-6" onSubmit={handleInviteUser}>
+        <form className="space-y-6 font-sans" onSubmit={handleInviteUser}>
           <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input required type="text" value={inviteName} onChange={e => setInviteName(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" />
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Name</label>
+              <input required type="text" placeholder="e.g. John Doe" value={inviteName} onChange={e => setInviteName(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-medium" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
-              <input required type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20" />
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Email ID</label>
+              <input required type="email" placeholder="john@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-medium" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select value={inviteStatus} onChange={e => setInviteStatus(e.target.value)} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20">
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Role</label>
+              <select value={inviteRole} onChange={e => setInviteRole(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-medium cursor-pointer">
+                {roles.map(r => (
+                  <option key={r.name} value={r.name}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Status</label>
+              <select value={inviteStatus} onChange={e => setInviteStatus(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-medium cursor-pointer">
                 <option value="Invited">Invited</option>
                 <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
               </select>
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-3 mt-6">
             <Button type="button" variant="ghost" onClick={() => setIsInviteOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Invite User</Button>
+            <Button type="submit" variant="primary" className="font-bold">Send Invite</Button>
+          </div>
+        </form>
+      </Drawer>
+
+      {/* Add Custom Role Drawer */}
+      <Drawer isOpen={isCustomRoleOpen} onClose={() => setIsCustomRoleOpen(false)} title="Create Custom Role">
+        <form className="space-y-6 font-sans" onSubmit={handleCreateCustomRole}>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Role Name</label>
+              <input required type="text" placeholder="e.g. Auditor" value={customRoleName} onChange={e => setCustomRoleName(e.target.value)} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 text-sm font-medium" />
+            </div>
+            
+            <div className="pt-4">
+              <label className="block text-sm font-semibold text-gray-800 mb-3">Permissions Matrix</label>
+              <div className="border border-gray-200 rounded-xl overflow-hidden bg-white max-h-[400px] overflow-y-auto">
+                <table className="w-full text-left">
+                  <thead className="sticky top-0 bg-gray-50 z-10">
+                    <tr className="text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                      <th className="p-3 pl-4">Module</th>
+                      {actionItems.map(action => (
+                        <th key={action} className="p-3 text-center">{action}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {modulesList.map(mod => (
+                      <tr key={mod} className="hover:bg-gray-50/50">
+                        <td className="p-3 pl-4 text-xs font-bold text-gray-800">{mod}</td>
+                        {actionItems.map(action => (
+                          <td key={action} className="p-3 flex justify-center">
+                            <CustomCheckbox 
+                              checked={customPermissions[mod]?.includes(action) || false} 
+                              onChange={() => togglePermission(mod, action)} 
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div className="pt-4 flex justify-end gap-3 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setIsCustomRoleOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary" className="font-bold">Save Custom Role</Button>
           </div>
         </form>
       </Drawer>
@@ -791,7 +938,7 @@ export default function SettingsPage() {
           {activeTab === "organization" && (
             <OrganizationTab data={orgData} onChange={setOrgData} />
           )}
-          {activeTab === "users" && <UsersTab users={users} />}
+          {activeTab === "users" && <UsersTab />}
           {activeTab === "alerts" && <AlertsTab data={alertData} onChange={setAlertData} />}
           {activeTab === "billing" && <BillingTab subscription={subscription} stats={billingStats} />}
           {activeTab === "support" && (
