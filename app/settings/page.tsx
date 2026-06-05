@@ -852,40 +852,46 @@ export default function SettingsPage() {
     loadData();
   }, []);
 
-  const hasUnsavedChanges = JSON.stringify(origOrgData) !== JSON.stringify(orgData) || 
-                            JSON.stringify(origAlertData) !== JSON.stringify(alertData);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+    if (loading) return;
+    const hasOrgChanges = JSON.stringify(origOrgData) !== JSON.stringify(orgData);
+    const hasAlertChanges = JSON.stringify(origAlertData) !== JSON.stringify(alertData);
+    
+    if (!hasOrgChanges && !hasAlertChanges) return;
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      if (JSON.stringify(origOrgData) !== JSON.stringify(orgData)) {
-        const res = await updateOrganizationSettings(orgData.id, orgData);
-        setOrigOrgData(res);
-        setOrgData(res);
+    setSaveStatus("saving");
+    const timer = setTimeout(async () => {
+      try {
+        if (hasOrgChanges) {
+          const res = await updateOrganizationSettings(orgData.id, orgData);
+          if (!orgData.id && res?.id) {
+            setOrgData((prev: any) => ({ ...prev, id: res.id }));
+            setOrigOrgData((prev: any) => ({ ...prev, id: res.id }));
+          } else {
+            setOrigOrgData(orgData);
+          }
+        }
+        if (hasAlertChanges) {
+          const res = await updateAlertSettings(alertData.id, alertData);
+          if (!alertData.id && res?.id) {
+            setAlertData((prev: any) => ({ ...prev, id: res.id }));
+            setOrigAlertData((prev: any) => ({ ...prev, id: res.id }));
+          } else {
+            setOrigAlertData(alertData);
+          }
+        }
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } catch (e) {
+        console.error("Auto-save failed", e);
+        setSaveStatus("error");
       }
-      if (JSON.stringify(origAlertData) !== JSON.stringify(alertData)) {
-        const res = await updateAlertSettings(alertData.id, alertData);
-        setOrigAlertData(res);
-        setAlertData(res);
-      }
-      toast("Settings saved successfully", "success");
-    } catch (e) {
-      console.error(e);
-      toast("Failed to save settings", "error");
-    }
-    setSaving(false);
-  };
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [orgData, alertData, origOrgData, origAlertData, loading]);
 
   const tabs = [
     { id: "organization", label: "Organization Details", icon: Building2 },
@@ -907,12 +913,15 @@ export default function SettingsPage() {
           <p className="text-sm text-gray-500 mt-0.5">Manage your business configuration and preferences.</p>
         </div>
         <div className="flex items-center gap-4">
-          {hasUnsavedChanges && (
-            <span className="text-sm text-amber-600 font-medium animate-pulse">Unsaved changes</span>
+          {saveStatus === "saving" && (
+            <span className="text-sm text-amber-600 font-medium animate-pulse flex items-center gap-1.5"><div className="w-3 h-3 rounded-full border-2 border-amber-600 border-t-transparent animate-spin"></div> Saving...</span>
           )}
-          <Button onClick={handleSave} disabled={saving || !hasUnsavedChanges} variant="primary">
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
+          {saveStatus === "saved" && (
+            <span className="text-sm text-emerald-600 font-medium flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Saved</span>
+          )}
+          {saveStatus === "error" && (
+            <span className="text-sm text-red-600 font-medium">Save failed</span>
+          )}
         </div>
       </div>
 

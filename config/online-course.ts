@@ -4,8 +4,8 @@ export const OnlineCourseConfig = {
     { name: "Inventory", label: "Courses" },
     { name: "Sales", label: "Enrollments" },
     { name: "Leads", label: "Lead CRM" },
-    { name: "Followups", label: "Follow-up Center" },
-    { name: "Purchases", label: "Marketing Spend" },
+    // { name: "Followups", label: "Follow-up Center" },
+    // { name: "Purchases", label: "Marketing Spend" },
     { name: "Returns", label: "Refunds" },
     { name: "Expenses", label: "Expenses" }, // Retain original module key
     { name: "Customers", label: "Students" },

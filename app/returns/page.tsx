@@ -387,20 +387,27 @@ export default function ReturnsPage() {
                 ) : (
                   filteredRefunds.map((ref) => (
                   <tr key={ref.id} className="hover:bg-gray-50/40 transition-colors group relative">
-                    <td className="p-4 pl-6 whitespace-nowrap text-sm font-semibold text-primary font-mono">{ref.refund_id}</td>
-                    <td className="p-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                    <td className="p-4 pl-6 whitespace-nowrap">
+                      <button 
+                        type="button"
+                        className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left block font-mono"
+                      >
+                        {ref.refund_id}
+                      </button>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                       {ref.date}
                     </td>
-                    <td className="p-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                       {ref.student}
                     </td>
-                    <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-600 max-w-xs truncate" title={ref.course}>
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-600 max-w-xs truncate" title={ref.course}>
                       {ref.course}
                     </td>
-                    <td className="p-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                       ₹{ref.amount.toLocaleString("en-IN")}
                     </td>
-                    <td className="p-4 whitespace-nowrap text-sm font-medium text-gray-600">
+                    <td className="p-4 whitespace-nowrap text-sm text-gray-600">
                       {ref.reason}
                     </td>
                     <td className="p-4 whitespace-nowrap">

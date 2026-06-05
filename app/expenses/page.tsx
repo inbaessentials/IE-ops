@@ -500,30 +500,28 @@ export default function ExpensesPage() {
                   filteredExpenses.map((exp) => {
                   const d = new Date(exp.date);
                   return (
-                    <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <tr key={exp.id} className="hover:bg-gray-50/40 transition-colors group relative">
                       <td className="p-4 pl-6 whitespace-nowrap">
                         <div className="flex flex-col">
                           <button 
                             type="button"
                             onClick={() => handleOpenEdit(exp)}
-                            className="text-sm font-semibold text-primary hover:text-[#257310] hover:underline transition-all text-left"
+                            className="text-sm font-bold text-primary hover:text-[#257310] hover:underline transition-all text-left block"
                           >
                             {exp.display_id || `EXP-${exp.id.substring(0, 4).toUpperCase()}`}
                           </button>
-                          <span className="text-xs text-gray-500 mt-0.5">
+                          <span className="text-xs text-gray-500 mt-0.5 font-semibold">
                             {d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         </div>
                       </td>
-                      <td className="p-4 whitespace-nowrap">
-                        <Badge variant="default" className={`${getCategoryBadgeStyles(exp.category)} shrink-0 px-2.5 py-0.5 font-semibold`}>
-                          {exp.category || "Unassigned"}
-                        </Badge>
+                      <td className="p-4 whitespace-nowrap text-sm text-gray-600">
+                        {exp.category || "Unassigned"}
                       </td>
                       <td className="p-4 max-w-sm">
-                        <p className="text-sm text-gray-600 truncate font-medium">{exp.notes || "—"}</p>
+                        <p className="text-sm text-gray-600 truncate">{exp.notes || "—"}</p>
                       </td>
-                      <td className="p-4 whitespace-nowrap text-right font-medium text-gray-900">
+                      <td className="p-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">
                         ₹{exp.amount?.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-4 whitespace-nowrap text-right pr-6">

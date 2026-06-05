@@ -15,22 +15,23 @@ export async function fetchOrganizationSettings() {
 }
 
 export async function updateOrganizationSettings(id: string | undefined, payload: any) {
+  const { id: _id, created_at, ...updatePayload } = payload;
   if (id) {
     const { data, error } = await supabase
       .from("settings_organization")
-      .update(payload)
+      .update(updatePayload)
       .eq("id", id)
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error("Supabase Update Org Error:", error); throw error; }
     return data;
   } else {
     const { data, error } = await supabase
       .from("settings_organization")
-      .insert([payload])
+      .insert([updatePayload])
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error("Supabase Insert Org Error:", error); throw error; }
     return data;
   }
 }
@@ -116,22 +117,23 @@ export async function fetchAlertSettings() {
 }
 
 export async function updateAlertSettings(id: string | undefined, payload: any) {
+  const { id: _id, created_at, ...updatePayload } = payload;
   if (id) {
     const { data, error } = await supabase
       .from("settings_alerts")
-      .update(payload)
+      .update(updatePayload)
       .eq("id", id)
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error("Supabase Update Alert Error:", error); throw error; }
     return data;
   } else {
     const { data, error } = await supabase
       .from("settings_alerts")
-      .insert([payload])
+      .insert([updatePayload])
       .select()
       .single();
-    if (error) throw error;
+    if (error) { console.error("Supabase Insert Alert Error:", error); throw error; }
     return data;
   }
 }
