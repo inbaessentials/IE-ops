@@ -310,8 +310,10 @@ const UsersTab = () => {
                       <tr key={mod} className="hover:bg-gray-50/50">
                         <td className="p-4 pl-6 text-sm font-semibold text-gray-800">{mod}</td>
                         {actionItems.map(action => (
-                          <td key={action} className="p-4 flex justify-center">
-                            <CustomCheckbox checked={hasPerm(action)} disabled={true} />
+                          <td key={action} className="p-4 text-center">
+                            <div className="flex justify-center">
+                              <CustomCheckbox checked={hasPerm(action)} disabled={true} />
+                            </div>
                           </td>
                         ))}
                       </tr>
@@ -435,11 +437,13 @@ const UsersTab = () => {
                       <tr key={mod} className="hover:bg-gray-50/50">
                         <td className="p-3 pl-4 text-xs font-bold text-gray-800">{mod}</td>
                         {actionItems.map(action => (
-                          <td key={action} className="p-3 flex justify-center">
-                            <CustomCheckbox 
-                              checked={customPermissions[mod]?.includes(action) || false} 
-                              onChange={() => togglePermission(mod, action)} 
-                            />
+                          <td key={action} className="p-3 text-center">
+                            <div className="flex justify-center">
+                              <CustomCheckbox 
+                                checked={customPermissions[mod]?.includes(action) || false} 
+                                onChange={() => togglePermission(mod, action)} 
+                              />
+                            </div>
                           </td>
                         ))}
                       </tr>
